@@ -34,3 +34,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# database
+/data/*.db
+/data/*.db-journal
+/data/*.db-shm
+/data/*.db-wal
+
+# certificates
+/certificates/
+
+# excel temp files
+~$*
+
+# source data files with camper PII
+*.xlsx
+*.xls

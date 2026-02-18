@@ -1,26 +1,47 @@
 {
-  "name": "ryla-temp",
+  "name": "ryla-health",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "npx tsx scripts/seed.ts",
+    "setup-pins": "npx tsx scripts/setup-pins.ts"
   },
   "dependencies": {
+    "@types/leaflet": "^1.9.21",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.6.2",
+    "drizzle-orm": "^0.45.1",
+    "idb": "^8.0.3",
+    "iron-session": "^8.0.4",
+    "jspdf": "^4.1.0",
+    "jspdf-autotable": "^5.0.7",
+    "leaflet": "^1.9.4",
+    "next": "14.2.35",
+    "papaparse": "^5.5.3",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.2.35"
+    "react-leaflet": "^4.2.1",
+    "uuid": "^13.0.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/uuid": "^10.0.0",
+    "drizzle-kit": "^0.31.9",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.35",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.35"
+    "tsx": "^4.21.0",
+    "typescript": "^5"
   }
 }
