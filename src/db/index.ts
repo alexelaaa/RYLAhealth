@@ -1,25 +1,48 @@
 import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { drizzle, BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import * as schema from "./schema";
 import { runMigrations } from "./migrations";
 import path from "path";
 import fs from "fs";
 
-const dbPath = process.env.DATABASE_PATH || "./data/ryla.db";
-const resolvedPath = path.resolve(dbPath);
+let _sqlite: Database.Database | null = null;
+let _db: BetterSQLite3Database<typeof schema> | null = null;
 
-// Ensure data directory exists (needed during Railway build)
-const dataDir = path.dirname(resolvedPath);
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+function init() {
+  if (_sqlite && _db) return { sqlite: _sqlite, db: _db };
+
+  const dbPath = process.env.DATABASE_PATH || "./data/ryla.db";
+  const resolvedPath = path.resolve(dbPath);
+
+  // Ensure data directory exists
+  const dataDir = path.dirname(resolvedPath);
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+
+  _sqlite = new Database(resolvedPath);
+  _sqlite.pragma("busy_timeout = 5000");
+  _sqlite.pragma("journal_mode = WAL");
+  _sqlite.pragma("foreign_keys = ON");
+
+  runMigrations(_sqlite);
+
+  _db = drizzle(_sqlite, { schema });
+  return { sqlite: _sqlite, db: _db };
 }
 
-const sqlite = new Database(resolvedPath);
-sqlite.pragma("busy_timeout = 5000");
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const db = new Proxy({} as BetterSQLite3Database<typeof schema>, {
+  get(_target, prop) {
+    const { db } = init();
+    return (db as any)[prop];
+  },
+});
 
-runMigrations(sqlite);
-
-export const db = drizzle(sqlite, { schema });
-export { sqlite };
+export const sqlite = new Proxy({} as Database.Database, {
+  get(_target, prop) {
+    const { sqlite } = init();
+    return (sqlite as any)[prop];
+  },
+});
+/* eslint-enable @typescript-eslint/no-explicit-any */
