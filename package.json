@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "bash scripts/ensure-db.sh && npx tsx scripts/ensure-pins.ts && next start -p ${PORT:-3000}",
     "lint": "next lint",
     "seed": "npx tsx scripts/seed.ts",
     "setup-pins": "npx tsx scripts/setup-pins.ts"
