@@ -4,7 +4,31 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import AppShell from "@/components/layout/AppShell";
 import { useCamp } from "@/lib/camp-context";
+import { MEDICATION_SCHEDULES } from "@/lib/constants";
 import type { MedicalAlertCamper } from "@/lib/medical-filters";
+
+const SCHEDULE_HOURS: Record<string, { start: number; end: number }> = {
+  morning: { start: 6, end: 10 },
+  afternoon: { start: 12, end: 14 },
+  evening: { start: 16, end: 20 },
+  bedtime: { start: 20, end: 22 },
+};
+
+const scheduleColors: Record<string, string> = {
+  morning: "bg-yellow-100 text-yellow-800",
+  afternoon: "bg-blue-100 text-blue-800",
+  evening: "bg-purple-100 text-purple-800",
+  bedtime: "bg-indigo-100 text-indigo-800",
+  with_meals: "bg-green-100 text-green-800",
+  as_needed: "bg-slate-100 text-slate-700",
+};
+
+function getActiveScheduleKeys(): string[] {
+  const hour = new Date().getHours();
+  return Object.entries(SCHEDULE_HOURS)
+    .filter(([, { start, end }]) => hour >= start && hour < end)
+    .map(([key]) => key);
+}
 
 interface Stats {
   totalCampers: number;
@@ -37,16 +61,18 @@ interface AlertsSummary {
   medications: number;
   conditions: number;
   dietary: number;
-  timedMedications: number;
   totalFlagged: number;
+}
+
+interface MedCamper extends MedicalAlertCamper {
+  medicationSchedule?: string[];
 }
 
 interface AlertsData {
   allergies: MedicalAlertCamper[];
-  medications: MedicalAlertCamper[];
+  medications: MedCamper[];
   conditions: MedicalAlertCamper[];
   dietary: MedicalAlertCamper[];
-  timedMedications: (MedicalAlertCamper & { medicationSchedule?: string[] })[];
   summary: AlertsSummary;
 }
 
@@ -57,31 +83,6 @@ const logTypeLabels: Record<string, string> = {
   illness: "Illness",
   other: "Other",
 };
-
-const MEDICATION_SCHEDULES: { value: string; label: string; timeRange: string | null; hourStart?: number; hourEnd?: number }[] = [
-  { value: "morning", label: "Morning", timeRange: "6:00-10:00 AM", hourStart: 6, hourEnd: 10 },
-  { value: "afternoon", label: "Afternoon", timeRange: "12:00-2:00 PM", hourStart: 12, hourEnd: 14 },
-  { value: "evening", label: "Evening", timeRange: "4:00-8:00 PM", hourStart: 16, hourEnd: 20 },
-  { value: "bedtime", label: "Bedtime", timeRange: "8:00-10:00 PM", hourStart: 20, hourEnd: 22 },
-  { value: "with_meals", label: "With Meals", timeRange: "Meals" },
-  { value: "as_needed", label: "As Needed", timeRange: null },
-];
-
-const scheduleColors: Record<string, string> = {
-  morning: "bg-yellow-100 text-yellow-800",
-  afternoon: "bg-blue-100 text-blue-800",
-  evening: "bg-purple-100 text-purple-800",
-  bedtime: "bg-indigo-100 text-indigo-800",
-  with_meals: "bg-green-100 text-green-800",
-  as_needed: "bg-slate-100 text-slate-700",
-};
-
-function getActiveSchedules(): { value: string; label: string }[] {
-  const hour = new Date().getHours();
-  return MEDICATION_SCHEDULES.filter(
-    (s) => s.hourStart !== undefined && s.hourEnd !== undefined && hour >= s.hourStart && hour < s.hourEnd
-  );
-}
 
 export default function DashboardPage() {
   return (
@@ -111,9 +112,6 @@ function DashboardContent() {
       })
       .catch(() => setLoading(false));
   }, [campWeekend]);
-
-  const activeSchedules = getActiveSchedules();
-  const timedMeds = alertsData?.timedMedications || [];
 
   return (
     <div className="p-4 space-y-6">
@@ -208,63 +206,91 @@ function DashboardContent() {
             </div>
           )}
 
-          {/* Timed Medications */}
-          {timedMeds.length > 0 && (
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-slate-700">Timed Medications</h2>
-                <Link
-                  href="/alerts?tab=timedMeds"
-                  className="text-xs text-amber-600 font-medium hover:text-amber-700"
-                >
-                  View All ({timedMeds.length}) →
-                </Link>
-              </div>
+          {/* Meds Due Now */}
+          {alertsData && (() => {
+            const activeKeys = getActiveScheduleKeys();
+            const activeLabel = activeKeys
+              .map((k) => MEDICATION_SCHEDULES.find((s) => s.value === k)?.label)
+              .filter(Boolean)
+              .join(" / ");
+            const medsDueNow = alertsData.medications.filter(
+              (m) => m.medicationSchedule?.some((s) => activeKeys.includes(s))
+            );
+            const withMeals = alertsData.medications.filter(
+              (m) => m.medicationSchedule?.includes("with_meals")
+            );
+            // Show with_meals campers during morning/afternoon/evening (meal-adjacent times)
+            const mealAdjacentKeys = ["morning", "afternoon", "evening"];
+            const showMealMeds = activeKeys.some((k) => mealAdjacentKeys.includes(k));
+            const allDueNow = [
+              ...medsDueNow,
+              ...(showMealMeds ? withMeals.filter((m) => !medsDueNow.find((d) => d.id === m.id)) : []),
+            ];
 
-              {/* Time-of-day banner */}
-              {activeSchedules.length > 0 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 mb-3">
-                  <p className="text-sm font-medium text-amber-800">
-                    {activeSchedules.map((s) => `${s.label} medications due`).join(" · ")}
-                  </p>
-                </div>
-              )}
+            if (allDueNow.length === 0 && activeKeys.length === 0) return null;
 
-              <div className="space-y-2">
-                {timedMeds.slice(0, 5).map((med) => (
+            return (
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-sm font-semibold text-slate-700">
+                    Meds Due Now
+                  </h2>
                   <Link
-                    key={med.id}
-                    href={`/campers/${med.id}`}
-                    className="block"
+                    href="/medications"
+                    className="text-xs text-amber-600 font-medium hover:text-amber-700"
                   >
-                    <div className="bg-amber-50 rounded-xl p-3 border border-amber-100 hover:border-amber-200 transition-colors">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        <span className="text-[10px] font-bold bg-amber-500 text-white px-1.5 py-0.5 rounded">
-                          {med.isManualOverride ? "TIMED (manual)" : "TIMED"}
-                        </span>
-                        {med.medicationSchedule && med.medicationSchedule.length > 0 && (
-                          med.medicationSchedule.map((s) => (
-                            <span key={s} className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${scheduleColors[s] || "bg-slate-100 text-slate-700"}`}>
-                              {MEDICATION_SCHEDULES.find((ms) => ms.value === s)?.label || s}
-                            </span>
-                          ))
-                        )}
-                        <span className="text-xs text-amber-400">
-                          {med.campWeekend}
-                        </span>
-                      </div>
-                      <p className="text-sm font-medium text-slate-900">
-                        {med.firstName} {med.lastName}
-                      </p>
-                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">
-                        {med.value}
+                    All Schedules →
+                  </Link>
+                </div>
+
+                {activeKeys.length > 0 ? (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 mb-3">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-sm font-medium text-amber-800">
+                        {activeLabel} medications due · {allDueNow.length} camper{allDueNow.length !== 1 ? "s" : ""}
                       </p>
                     </div>
-                  </Link>
-                ))}
+                  </div>
+                ) : (
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 mb-3">
+                    <p className="text-sm text-slate-500">No scheduled medications due right now</p>
+                  </div>
+                )}
+
+                {allDueNow.length > 0 && (
+                  <div className="space-y-2">
+                    {allDueNow.slice(0, 8).map((med) => (
+                      <Link key={med.id} href={`/campers/${med.id}`} className="block">
+                        <div className="bg-amber-50 rounded-xl p-3 border border-amber-100 hover:border-amber-200 transition-colors">
+                          <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                            {med.medicationSchedule?.map((s) => (
+                              <span key={s} className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${scheduleColors[s] || "bg-slate-100 text-slate-700"}`}>
+                                {MEDICATION_SCHEDULES.find((ms) => ms.value === s)?.label || s}
+                              </span>
+                            ))}
+                          </div>
+                          <p className="text-sm font-medium text-slate-900">
+                            {med.firstName} {med.lastName}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">
+                            {med.value}
+                          </p>
+                        </div>
+                      </Link>
+                    ))}
+                    {allDueNow.length > 8 && (
+                      <Link href="/medications" className="block text-center text-xs text-amber-600 font-medium py-2">
+                        + {allDueNow.length - 8} more →
+                      </Link>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Camp Organization */}
           {stats.largeGroupCount !== undefined && (stats.largeGroupCount > 0 || (stats.smallGroupCount || 0) > 0 || (stats.cabinCount || 0) > 0) && (

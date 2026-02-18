@@ -128,7 +128,9 @@ function MedicationsContent() {
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-900">Med Schedules</h1>
-        <span className="text-xs text-slate-400">{filtered.length} campers</span>
+        <span className="text-xs text-slate-400">
+          {filtered.length} campers{campWeekend ? ` · ${campWeekend}` : ""}
+        </span>
       </div>
 
       {/* Search */}

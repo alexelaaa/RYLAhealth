@@ -10,7 +10,7 @@ import { downloadPDF } from "@/lib/export-pdf";
 import type { MedicalAlertCamper } from "@/lib/medical-filters";
 import { MEDICATION_SCHEDULES } from "@/lib/constants";
 
-type TabKey = "allergies" | "medications" | "conditions" | "dietary" | "timedMeds";
+type TabKey = "allergies" | "medications" | "conditions" | "dietary";
 
 const scheduleColors: Record<string, string> = {
   morning: "bg-yellow-100 text-yellow-800",
@@ -40,7 +40,6 @@ interface AlertsData {
 const tabs: { key: TabKey; label: string }[] = [
   { key: "allergies", label: "Allergies" },
   { key: "medications", label: "Medications" },
-  { key: "timedMeds", label: "Timed Meds" },
   { key: "conditions", label: "Conditions" },
   { key: "dietary", label: "Dietary" },
 ];
@@ -74,13 +73,11 @@ function AlertsContent() {
 
   function getDataForTab(tab: TabKey): MedicalAlertCamper[] {
     if (!data) return [];
-    if (tab === "timedMeds") return data.timedMedications;
     return data[tab];
   }
 
   function getCountForTab(tab: TabKey): number {
     if (!data) return 0;
-    if (tab === "timedMeds") return data.summary.timedMedications;
     return data.summary[tab];
   }
 
@@ -89,7 +86,6 @@ function AlertsContent() {
     const items = getDataForTab(activeTab);
     const columnLabel = activeTab === "allergies" ? "Allergies" :
       activeTab === "medications" ? "Medications" :
-      activeTab === "timedMeds" ? "Timed Medications" :
       activeTab === "conditions" ? "Conditions" : "Dietary Restrictions";
 
     const rows = items.map((c) => ({
@@ -97,7 +93,7 @@ function AlertsContent() {
       Weekend: c.campWeekend,
       [columnLabel]: c.value,
       ...(activeTab === "allergies" ? { EpiPen: c.hasEpiPen ? "Yes" : "" } : {}),
-      ...(activeTab === "medications" || activeTab === "timedMeds" ? { "Timed Schedule": c.hasTimed ? "Yes" : "" } : {}),
+      ...(activeTab === "medications" ? { "Timed Schedule": c.hasTimed ? "Yes" : "" } : {}),
       ...(c.isManualOverride ? { "Manual Override": "Yes" } : {}),
     }));
     const weekendLabel = campWeekend || "all";
@@ -109,12 +105,11 @@ function AlertsContent() {
     const items = getDataForTab(activeTab);
     const columnLabel = activeTab === "allergies" ? "Allergies" :
       activeTab === "medications" ? "Medications" :
-      activeTab === "timedMeds" ? "Timed Medications" :
       activeTab === "conditions" ? "Conditions" : "Dietary Restrictions";
 
     const columns = ["Name", "Weekend", columnLabel];
     if (activeTab === "allergies") columns.push("EpiPen");
-    if (activeTab === "medications" || activeTab === "timedMeds") columns.push("Timed");
+    if (activeTab === "medications") columns.push("Timed");
 
     const rows = items.map((c) => {
       const row: (string | number)[] = [
@@ -123,7 +118,7 @@ function AlertsContent() {
         c.value,
       ];
       if (activeTab === "allergies") row.push(c.hasEpiPen ? "Yes" : "");
-      if (activeTab === "medications" || activeTab === "timedMeds") row.push(c.hasTimed ? "Yes" : "");
+      if (activeTab === "medications") row.push(c.hasTimed ? "Yes" : "");
       return row;
     });
 
@@ -168,15 +163,10 @@ function AlertsContent() {
             </div>
           </div>
 
-          {/* Timed meds + total flagged */}
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-slate-500">
-              {data.summary.totalFlagged} unique campers flagged
-            </p>
-            <p className="text-xs text-amber-600 font-medium">
-              {data.summary.timedMedications} timed medications
-            </p>
-          </div>
+          {/* Total flagged */}
+          <p className="text-xs text-slate-500">
+            {data.summary.totalFlagged} unique campers flagged
+          </p>
 
           {/* Tab bar */}
           <div className="flex border-b border-slate-200 -mx-4 px-4 overflow-x-auto">
@@ -237,11 +227,6 @@ function AlertsContent() {
                           {camper.hasEpiPen && (
                             <span className="text-[10px] font-bold bg-red-600 text-white px-1.5 py-0.5 rounded">
                               EPIPEN
-                            </span>
-                          )}
-                          {camper.hasTimed && (
-                            <span className="text-[10px] font-bold bg-amber-500 text-white px-1.5 py-0.5 rounded">
-                              {camper.isManualOverride ? "TIMED (manual)" : "TIMED"}
                             </span>
                           )}
                           {camper.medicationSchedule && camper.medicationSchedule.map((s) => (
