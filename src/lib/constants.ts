@@ -41,3 +41,9 @@ export const BUSES = [
 export const BUS_TRACKER_INTERVAL_MS = 30_000;
 export const BUS_MAP_REFRESH_MS = 15_000;
 export const BUS_ACTIVE_THRESHOLD_MIN = 5;
+
+export const CAMP_LOCATION = {
+  latitude: 33.7456,
+  longitude: -116.7131,
+  name: "Idyllwild Pines Camp",
+} as const;

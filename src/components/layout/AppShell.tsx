@@ -6,6 +6,7 @@ import BottomNav from "./BottomNav";
 import OfflineBanner from "./OfflineBanner";
 import { CampContext } from "@/lib/camp-context";
 import { CAMP_WEEKENDS } from "@/lib/constants";
+import { isBusRider } from "@/lib/bus-utils";
 import type { SessionData } from "@/types";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -20,6 +21,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       .then((data) => {
         if (!data.isLoggedIn) {
           router.push("/login");
+        } else if (isBusRider(data.label)) {
+          router.push("/bus-rider");
         } else {
           setSession(data);
           setCampWeekendLocal(data.campWeekend || "");

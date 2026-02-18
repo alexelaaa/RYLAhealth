@@ -181,6 +181,31 @@ export const busWaypoints = sqliteTable(
   ]
 );
 
+export const campStaff = sqliteTable(
+  "camp_staff",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    firstName: text("first_name").notNull(),
+    lastName: text("last_name").notNull(),
+    staffType: text("staff_type", { enum: ["alumni", "adult"] }).notNull(),
+    staffRole: text("staff_role"),
+    phone: text("phone"),
+    email: text("email"),
+    campWeekend: text("camp_weekend"),
+    notes: text("notes"),
+    createdAt: text("created_at")
+      .notNull()
+      .$defaultFn(() => new Date().toISOString()),
+    updatedAt: text("updated_at")
+      .notNull()
+      .$defaultFn(() => new Date().toISOString()),
+  },
+  (table) => [
+    index("idx_camp_staff_type").on(table.staffType),
+    index("idx_camp_staff_weekend").on(table.campWeekend),
+  ]
+);
+
 // Type exports
 export type Camper = typeof campers.$inferSelect;
 export type NewCamper = typeof campers.$inferInsert;
@@ -195,3 +220,5 @@ export type CheckIn = typeof checkIns.$inferSelect;
 export type NewCheckIn = typeof checkIns.$inferInsert;
 export type BusWaypoint = typeof busWaypoints.$inferSelect;
 export type NewBusWaypoint = typeof busWaypoints.$inferInsert;
+export type CampStaff = typeof campStaff.$inferSelect;
+export type NewCampStaff = typeof campStaff.$inferInsert;

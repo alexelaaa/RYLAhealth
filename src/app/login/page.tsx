@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { isBusRider } from "@/lib/bus-utils";
 
 export default function LoginPage() {
   const [pin, setPin] = useState("");
@@ -48,7 +49,8 @@ export default function LoginPage() {
       }
 
       setSuccess({ role: data.role, label: data.label });
-      setTimeout(() => router.push("/dashboard"), 800);
+      const dest = isBusRider(data.label) ? "/bus-rider" : "/dashboard";
+      setTimeout(() => router.push(dest), 800);
     } catch {
       setError("Connection error. Try again.");
       setLoading(false);

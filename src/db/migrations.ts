@@ -69,4 +69,23 @@ export function runMigrations(db: Database.Database) {
   db.exec(`CREATE INDEX IF NOT EXISTS idx_waypoints_camp_weekend ON bus_waypoints(camp_weekend)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_waypoints_client_id ON bus_waypoints(client_id)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_waypoints_timestamp ON bus_waypoints(timestamp)`);
+
+  // Migration 6: Create camp_staff table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS camp_staff (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      first_name TEXT NOT NULL,
+      last_name TEXT NOT NULL,
+      staff_type TEXT NOT NULL,
+      staff_role TEXT,
+      phone TEXT,
+      email TEXT,
+      camp_weekend TEXT,
+      notes TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    )
+  `);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_camp_staff_type ON camp_staff(staff_type)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_camp_staff_weekend ON camp_staff(camp_weekend)`);
 }

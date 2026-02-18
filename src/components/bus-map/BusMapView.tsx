@@ -4,7 +4,8 @@ import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { BUS_ACTIVE_THRESHOLD_MIN } from "@/lib/constants";
+import { BUS_ACTIVE_THRESHOLD_MIN, CAMP_LOCATION } from "@/lib/constants";
+import { msToMph, haversineDistanceMiles, estimateEtaMinutes, formatEta } from "@/lib/geo-utils";
 
 export interface BusLocation {
   bus_id: string;
@@ -68,14 +69,38 @@ function createBusIcon(busId: string, active: boolean): L.DivIcon {
   });
 }
 
+const campIcon = L.divIcon({
+  className: "",
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+  popupAnchor: [0, -16],
+  html: `
+    <div style="
+      width: 28px; height: 28px;
+      background: #16a34a;
+      border: 3px solid white;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      font-size: 13px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    ">C</div>
+  `,
+});
+
 function FitBounds({ buses }: { buses: BusLocation[] }) {
   const map = useMap();
 
   useEffect(() => {
-    if (buses.length === 0) return;
-    const bounds = L.latLngBounds(
-      buses.map((b) => [b.latitude, b.longitude] as [number, number])
-    );
+    const points: [number, number][] = [
+      ...buses.map((b) => [b.latitude, b.longitude] as [number, number]),
+      [CAMP_LOCATION.latitude, CAMP_LOCATION.longitude],
+    ];
+    if (points.length === 0) return;
+    const bounds = L.latLngBounds(points);
     map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
   }, [map, buses]);
 
@@ -106,8 +131,28 @@ export default function BusMapView({ buses }: BusMapViewProps) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <FitBounds buses={buses} />
+
+      {/* Camp destination marker */}
+      <Marker
+        position={[CAMP_LOCATION.latitude, CAMP_LOCATION.longitude]}
+        icon={campIcon}
+      >
+        <Popup>
+          <div className="text-sm">
+            <p className="font-bold">{CAMP_LOCATION.name}</p>
+            <p className="text-slate-600">Destination</p>
+          </div>
+        </Popup>
+      </Marker>
+
       {buses.map((bus) => {
         const active = isActive(bus.timestamp);
+        const distMiles = haversineDistanceMiles(
+          bus.latitude, bus.longitude,
+          CAMP_LOCATION.latitude, CAMP_LOCATION.longitude
+        );
+        const eta = bus.speed != null ? estimateEtaMinutes(distMiles, bus.speed) : null;
+
         return (
           <Marker
             key={bus.bus_id}
@@ -123,9 +168,15 @@ export default function BusMapView({ buses }: BusMapViewProps) {
                 </p>
                 {bus.speed != null && (
                   <p className="text-slate-600">
-                    Speed: {Math.round(bus.speed * 3.6)} km/h
+                    Speed: {Math.round(msToMph(bus.speed))} mph
                   </p>
                 )}
+                <p className="text-slate-600">
+                  Distance to camp: {distMiles.toFixed(1)} mi
+                </p>
+                <p className="text-slate-600">
+                  ETA: {formatEta(eta)}
+                </p>
                 {bus.accuracy != null && (
                   <p className="text-slate-600">
                     Accuracy: ±{Math.round(bus.accuracy)}m

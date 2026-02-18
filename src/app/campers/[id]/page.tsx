@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import AppShell from "@/components/layout/AppShell";
 import { useCamp } from "@/lib/camp-context";
@@ -99,6 +99,7 @@ export default function CamperDetailPage() {
 
 function CamperDetailContent() {
   const params = useParams();
+  const router = useRouter();
   const { session } = useCamp();
   const id = params.id as string;
   const [camper, setCamper] = useState<Camper | null>(null);
@@ -221,11 +222,11 @@ function CamperDetailContent() {
     <div className="p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Link href="/campers" className="text-blue-600">
+        <button onClick={() => router.back()} className="text-blue-600">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-        </Link>
+        </button>
         <div className="flex-1">
           <h1 className="text-xl font-bold text-slate-900">
             {camper.firstName} {camper.lastName}

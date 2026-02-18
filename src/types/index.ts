@@ -12,6 +12,8 @@ export type {
   NewCheckIn,
   BusWaypoint,
   NewBusWaypoint,
+  CampStaff,
+  NewCampStaff,
 } from "@/db/schema";
 
 export type UserRole = "nurse" | "staff" | "admin";

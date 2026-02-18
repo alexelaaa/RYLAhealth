@@ -4,6 +4,8 @@ import { getIronSession } from "iron-session";
 import { sessionOptions } from "@/lib/session";
 import type { SessionData } from "@/types";
 
+const BUS_RIDER_PATTERN = /^Bus \d+ Staff$/i;
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -29,6 +31,13 @@ export async function middleware(request: NextRequest) {
 
   if (!session.isLoggedIn) {
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // Bus rider restriction: only allow /bus-rider and /api/* paths
+  if (BUS_RIDER_PATTERN.test(session.label || "")) {
+    if (!pathname.startsWith("/bus-rider") && !pathname.startsWith("/api/")) {
+      return NextResponse.redirect(new URL("/bus-rider", request.url));
+    }
   }
 
   // Admin-only routes

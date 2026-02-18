@@ -12,6 +12,7 @@ export async function GET(request: Request) {
   const search = searchParams.get("search");
   const weekend = searchParams.get("weekend");
   const role = searchParams.get("role");
+  const busNumber = searchParams.get("busNumber");
   const sortBy = searchParams.get("sortBy") || "lastName";
   const sortOrder = searchParams.get("sortOrder") || "asc";
   const limit = parseInt(searchParams.get("limit") || "0");
@@ -38,6 +39,10 @@ export async function GET(request: Request) {
 
   if (role) {
     conditions.push(eq(campers.role, role));
+  }
+
+  if (busNumber) {
+    conditions.push(eq(campers.busNumber, busNumber));
   }
 
   if (conditions.length > 0) {
@@ -79,6 +84,7 @@ export async function GET(request: Request) {
   }
   if (weekend) countConditions.push(eq(campers.campWeekend, weekend));
   if (role) countConditions.push(eq(campers.role, role));
+  if (busNumber) countConditions.push(eq(campers.busNumber, busNumber));
 
   let countQuery = db.select({ count: sql<number>`count(*)` }).from(campers).$dynamic();
   if (countConditions.length > 0) {

@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import AppShell from "@/components/layout/AppShell";
 import { useCamp } from "@/lib/camp-context";
-import { BUSES, BUS_MAP_REFRESH_MS, BUS_ACTIVE_THRESHOLD_MIN } from "@/lib/constants";
+import { BUSES, BUS_MAP_REFRESH_MS, BUS_ACTIVE_THRESHOLD_MIN, CAMP_LOCATION } from "@/lib/constants";
+import { msToMph, haversineDistanceMiles, estimateEtaMinutes, formatEta } from "@/lib/geo-utils";
 import type { BusLocation } from "@/components/bus-map/BusMapView";
 
 const BusMapView = dynamic(() => import("@/components/bus-map/BusMapView"), {
@@ -30,7 +31,7 @@ function isActive(timestamp: string): boolean {
 }
 
 function BusMapContent() {
-  const { campWeekend } = useCamp();
+  useCamp();
   const [buses, setBuses] = useState<BusLocation[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
@@ -95,54 +96,70 @@ function BusMapContent() {
 
             {activeBuses.length > 0 && (
               <div className="space-y-2">
-                {activeBuses.map((bus) => (
-                  <div
-                    key={bus.bus_id}
-                    className="bg-green-50 rounded-xl p-3 border border-green-100"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                        <span className="text-sm font-medium text-slate-900">
-                          {bus.bus_label}
+                {activeBuses.map((bus) => {
+                  const distMiles = haversineDistanceMiles(
+                    bus.latitude, bus.longitude,
+                    CAMP_LOCATION.latitude, CAMP_LOCATION.longitude
+                  );
+                  const eta = bus.speed != null ? estimateEtaMinutes(distMiles, bus.speed) : null;
+                  return (
+                    <div
+                      key={bus.bus_id}
+                      className="bg-green-50 rounded-xl p-3 border border-green-100"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                          <span className="text-sm font-medium text-slate-900">
+                            {bus.bus_label}
+                          </span>
+                        </div>
+                        <span className="text-xs text-slate-500">
+                          {new Date(bus.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
-                      <span className="text-xs text-slate-500">
-                        {new Date(bus.timestamp).toLocaleTimeString()}
-                      </span>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Tracked by {bus.tracked_by}
+                        {bus.speed != null && ` · ${Math.round(msToMph(bus.speed))} mph`}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {distMiles.toFixed(1)} mi to camp · ETA {formatEta(eta)}
+                      </p>
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Tracked by {bus.tracked_by}
-                      {bus.speed != null && ` · ${Math.round(bus.speed * 3.6)} km/h`}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
             {inactiveBuses.length > 0 && (
               <div className="space-y-2">
-                {inactiveBuses.map((bus) => (
-                  <div
-                    key={bus.bus_id}
-                    className="bg-slate-50 rounded-xl p-3 border border-slate-100"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-slate-300 rounded-full" />
-                        <span className="text-sm font-medium text-slate-500">
-                          {bus.bus_label}
+                {inactiveBuses.map((bus) => {
+                  const distMiles = haversineDistanceMiles(
+                    bus.latitude, bus.longitude,
+                    CAMP_LOCATION.latitude, CAMP_LOCATION.longitude
+                  );
+                  return (
+                    <div
+                      key={bus.bus_id}
+                      className="bg-slate-50 rounded-xl p-3 border border-slate-100"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 bg-slate-300 rounded-full" />
+                          <span className="text-sm font-medium text-slate-500">
+                            {bus.bus_label}
+                          </span>
+                        </div>
+                        <span className="text-xs text-slate-400">
+                          Last: {new Date(bus.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
-                      <span className="text-xs text-slate-400">
-                        Last: {new Date(bus.timestamp).toLocaleTimeString()}
-                      </span>
+                      <p className="text-xs text-slate-400 mt-1">
+                        Tracked by {bus.tracked_by} · Inactive · {distMiles.toFixed(1)} mi to camp
+                      </p>
                     </div>
-                    <p className="text-xs text-slate-400 mt-1">
-                      Tracked by {bus.tracked_by} · Inactive
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
