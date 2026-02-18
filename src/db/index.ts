@@ -3,9 +3,16 @@ import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "./schema";
 import { runMigrations } from "./migrations";
 import path from "path";
+import fs from "fs";
 
 const dbPath = process.env.DATABASE_PATH || "./data/ryla.db";
 const resolvedPath = path.resolve(dbPath);
+
+// Ensure data directory exists (needed during Railway build)
+const dataDir = path.dirname(resolvedPath);
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+}
 
 const sqlite = new Database(resolvedPath);
 sqlite.pragma("journal_mode = WAL");
