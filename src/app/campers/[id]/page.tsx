@@ -75,7 +75,14 @@ const fieldLabels: Record<string, string> = {
   largeGroup: "Large Group",
   smallGroup: "Small Group",
   cabinNumber: "Cabin Number",
+  cabinName: "Cabin Name",
+  cabinLocation: "Cabin Location",
   busNumber: "Bus Number",
+  busStop: "Bus Stop",
+  busStopLocation: "Bus Stop Location",
+  busStopAddress: "Bus Stop Address",
+  pickupTime: "Pickup Time",
+  dropoffTime: "Drop-off Time",
   timedMedicationOverride: "Timed Med Override",
   medicationSchedule: "Medication Schedule",
 };
@@ -267,12 +274,18 @@ function CamperDetailContent() {
       </div>
 
       {/* Camp Assignment */}
-      {(camper.largeGroup || camper.smallGroup || camper.cabinNumber || camper.busNumber) && (
+      {(camper.largeGroup || camper.smallGroup || camper.cabinName || camper.cabinNumber || camper.busNumber) && (
         <Section title="Camp Assignment">
           <InfoRow label="Large Group" value={camper.largeGroup} />
           <InfoRow label="Small Group" value={camper.smallGroup} />
-          <InfoRow label="Cabin Number" value={camper.cabinNumber} />
+          <InfoRow label="Cabin" value={camper.cabinName || camper.cabinNumber} />
+          {camper.cabinLocation && <InfoRow label="Cabin Location" value={camper.cabinLocation} />}
           <InfoRow label="Bus Number" value={camper.busNumber} />
+          {camper.busStop && <InfoRow label="Bus Stop" value={camper.busStop} />}
+          {camper.busStopLocation && <InfoRow label="Bus Stop Location" value={camper.busStopLocation} />}
+          {camper.busStopAddress && <InfoRow label="Bus Stop Address" value={camper.busStopAddress} />}
+          {camper.pickupTime && <InfoRow label="Pickup Time" value={camper.pickupTime} />}
+          {camper.dropoffTime && <InfoRow label="Drop-off Time" value={camper.dropoffTime} />}
         </Section>
       )}
 

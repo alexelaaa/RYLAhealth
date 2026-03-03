@@ -400,9 +400,9 @@ function BusRiderContent({
                       {camper.lastName}, {camper.firstName}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                      {camper.cabinNumber && (
+                      {(camper.cabinName || camper.cabinNumber) && (
                         <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
-                          Cabin {camper.cabinNumber}
+                          {camper.cabinName || `Cabin ${camper.cabinNumber}`}
                         </span>
                       )}
                       <span className="text-xs text-slate-400">{camper.school}</span>

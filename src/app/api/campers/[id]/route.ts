@@ -69,7 +69,8 @@ const EDITABLE_FIELDS = [
   "hasInsurance", "insuranceProvider", "policyNumber",
   "insuredFirstName", "insuredLastName", "insurancePhone",
   "firstAidPermission", "otcMedicationPermission",
-  "largeGroup", "smallGroup", "cabinNumber", "busNumber",
+  "largeGroup", "smallGroup", "cabinName", "cabinLocation", "cabinNumber",
+  "busNumber", "busStop", "busStopLocation", "busStopAddress", "pickupTime", "dropoffTime",
   "timedMedicationOverride", "medicationSchedule",
 ] as const;
 
@@ -120,8 +121,15 @@ const FIELD_TO_COLUMN: Record<string, string> = {
   otcMedicationPermission: "otc_medication_permission",
   largeGroup: "large_group",
   smallGroup: "small_group",
+  cabinName: "cabin_name",
+  cabinLocation: "cabin_location",
   cabinNumber: "cabin_number",
   busNumber: "bus_number",
+  busStop: "bus_stop",
+  busStopLocation: "bus_stop_location",
+  busStopAddress: "bus_stop_address",
+  pickupTime: "pickup_time",
+  dropoffTime: "dropoff_time",
   timedMedicationOverride: "timed_medication_override",
   medicationSchedule: "medication_schedule",
 };

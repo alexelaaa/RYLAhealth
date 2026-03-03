@@ -109,8 +109,15 @@ function CamperEditContent() {
           otherMedicalNeeds: c.otherMedicalNeeds || "",
           largeGroup: c.largeGroup || "",
           smallGroup: c.smallGroup || "",
+          cabinName: c.cabinName || "",
+          cabinLocation: c.cabinLocation || "",
           cabinNumber: c.cabinNumber || "",
           busNumber: c.busNumber || "",
+          busStop: c.busStop || "",
+          busStopLocation: c.busStopLocation || "",
+          busStopAddress: c.busStopAddress || "",
+          pickupTime: c.pickupTime || "",
+          dropoffTime: c.dropoffTime || "",
         });
         setLoading(false);
       })
@@ -274,8 +281,14 @@ function CamperEditContent() {
         </div>
         <FormField label="Large Group" value={form.largeGroup} onChange={updateField("largeGroup")} />
         <FormField label="Small Group" value={form.smallGroup} onChange={updateField("smallGroup")} />
-        <FormField label="Cabin Number" value={form.cabinNumber} onChange={updateField("cabinNumber")} />
+        <FormField label="Cabin Name" value={form.cabinName} onChange={updateField("cabinName")} />
+        <FormField label="Cabin Location" value={form.cabinLocation} onChange={updateField("cabinLocation")} />
         <FormField label="Bus Number" value={form.busNumber} onChange={updateField("busNumber")} />
+        <FormField label="Bus Stop" value={form.busStop} onChange={updateField("busStop")} />
+        <FormField label="Bus Stop Location" value={form.busStopLocation} onChange={updateField("busStopLocation")} />
+        <FormField label="Bus Stop Address" value={form.busStopAddress} onChange={updateField("busStopAddress")} />
+        <FormField label="Pickup Time" value={form.pickupTime} onChange={updateField("pickupTime")} />
+        <FormField label="Drop-off Time" value={form.dropoffTime} onChange={updateField("dropoffTime")} />
       </FormSection>
 
       {/* Floating save button */}

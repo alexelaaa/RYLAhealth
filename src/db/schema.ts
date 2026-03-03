@@ -43,7 +43,14 @@ export const campers = sqliteTable(
     largeGroup: text("large_group"),
     smallGroup: text("small_group"),
     cabinNumber: text("cabin_number"),
+    cabinName: text("cabin_name"),
+    cabinLocation: text("cabin_location"),
     busNumber: text("bus_number"),
+    busStop: text("bus_stop"),
+    busStopLocation: text("bus_stop_location"),
+    busStopAddress: text("bus_stop_address"),
+    pickupTime: text("pickup_time"),
+    dropoffTime: text("dropoff_time"),
     timedMedicationOverride: integer("timed_medication_override").default(0),
     medicationSchedule: text("medication_schedule"),
     // Medical
@@ -206,7 +213,28 @@ export const campStaff = sqliteTable(
   ]
 );
 
+export const smallGroupInfo = sqliteTable("small_group_info", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  groupNumber: integer("group_number"),
+  smallGroup: text("small_group").unique().notNull(),
+  largeGroup: text("large_group"),
+  meetingLocation: text("meeting_location"),
+  dglFirstName: text("dgl_first_name"),
+  dglLastName: text("dgl_last_name"),
+  dglCabin: text("dgl_cabin"),
+  dglGender: text("dgl_gender"),
+  camperCount: integer("camper_count"),
+  maleCount: integer("male_count"),
+  femaleCount: integer("female_count"),
+  campWeekend: text("camp_weekend"),
+  createdAt: text("created_at")
+    .notNull()
+    .$defaultFn(() => new Date().toISOString()),
+});
+
 // Type exports
+export type SmallGroupInfo = typeof smallGroupInfo.$inferSelect;
+export type NewSmallGroupInfo = typeof smallGroupInfo.$inferInsert;
 export type Camper = typeof campers.$inferSelect;
 export type NewCamper = typeof campers.$inferInsert;
 export type MedicalLog = typeof medicalLogs.$inferSelect;

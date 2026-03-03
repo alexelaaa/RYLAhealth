@@ -88,4 +88,33 @@ export function runMigrations(db: Database.Database) {
   `);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_camp_staff_type ON camp_staff(staff_type)`);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_camp_staff_weekend ON camp_staff(camp_weekend)`);
+
+  // Migration 7: Add new camper columns for cabin/bus details
+  addColumn("campers", "cabin_name", "TEXT");
+  addColumn("campers", "cabin_location", "TEXT");
+  addColumn("campers", "bus_stop", "TEXT");
+  addColumn("campers", "bus_stop_location", "TEXT");
+  addColumn("campers", "bus_stop_address", "TEXT");
+  addColumn("campers", "pickup_time", "TEXT");
+  addColumn("campers", "dropoff_time", "TEXT");
+
+  // Migration 8: Create small_group_info table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS small_group_info (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      group_number INTEGER,
+      small_group TEXT UNIQUE NOT NULL,
+      large_group TEXT,
+      meeting_location TEXT,
+      dgl_first_name TEXT,
+      dgl_last_name TEXT,
+      dgl_cabin TEXT,
+      dgl_gender TEXT,
+      camper_count INTEGER,
+      male_count INTEGER,
+      female_count INTEGER,
+      camp_weekend TEXT,
+      created_at TEXT NOT NULL
+    )
+  `);
 }

@@ -15,6 +15,8 @@ interface Group {
   name: string;
   count: number;
   smallGroups?: string[];
+  meetingLocation?: string | null;
+  dglName?: string | null;
   campers: GroupCamper[];
 }
 
@@ -104,11 +106,23 @@ function GroupsContent() {
                   onClick={() => toggleExpand(group.name)}
                   className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors"
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm text-slate-900">{group.name}</span>
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-                      {group.count}
-                    </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm text-slate-900">{group.name}</span>
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                        {group.count}
+                      </span>
+                    </div>
+                    {tab === "small" && (group.meetingLocation || group.dglName) && (
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {group.meetingLocation && (
+                          <span className="text-xs text-slate-500">{group.meetingLocation}</span>
+                        )}
+                        {group.dglName && (
+                          <span className="text-xs text-slate-400">DGL: {group.dglName}</span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <svg
                     className={`w-4 h-4 text-slate-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}

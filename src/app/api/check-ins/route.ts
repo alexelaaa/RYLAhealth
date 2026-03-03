@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   if (weekend) {
     rows = sqlite.prepare(`
       SELECT ci.id, ci.camper_id, ci.checked_in_at, ci.checked_in_by, ci.notes,
-             c.first_name, c.last_name, c.camp_weekend, c.bus_number, c.cabin_number
+             c.first_name, c.last_name, c.camp_weekend, c.bus_number, c.cabin_number, c.cabin_name
       FROM check_ins ci
       INNER JOIN campers c ON ci.camper_id = c.id
       WHERE c.camp_weekend = ?
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
   } else {
     rows = sqlite.prepare(`
       SELECT ci.id, ci.camper_id, ci.checked_in_at, ci.checked_in_by, ci.notes,
-             c.first_name, c.last_name, c.camp_weekend, c.bus_number, c.cabin_number
+             c.first_name, c.last_name, c.camp_weekend, c.bus_number, c.cabin_number, c.cabin_name
       FROM check_ins ci
       INNER JOIN campers c ON ci.camper_id = c.id
       ORDER BY ci.checked_in_at DESC

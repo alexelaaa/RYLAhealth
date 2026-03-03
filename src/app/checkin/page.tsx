@@ -14,6 +14,7 @@ interface CheckedInCamper {
   checked_in_by: string;
   bus_number: string | null;
   cabin_number: string | null;
+  cabin_name: string | null;
 }
 
 export default function CheckInPage() {
@@ -186,9 +187,9 @@ function CheckInContent() {
                           Bus {camper.busNumber}
                         </span>
                       )}
-                      {camper.cabinNumber && (
+                      {(camper.cabinName || camper.cabinNumber) && (
                         <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
-                          Cabin {camper.cabinNumber}
+                          {camper.cabinName || `Cabin ${camper.cabinNumber}`}
                         </span>
                       )}
                       <span className="text-xs text-slate-400">{camper.school}</span>

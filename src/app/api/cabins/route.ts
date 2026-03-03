@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { campers } from "@/db/schema";
-import { eq, and, isNotNull, sql } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
   const weekend = request.nextUrl.searchParams.get("weekend");
 
-  const conditions = [isNotNull(campers.cabinNumber), sql`${campers.cabinNumber} != ''`];
+  // Use cabin_name if available, fall back to cabin_number
+  const conditions = [
+    sql`(${campers.cabinName} IS NOT NULL AND ${campers.cabinName} != '' OR ${campers.cabinNumber} IS NOT NULL AND ${campers.cabinNumber} != '')`,
+  ];
   if (weekend) {
     conditions.push(eq(campers.campWeekend, weekend));
   }
@@ -17,6 +20,7 @@ export async function GET(request: NextRequest) {
       firstName: campers.firstName,
       lastName: campers.lastName,
       gender: campers.gender,
+      cabinName: campers.cabinName,
       cabinNumber: campers.cabinNumber,
     })
     .from(campers)
@@ -29,7 +33,8 @@ export async function GET(request: NextRequest) {
   }>();
 
   for (const c of camperList) {
-    const cabin = c.cabinNumber!;
+    const cabin = c.cabinName || c.cabinNumber || "";
+    if (!cabin) continue;
     if (!cabinMap.has(cabin)) {
       cabinMap.set(cabin, { name: cabin, campers: [] });
     }

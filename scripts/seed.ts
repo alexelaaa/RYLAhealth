@@ -1,7 +1,7 @@
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "../src/db/schema";
-import { parseRegistrationExcel } from "../src/lib/excel-parser";
+import { parseRegistrationCsv } from "../src/lib/csv-parser";
 import { hashSync } from "bcryptjs";
 import fs from "fs";
 import path from "path";
@@ -56,8 +56,16 @@ sqlite.exec(`
     large_group TEXT,
     small_group TEXT,
     cabin_number TEXT,
+    cabin_name TEXT,
+    cabin_location TEXT,
     bus_number TEXT,
+    bus_stop TEXT,
+    bus_stop_location TEXT,
+    bus_stop_address TEXT,
+    pickup_time TEXT,
+    dropoff_time TEXT,
     timed_medication_override INTEGER DEFAULT 0,
+    medication_schedule TEXT,
     has_relative_attending TEXT,
     relative_first_name TEXT,
     relative_last_name TEXT,
@@ -140,6 +148,23 @@ sqlite.exec(`
     checked_in_by TEXT NOT NULL,
     notes TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS small_group_info (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    group_number INTEGER,
+    small_group TEXT UNIQUE NOT NULL,
+    large_group TEXT,
+    meeting_location TEXT,
+    dgl_first_name TEXT,
+    dgl_last_name TEXT,
+    dgl_cabin TEXT,
+    dgl_gender TEXT,
+    camper_count INTEGER,
+    male_count INTEGER,
+    female_count INTEGER,
+    camp_weekend TEXT,
+    created_at TEXT NOT NULL
+  );
 `);
 
 console.log("Tables created.");
@@ -170,97 +195,108 @@ for (const p of pins) {
   console.log(`PIN set for ${p.label} (role: ${p.role})`);
 }
 
-// Import campers from Excel
-const excelPath = path.resolve(
-  "RYLACamperRegistration_Data_16811801_1771385287.xlsx"
-);
-if (!fs.existsSync(excelPath)) {
-  console.log(`Excel file not found at ${excelPath}, skipping camper import.`);
-  process.exit(0);
+// Import campers from CSV (preferred) or Excel (legacy)
+const csvPath = path.resolve("campers.csv");
+if (fs.existsSync(csvPath)) {
+  console.log(`Parsing CSV file: ${csvPath}`);
+  const csvText = fs.readFileSync(csvPath, "utf-8");
+  const camperData = parseRegistrationCsv(csvText);
+  console.log(`Parsed ${camperData.length} camper records.`);
+
+  let inserted = 0;
+  let updated = 0;
+
+  const insertStmt = sqlite.prepare(`
+    INSERT INTO campers (
+      unique_registration_id, first_name, last_name, birth_date, gender, email,
+      cell_phone, address_city,
+      school, grade_level, guardian_first_name, guardian_last_name, guardian_email,
+      guardian_phone, sponsoring_rotary_club,
+      camp_weekend, role, has_relative_attending,
+      relative_first_name, relative_last_name, relative_role,
+      dietary_restrictions, allergies, current_medications, medical_conditions,
+      large_group, small_group, cabin_name, cabin_location,
+      bus_stop, bus_stop_location, bus_stop_address, pickup_time, dropoff_time,
+      bus_number, created_at, updated_at
+    ) VALUES (
+      @uniqueRegistrationId, @firstName, @lastName, @birthDate, @gender, @email,
+      @cellPhone, @addressCity,
+      @school, @gradeLevel, @guardianFirstName, @guardianLastName, @guardianEmail,
+      @guardianPhone, @sponsoringRotaryClub,
+      @campWeekend, @role, @hasRelativeAttending,
+      @relativeFirstName, @relativeLastName, @relativeRole,
+      @dietaryRestrictions, @allergies, @currentMedications, @medicalConditions,
+      @largeGroup, @smallGroup, @cabinName, @cabinLocation,
+      @busStop, @busStopLocation, @busStopAddress, @pickupTime, @dropoffTime,
+      @busNumber, @createdAt, @updatedAt
+    ) ON CONFLICT(unique_registration_id) DO UPDATE SET
+      first_name=excluded.first_name, last_name=excluded.last_name,
+      birth_date=excluded.birth_date, gender=excluded.gender, email=excluded.email,
+      cell_phone=excluded.cell_phone, address_city=excluded.address_city,
+      school=excluded.school, grade_level=excluded.grade_level,
+      guardian_first_name=excluded.guardian_first_name, guardian_last_name=excluded.guardian_last_name,
+      guardian_email=excluded.guardian_email, guardian_phone=excluded.guardian_phone,
+      sponsoring_rotary_club=excluded.sponsoring_rotary_club,
+      camp_weekend=excluded.camp_weekend, role=excluded.role,
+      large_group=excluded.large_group, small_group=excluded.small_group,
+      cabin_name=excluded.cabin_name, cabin_location=excluded.cabin_location,
+      bus_stop=excluded.bus_stop, bus_stop_location=excluded.bus_stop_location,
+      bus_stop_address=excluded.bus_stop_address, pickup_time=excluded.pickup_time,
+      dropoff_time=excluded.dropoff_time, bus_number=excluded.bus_number,
+      updated_at=excluded.updated_at
+  `);
+
+  const now = new Date().toISOString();
+  const upsertAll = sqlite.transaction(() => {
+    for (const camper of camperData) {
+      const result = insertStmt.run({
+        ...camper,
+        birthDate: camper.birthDate || null,
+        gender: camper.gender || null,
+        email: camper.email || null,
+        cellPhone: camper.cellPhone || null,
+        addressCity: camper.addressCity || null,
+        school: camper.school || null,
+        gradeLevel: camper.gradeLevel || null,
+        guardianFirstName: camper.guardianFirstName || null,
+        guardianLastName: camper.guardianLastName || null,
+        guardianEmail: camper.guardianEmail || null,
+        guardianPhone: camper.guardianPhone || null,
+        sponsoringRotaryClub: camper.sponsoringRotaryClub || null,
+        hasRelativeAttending: camper.hasRelativeAttending || null,
+        relativeFirstName: camper.relativeFirstName || null,
+        relativeLastName: camper.relativeLastName || null,
+        relativeRole: camper.relativeRole || null,
+        dietaryRestrictions: camper.dietaryRestrictions || null,
+        allergies: camper.allergies || null,
+        currentMedications: camper.currentMedications || null,
+        medicalConditions: camper.medicalConditions || null,
+        largeGroup: camper.largeGroup || null,
+        smallGroup: camper.smallGroup || null,
+        cabinName: camper.cabinName || null,
+        cabinLocation: camper.cabinLocation || null,
+        busStop: camper.busStop || null,
+        busStopLocation: camper.busStopLocation || null,
+        busStopAddress: camper.busStopAddress || null,
+        pickupTime: camper.pickupTime || null,
+        dropoffTime: camper.dropoffTime || null,
+        busNumber: camper.busNumber || null,
+        createdAt: now,
+        updatedAt: now,
+      });
+      if (result.changes === 1) {
+        inserted++;
+      } else {
+        updated++;
+      }
+    }
+  });
+
+  upsertAll();
+  console.log(`Import complete: ${inserted} inserted, ${updated} updated.`);
+} else {
+  console.log(`CSV file not found at ${csvPath}, skipping camper import.`);
 }
 
-console.log(`Parsing Excel file: ${excelPath}`);
-const buffer = fs.readFileSync(excelPath);
-const camperData = parseRegistrationExcel(buffer);
-console.log(`Parsed ${camperData.length} camper records.`);
-
-// Upsert campers
-let inserted = 0;
-let updated = 0;
-
-const insertStmt = sqlite.prepare(`
-  INSERT INTO campers (
-    unique_registration_id, first_name, last_name, birth_date, gender, email,
-    cell_phone, address_street, address_city, address_state, address_zip,
-    school, grade_level, guardian_first_name, guardian_last_name, guardian_email,
-    guardian_phone, emergency_first_name, emergency_last_name, emergency_relationship,
-    emergency_phone, rotary_club_confirmed, sponsoring_rotary_club, sponsoring_club_code,
-    camp_weekend, camp_date_flexibility, role, has_relative_attending,
-    relative_first_name, relative_last_name, relative_role,
-    dietary_restrictions, allergies, current_medications, medical_conditions,
-    recent_injuries, physical_limitations, last_tetanus_shot, other_medical_needs,
-    has_insurance, insurance_provider, policy_number, insured_first_name,
-    insured_last_name, insurance_phone, first_aid_permission, otc_medication_permission,
-    waiver_agreement, code_of_ethics, registration_time, created_at, updated_at
-  ) VALUES (
-    @uniqueRegistrationId, @firstName, @lastName, @birthDate, @gender, @email,
-    @cellPhone, @addressStreet, @addressCity, @addressState, @addressZip,
-    @school, @gradeLevel, @guardianFirstName, @guardianLastName, @guardianEmail,
-    @guardianPhone, @emergencyFirstName, @emergencyLastName, @emergencyRelationship,
-    @emergencyPhone, @rotaryClubConfirmed, @sponsoringRotaryClub, @sponsoringClubCode,
-    @campWeekend, @campDateFlexibility, @role, @hasRelativeAttending,
-    @relativeFirstName, @relativeLastName, @relativeRole,
-    @dietaryRestrictions, @allergies, @currentMedications, @medicalConditions,
-    @recentInjuries, @physicalLimitations, @lastTetanusShot, @otherMedicalNeeds,
-    @hasInsurance, @insuranceProvider, @policyNumber, @insuredFirstName,
-    @insuredLastName, @insurancePhone, @firstAidPermission, @otcMedicationPermission,
-    @waiverAgreement, @codeOfEthics, @registrationTime, @createdAt, @updatedAt
-  ) ON CONFLICT(unique_registration_id) DO UPDATE SET
-    first_name=excluded.first_name, last_name=excluded.last_name,
-    birth_date=excluded.birth_date, gender=excluded.gender, email=excluded.email,
-    cell_phone=excluded.cell_phone, address_street=excluded.address_street,
-    address_city=excluded.address_city, address_state=excluded.address_state,
-    address_zip=excluded.address_zip, school=excluded.school,
-    grade_level=excluded.grade_level, guardian_first_name=excluded.guardian_first_name,
-    guardian_last_name=excluded.guardian_last_name, guardian_email=excluded.guardian_email,
-    guardian_phone=excluded.guardian_phone, emergency_first_name=excluded.emergency_first_name,
-    emergency_last_name=excluded.emergency_last_name, emergency_relationship=excluded.emergency_relationship,
-    emergency_phone=excluded.emergency_phone, rotary_club_confirmed=excluded.rotary_club_confirmed,
-    sponsoring_rotary_club=excluded.sponsoring_rotary_club, sponsoring_club_code=excluded.sponsoring_club_code,
-    camp_weekend=excluded.camp_weekend, camp_date_flexibility=excluded.camp_date_flexibility,
-    role=excluded.role, has_relative_attending=excluded.has_relative_attending,
-    relative_first_name=excluded.relative_first_name, relative_last_name=excluded.relative_last_name,
-    relative_role=excluded.relative_role, dietary_restrictions=excluded.dietary_restrictions,
-    allergies=excluded.allergies, current_medications=excluded.current_medications,
-    medical_conditions=excluded.medical_conditions, recent_injuries=excluded.recent_injuries,
-    physical_limitations=excluded.physical_limitations, last_tetanus_shot=excluded.last_tetanus_shot,
-    other_medical_needs=excluded.other_medical_needs, has_insurance=excluded.has_insurance,
-    insurance_provider=excluded.insurance_provider, policy_number=excluded.policy_number,
-    insured_first_name=excluded.insured_first_name, insured_last_name=excluded.insured_last_name,
-    insurance_phone=excluded.insurance_phone, first_aid_permission=excluded.first_aid_permission,
-    otc_medication_permission=excluded.otc_medication_permission, waiver_agreement=excluded.waiver_agreement,
-    code_of_ethics=excluded.code_of_ethics, registration_time=excluded.registration_time,
-    updated_at=excluded.updated_at
-`);
-
-const now = new Date().toISOString();
-const upsertAll = sqlite.transaction(() => {
-  for (const camper of camperData) {
-    const result = insertStmt.run({
-      ...camper,
-      createdAt: now,
-      updatedAt: now,
-    });
-    if (result.changes === 1) {
-      inserted++;
-    } else {
-      updated++;
-    }
-  }
-});
-
-upsertAll();
-console.log(`Import complete: ${inserted} inserted, ${updated} updated.`);
 console.log("Seed complete!");
-
 sqlite.close();

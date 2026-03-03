@@ -5,8 +5,7 @@ import type { SessionData } from "@/types";
 import { cookies } from "next/headers";
 import { db, sqlite } from "@/db";
 import { campers } from "@/db/schema";
-// drizzle-orm eq unused - upsert handled by raw SQL
-import { parseRegistrationExcel } from "@/lib/excel-parser";
+import { parseRegistrationCsv } from "@/lib/csv-parser";
 
 export async function POST(request: Request) {
   const session = await getIronSession<SessionData>(cookies(), sessionOptions);
@@ -23,16 +22,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const parsed = parseRegistrationExcel(buffer);
+  const text = await file.text();
+  const parsed = parseRegistrationCsv(text);
 
   if (!confirm) {
-    // Preview mode: show what will change
-    const existing = db.select({ uniqueRegistrationId: campers.uniqueRegistrationId }).from(campers).all();
-    const existingIds = new Set(existing.map((c) => c.uniqueRegistrationId));
+    // Preview mode: match by first_name + last_name
+    const existing = db
+      .select({
+        firstName: campers.firstName,
+        lastName: campers.lastName,
+      })
+      .from(campers)
+      .all();
+    const existingNames = new Set(
+      existing.map((c) => `${c.firstName.toLowerCase()}|${c.lastName.toLowerCase()}`)
+    );
 
-    const newRecords = parsed.filter((c) => !existingIds.has(c.uniqueRegistrationId));
-    const updateRecords = parsed.filter((c) => existingIds.has(c.uniqueRegistrationId));
+    const newRecords = parsed.filter(
+      (c) => !existingNames.has(`${c.firstName.toLowerCase()}|${c.lastName.toLowerCase()}`)
+    );
+    const updateRecords = parsed.filter(
+      (c) => existingNames.has(`${c.firstName.toLowerCase()}|${c.lastName.toLowerCase()}`)
+    );
 
     return NextResponse.json({
       preview: true,
@@ -49,37 +60,47 @@ export async function POST(request: Request) {
   const upsertStmt = sqlite.prepare(`
     INSERT INTO campers (
       unique_registration_id, first_name, last_name, birth_date, gender, email,
-      cell_phone, address_street, address_city, address_state, address_zip,
+      cell_phone, address_city,
       school, grade_level, guardian_first_name, guardian_last_name, guardian_email,
-      guardian_phone, emergency_first_name, emergency_last_name, emergency_relationship,
-      emergency_phone, rotary_club_confirmed, sponsoring_rotary_club, sponsoring_club_code,
-      camp_weekend, camp_date_flexibility, role, has_relative_attending,
+      guardian_phone, sponsoring_rotary_club,
+      camp_weekend, role, has_relative_attending,
       relative_first_name, relative_last_name, relative_role,
       dietary_restrictions, allergies, current_medications, medical_conditions,
-      recent_injuries, physical_limitations, last_tetanus_shot, other_medical_needs,
-      has_insurance, insurance_provider, policy_number, insured_first_name,
-      insured_last_name, insurance_phone, first_aid_permission, otc_medication_permission,
-      waiver_agreement, code_of_ethics, registration_time, created_at, updated_at
+      large_group, small_group, cabin_name, cabin_location,
+      bus_stop, bus_stop_location, bus_stop_address, pickup_time, dropoff_time,
+      bus_number, created_at, updated_at
     ) VALUES (
       @uniqueRegistrationId, @firstName, @lastName, @birthDate, @gender, @email,
-      @cellPhone, @addressStreet, @addressCity, @addressState, @addressZip,
+      @cellPhone, @addressCity,
       @school, @gradeLevel, @guardianFirstName, @guardianLastName, @guardianEmail,
-      @guardianPhone, @emergencyFirstName, @emergencyLastName, @emergencyRelationship,
-      @emergencyPhone, @rotaryClubConfirmed, @sponsoringRotaryClub, @sponsoringClubCode,
-      @campWeekend, @campDateFlexibility, @role, @hasRelativeAttending,
+      @guardianPhone, @sponsoringRotaryClub,
+      @campWeekend, @role, @hasRelativeAttending,
       @relativeFirstName, @relativeLastName, @relativeRole,
       @dietaryRestrictions, @allergies, @currentMedications, @medicalConditions,
-      @recentInjuries, @physicalLimitations, @lastTetanusShot, @otherMedicalNeeds,
-      @hasInsurance, @insuranceProvider, @policyNumber, @insuredFirstName,
-      @insuredLastName, @insurancePhone, @firstAidPermission, @otcMedicationPermission,
-      @waiverAgreement, @codeOfEthics, @registrationTime, @createdAt, @updatedAt
+      @largeGroup, @smallGroup, @cabinName, @cabinLocation,
+      @busStop, @busStopLocation, @busStopAddress, @pickupTime, @dropoffTime,
+      @busNumber, @createdAt, @updatedAt
     ) ON CONFLICT(unique_registration_id) DO UPDATE SET
       first_name=excluded.first_name, last_name=excluded.last_name,
       birth_date=excluded.birth_date, gender=excluded.gender, email=excluded.email,
-      cell_phone=excluded.cell_phone, school=excluded.school,
+      cell_phone=excluded.cell_phone, address_city=excluded.address_city,
+      school=excluded.school, grade_level=excluded.grade_level,
+      guardian_first_name=excluded.guardian_first_name, guardian_last_name=excluded.guardian_last_name,
+      guardian_email=excluded.guardian_email, guardian_phone=excluded.guardian_phone,
+      sponsoring_rotary_club=excluded.sponsoring_rotary_club,
       camp_weekend=excluded.camp_weekend, role=excluded.role,
+      has_relative_attending=excluded.has_relative_attending,
+      relative_first_name=excluded.relative_first_name, relative_last_name=excluded.relative_last_name,
+      relative_role=excluded.relative_role,
+      dietary_restrictions=excluded.dietary_restrictions,
       allergies=excluded.allergies, current_medications=excluded.current_medications,
-      medical_conditions=excluded.medical_conditions, updated_at=excluded.updated_at
+      medical_conditions=excluded.medical_conditions,
+      large_group=excluded.large_group, small_group=excluded.small_group,
+      cabin_name=excluded.cabin_name, cabin_location=excluded.cabin_location,
+      bus_stop=excluded.bus_stop, bus_stop_location=excluded.bus_stop_location,
+      bus_stop_address=excluded.bus_stop_address, pickup_time=excluded.pickup_time,
+      dropoff_time=excluded.dropoff_time, bus_number=excluded.bus_number,
+      updated_at=excluded.updated_at
   `);
 
   const now = new Date().toISOString();
@@ -87,6 +108,37 @@ export async function POST(request: Request) {
     for (const camper of parsed) {
       const result = upsertStmt.run({
         ...camper,
+        // Ensure null for empty strings so SQLite handles them properly
+        birthDate: camper.birthDate || null,
+        gender: camper.gender || null,
+        email: camper.email || null,
+        cellPhone: camper.cellPhone || null,
+        addressCity: camper.addressCity || null,
+        school: camper.school || null,
+        gradeLevel: camper.gradeLevel || null,
+        guardianFirstName: camper.guardianFirstName || null,
+        guardianLastName: camper.guardianLastName || null,
+        guardianEmail: camper.guardianEmail || null,
+        guardianPhone: camper.guardianPhone || null,
+        sponsoringRotaryClub: camper.sponsoringRotaryClub || null,
+        hasRelativeAttending: camper.hasRelativeAttending || null,
+        relativeFirstName: camper.relativeFirstName || null,
+        relativeLastName: camper.relativeLastName || null,
+        relativeRole: camper.relativeRole || null,
+        dietaryRestrictions: camper.dietaryRestrictions || null,
+        allergies: camper.allergies || null,
+        currentMedications: camper.currentMedications || null,
+        medicalConditions: camper.medicalConditions || null,
+        largeGroup: camper.largeGroup || null,
+        smallGroup: camper.smallGroup || null,
+        cabinName: camper.cabinName || null,
+        cabinLocation: camper.cabinLocation || null,
+        busStop: camper.busStop || null,
+        busStopLocation: camper.busStopLocation || null,
+        busStopAddress: camper.busStopAddress || null,
+        pickupTime: camper.pickupTime || null,
+        dropoffTime: camper.dropoffTime || null,
+        busNumber: camper.busNumber || null,
         createdAt: now,
         updatedAt: now,
       });

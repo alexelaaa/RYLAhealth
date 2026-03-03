@@ -197,10 +197,10 @@ export async function GET(request: NextRequest) {
     smallGroupCount = sgResult?.cnt || 0;
 
     const cbFilter = weekend
-      ? `WHERE cabin_number IS NOT NULL AND cabin_number != '' AND camp_weekend = ?`
-      : `WHERE cabin_number IS NOT NULL AND cabin_number != ''`;
+      ? `WHERE (cabin_name IS NOT NULL AND cabin_name != '' OR cabin_number IS NOT NULL AND cabin_number != '') AND camp_weekend = ?`
+      : `WHERE (cabin_name IS NOT NULL AND cabin_name != '' OR cabin_number IS NOT NULL AND cabin_number != '')`;
     const cbResult = sqlite.prepare(
-      `SELECT COUNT(DISTINCT cabin_number) as cnt FROM campers ${cbFilter}`
+      `SELECT COUNT(DISTINCT COALESCE(cabin_name, cabin_number)) as cnt FROM campers ${cbFilter}`
     ).get(...(weekend ? [weekend] : [])) as { cnt: number } | undefined;
     cabinCount = cbResult?.cnt || 0;
   } catch {

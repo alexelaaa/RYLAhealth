@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
+import { db, sqlite } from "@/db";
 import { campers } from "@/db/schema";
 import { eq, and, isNotNull, sql } from "drizzle-orm";
+
+interface SmallGroupInfoRow {
+  small_group: string;
+  meeting_location: string | null;
+  dgl_first_name: string | null;
+  dgl_last_name: string | null;
+}
 
 export async function GET(request: NextRequest) {
   const weekend = request.nextUrl.searchParams.get("weekend");
@@ -26,6 +33,25 @@ export async function GET(request: NextRequest) {
     .where(and(...conditions))
     .all();
 
+  // Load small_group_info for meeting locations and DGL info
+  let groupInfoMap = new Map<string, { meetingLocation: string | null; dglName: string | null }>();
+  try {
+    const infoRows = sqlite.prepare(
+      `SELECT small_group, meeting_location, dgl_first_name, dgl_last_name FROM small_group_info`
+    ).all() as SmallGroupInfoRow[];
+    for (const row of infoRows) {
+      const dglName = row.dgl_first_name && row.dgl_last_name
+        ? `${row.dgl_first_name} ${row.dgl_last_name}`
+        : null;
+      groupInfoMap.set(row.small_group, {
+        meetingLocation: row.meeting_location,
+        dglName,
+      });
+    }
+  } catch {
+    // small_group_info table may not exist yet
+  }
+
   // Group campers
   const groupMap = new Map<string, {
     name: string;
@@ -46,12 +72,17 @@ export async function GET(request: NextRequest) {
   }
 
   const groups = Array.from(groupMap.values())
-    .map((g) => ({
-      name: g.name,
-      count: g.campers.length,
-      smallGroups: type === "large" ? Array.from(g.smallGroups).sort() : undefined,
-      campers: g.campers.sort((a, b) => a.lastName.localeCompare(b.lastName)),
-    }))
+    .map((g) => {
+      const info = type === "small" ? groupInfoMap.get(g.name) : undefined;
+      return {
+        name: g.name,
+        count: g.campers.length,
+        smallGroups: type === "large" ? Array.from(g.smallGroups).sort() : undefined,
+        meetingLocation: info?.meetingLocation || null,
+        dglName: info?.dglName || null,
+        campers: g.campers.sort((a, b) => a.lastName.localeCompare(b.lastName)),
+      };
+    })
     .sort((a, b) => a.name.localeCompare(b.name));
 
   return NextResponse.json({ groups });
