@@ -14,6 +14,7 @@ interface ImportResult {
   success: boolean;
   inserted: number;
   updated: number;
+  deleted: number;
   total: number;
 }
 
@@ -23,6 +24,7 @@ export default function AdminUploadPage() {
   const [result, setResult] = useState<ImportResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [replaceAll, setReplaceAll] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handlePreview = async () => {
@@ -65,6 +67,7 @@ export default function AdminUploadPage() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("confirm", "true");
+      if (replaceAll) formData.append("replaceAll", "true");
 
       const res = await fetch("/api/admin/upload", {
         method: "POST",
@@ -82,6 +85,7 @@ export default function AdminUploadPage() {
       setResult(data);
       setPreview(null);
       setFile(null);
+      setReplaceAll(false);
       if (fileRef.current) fileRef.current.value = "";
     } catch {
       setError("Failed to import file");
@@ -107,7 +111,8 @@ export default function AdminUploadPage() {
 
         {result && (
           <div className="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 text-sm">
-            Import complete: {result.inserted} new records, {result.updated} updated.
+            Import complete: {result.deleted > 0 && `${result.deleted} old records cleared. `}
+            {result.inserted} new records imported.
             Total: {result.total} records processed.
           </div>
         )}
@@ -129,6 +134,22 @@ export default function AdminUploadPage() {
             className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
         </div>
+
+        {/* Replace all toggle */}
+        <label className="flex items-center gap-3 bg-white rounded-xl p-4 border border-slate-100 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={replaceAll}
+            onChange={(e) => setReplaceAll(e.target.checked)}
+            className="w-4 h-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
+          />
+          <div>
+            <span className="text-sm font-medium text-slate-700">Replace all data</span>
+            <p className="text-xs text-slate-500">
+              Delete all existing campers before importing. Use this to clear out old weekends.
+            </p>
+          </div>
+        </label>
 
         {file && !preview && (
           <button
@@ -158,6 +179,12 @@ export default function AdminUploadPage() {
               </div>
             </div>
 
+            {replaceAll && (
+              <div className="bg-red-50 border border-red-200 text-red-800 rounded-lg px-3 py-2 text-xs">
+                All existing camper records will be deleted before importing.
+              </div>
+            )}
+
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => {
@@ -172,9 +199,11 @@ export default function AdminUploadPage() {
               <button
                 onClick={handleConfirm}
                 disabled={loading}
-                className="flex-1 py-3 bg-green-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40"
+                className={`flex-1 py-3 text-white rounded-xl font-semibold text-sm disabled:opacity-40 ${
+                  replaceAll ? "bg-red-600" : "bg-green-600"
+                }`}
               >
-                {loading ? "Importing..." : "Confirm Import"}
+                {loading ? "Importing..." : replaceAll ? "Clear & Import" : "Confirm Import"}
               </button>
             </div>
           </div>

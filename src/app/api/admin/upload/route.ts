@@ -17,6 +17,7 @@ export async function POST(request: Request) {
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
   const confirm = formData.get("confirm") === "true";
+  const replaceAll = formData.get("replaceAll") === "true";
 
   if (!file) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -104,7 +105,13 @@ export async function POST(request: Request) {
   `);
 
   const now = new Date().toISOString();
+  let deleted = 0;
   const tx = sqlite.transaction(() => {
+    if (replaceAll) {
+      // Clear all existing camper data (preserves logs, pins, etc.)
+      const delResult = sqlite.prepare("DELETE FROM campers").run();
+      deleted = delResult.changes;
+    }
     for (const camper of parsed) {
       const result = upsertStmt.run({
         ...camper,
@@ -153,6 +160,7 @@ export async function POST(request: Request) {
     success: true,
     inserted,
     updated,
+    deleted,
     total: parsed.length,
   });
 }
