@@ -27,6 +27,14 @@ export default function AdminUploadPage() {
   const [replaceAll, setReplaceAll] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Group Info upload state
+  const [groupFile, setGroupFile] = useState<File | null>(null);
+  const [groupPreview, setGroupPreview] = useState<{ totalParsed: number } | null>(null);
+  const [groupResult, setGroupResult] = useState<{ imported: number } | null>(null);
+  const [groupLoading, setGroupLoading] = useState(false);
+  const [groupError, setGroupError] = useState("");
+  const groupFileRef = useRef<HTMLInputElement>(null);
+
   const handlePreview = async () => {
     if (!file) return;
     setLoading(true);
@@ -204,6 +212,134 @@ export default function AdminUploadPage() {
                 }`}
               >
                 {loading ? "Importing..." : replaceAll ? "Clear & Import" : "Confirm Import"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Divider */}
+        <hr className="border-slate-200" />
+
+        {/* Group Info Upload */}
+        <h2 className="text-lg font-bold text-slate-900">Upload Group Info</h2>
+        <p className="text-sm text-slate-500">
+          Upload the Group Info CSV to set meeting locations and DGL assignments.
+          This replaces all existing group info.
+        </p>
+
+        {groupError && (
+          <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-sm">
+            {groupError}
+          </div>
+        )}
+
+        {groupResult && (
+          <div className="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 text-sm">
+            Group info imported: {groupResult.imported} groups.
+          </div>
+        )}
+
+        <div className="bg-white rounded-xl p-4 border border-slate-100">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Select Group Info CSV (.csv)
+          </label>
+          <input
+            ref={groupFileRef}
+            type="file"
+            accept=".csv"
+            onChange={(e) => {
+              setGroupFile(e.target.files?.[0] || null);
+              setGroupPreview(null);
+              setGroupResult(null);
+              setGroupError("");
+            }}
+            className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+        </div>
+
+        {groupFile && !groupPreview && (
+          <button
+            onClick={async () => {
+              setGroupLoading(true);
+              setGroupError("");
+              setGroupResult(null);
+              try {
+                const formData = new FormData();
+                formData.append("file", groupFile);
+                const res = await fetch("/api/admin/upload-groups", {
+                  method: "POST",
+                  body: formData,
+                });
+                if (!res.ok) {
+                  const data = await res.json();
+                  setGroupError(data.error || "Preview failed");
+                } else {
+                  setGroupPreview(await res.json());
+                }
+              } catch {
+                setGroupError("Failed to preview file");
+              } finally {
+                setGroupLoading(false);
+              }
+            }}
+            disabled={groupLoading}
+            className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40"
+          >
+            {groupLoading ? "Analyzing..." : "Preview Groups"}
+          </button>
+        )}
+
+        {groupPreview && (
+          <div className="bg-white rounded-xl p-4 border border-slate-100 space-y-3">
+            <h3 className="font-semibold text-sm text-slate-700">Preview</h3>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-slate-900">{groupPreview.totalParsed}</p>
+              <p className="text-xs text-slate-500">Groups Found</p>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => {
+                  setGroupPreview(null);
+                  setGroupFile(null);
+                  if (groupFileRef.current) groupFileRef.current.value = "";
+                }}
+                className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!groupFile) return;
+                  setGroupLoading(true);
+                  setGroupError("");
+                  try {
+                    const formData = new FormData();
+                    formData.append("file", groupFile);
+                    formData.append("confirm", "true");
+                    const res = await fetch("/api/admin/upload-groups", {
+                      method: "POST",
+                      body: formData,
+                    });
+                    if (!res.ok) {
+                      const data = await res.json();
+                      setGroupError(data.error || "Import failed");
+                    } else {
+                      setGroupResult(await res.json());
+                      setGroupPreview(null);
+                      setGroupFile(null);
+                      if (groupFileRef.current) groupFileRef.current.value = "";
+                    }
+                  } catch {
+                    setGroupError("Failed to import file");
+                  } finally {
+                    setGroupLoading(false);
+                  }
+                }}
+                disabled={groupLoading}
+                className="flex-1 py-3 bg-green-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40"
+              >
+                {groupLoading ? "Importing..." : "Confirm Import"}
               </button>
             </div>
           </div>
