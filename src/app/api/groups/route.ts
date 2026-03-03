@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     .all();
 
   // Load small_group_info for meeting locations and DGL info
-  let groupInfoMap = new Map<string, { meetingLocation: string | null; dglName: string | null }>();
+  const groupInfoMap = new Map<string, { meetingLocation: string | null; dglName: string | null }>();
   try {
     const infoRows = sqlite.prepare(
       `SELECT small_group, meeting_location, dgl_first_name, dgl_last_name FROM small_group_info`
