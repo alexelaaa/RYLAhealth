@@ -121,6 +121,7 @@ function BusRiderContent({
   const watchIdRef = useRef<number | null>(null);
   const bufferRef = useRef<WaypointData[]>([]);
   const flushIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
   const busId = `bus-${busNumber}`;
   const busLabel = BUSES.find((b) => b.id === busId)?.label || `Bus ${busNumber}`;
@@ -274,9 +275,39 @@ function BusRiderContent({
     setTracking(false);
   }
 
-  // Auto-start GPS tracking
+  // Wake lock to keep screen on while tracking
+  async function requestWakeLock() {
+    try {
+      if ("wakeLock" in navigator) {
+        wakeLockRef.current = await navigator.wakeLock.request("screen");
+      }
+    } catch {
+      // Wake lock not supported or denied
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release();
+      wakeLockRef.current = null;
+    }
+  }
+
+  // Re-acquire wake lock when page becomes visible again
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible" && tracking) {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [tracking]);
+
+  // Auto-start GPS tracking + wake lock
   useEffect(() => {
     startTracking();
+    requestWakeLock();
     return () => {
       if (watchIdRef.current !== null) {
         navigator.geolocation.clearWatch(watchIdRef.current);
@@ -284,6 +315,7 @@ function BusRiderContent({
       if (flushIntervalRef.current) {
         clearInterval(flushIntervalRef.current);
       }
+      releaseWakeLock();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

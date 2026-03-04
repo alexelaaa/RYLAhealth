@@ -49,6 +49,7 @@ function BusTrackerContent() {
   const watchIdRef = useRef<number | null>(null);
   const bufferRef = useRef<WaypointData[]>([]);
   const flushIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
   // Track online status
   useEffect(() => {
@@ -135,6 +136,23 @@ function BusTrackerContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  async function requestWakeLock() {
+    try {
+      if ("wakeLock" in navigator) {
+        wakeLockRef.current = await navigator.wakeLock.request("screen");
+      }
+    } catch {
+      // Wake lock not supported or denied
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release();
+      wakeLockRef.current = null;
+    }
+  }
+
   function startTracking() {
     if (!selectedBus) {
       setError("Please select a bus first");
@@ -149,6 +167,7 @@ function BusTrackerContent() {
     setError(null);
     setTracking(true);
     setWaypointCount(0);
+    requestWakeLock();
 
     const busInfo = BUSES.find((b) => b.id === selectedBus);
 
@@ -201,7 +220,19 @@ function BusTrackerContent() {
     // Final flush
     flushWaypoints();
     setTracking(false);
+    releaseWakeLock();
   }
+
+  // Re-acquire wake lock when page becomes visible again
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible" && tracking) {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [tracking]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -212,6 +243,7 @@ function BusTrackerContent() {
       if (flushIntervalRef.current) {
         clearInterval(flushIntervalRef.current);
       }
+      releaseWakeLock();
     };
   }, []);
 
