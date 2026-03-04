@@ -73,9 +73,10 @@ function UsersContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ label, pin: newPin, role: newRole }),
       });
-      const data = await res.json();
+      let data: Record<string, string> = {};
+      try { data = await res.json(); } catch { /* empty response */ }
       if (!res.ok) {
-        setError(data.error || `Failed to add user (${res.status})`);
+        setError(data.error || `Failed to add user (HTTP ${res.status})`);
         return;
       }
       setNewLabel("");

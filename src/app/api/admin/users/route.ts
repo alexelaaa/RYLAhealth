@@ -51,16 +51,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "A user with that label already exists" }, { status: 409 });
   }
 
-  const hash = hashSync(pin.trim(), 10);
-  const result = db.insert(staffPins).values({
-    label: label.trim(),
-    pinHash: hash,
-    role,
-  }).run();
+  try {
+    const hash = hashSync(pin.trim(), 10);
+    const result = db.insert(staffPins).values({
+      label: label.trim(),
+      pinHash: hash,
+      role,
+    }).run();
 
-  return NextResponse.json({
-    user: { id: Number(result.lastInsertRowid), label: label.trim(), role },
-  }, { status: 201 });
+    return NextResponse.json({
+      user: { id: Number(result.lastInsertRowid), label: label.trim(), role },
+    }, { status: 201 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: `Failed to create user: ${message}` }, { status: 500 });
+  }
 }
 
 // PUT: Update an existing user (change role or reset PIN)
