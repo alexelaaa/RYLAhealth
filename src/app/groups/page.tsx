@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import { useCamp } from "@/lib/camp-context";
 
@@ -98,7 +99,9 @@ type Tab = "overview" | "small" | "dgls" | "buses";
 
 function GroupsContent() {
   const { campWeekend } = useCamp();
-  const [tab, setTab] = useState<Tab>("overview");
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get("tab") as Tab) || "overview";
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [overviewData, setOverviewData] = useState<OverviewLargeGroup[]>([]);
   const [smallGroups, setSmallGroups] = useState<FlatGroup[]>([]);
   const [dglCabins, setDglCabins] = useState<DGLCabinEntry[]>([]);
