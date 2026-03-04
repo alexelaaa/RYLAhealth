@@ -98,7 +98,30 @@ export function runMigrations(db: Database.Database) {
   addColumn("campers", "pickup_time", "TEXT");
   addColumn("campers", "dropoff_time", "TEXT");
 
-  // Migration 8: Create small_group_info table
+  // Migration 8: Add insurance, permissions, and meta columns
+  addColumn("campers", "has_insurance", "TEXT");
+  addColumn("campers", "insurance_provider", "TEXT");
+  addColumn("campers", "policy_number", "TEXT");
+  addColumn("campers", "insured_first_name", "TEXT");
+  addColumn("campers", "insured_last_name", "TEXT");
+  addColumn("campers", "insurance_phone", "TEXT");
+  addColumn("campers", "first_aid_permission", "TEXT");
+  addColumn("campers", "otc_medication_permission", "TEXT");
+  addColumn("campers", "waiver_agreement", "TEXT");
+  addColumn("campers", "code_of_ethics", "TEXT");
+  addColumn("campers", "registration_time", "TEXT");
+  addColumn("campers", "has_relative_attending", "TEXT");
+  addColumn("campers", "relative_first_name", "TEXT");
+  addColumn("campers", "relative_last_name", "TEXT");
+  addColumn("campers", "relative_role", "TEXT");
+  addColumn("campers", "rotary_club_confirmed", "TEXT");
+  addColumn("campers", "camp_date_flexibility", "TEXT");
+  addColumn("campers", "address_street", "TEXT");
+  addColumn("campers", "address_city", "TEXT");
+  addColumn("campers", "address_state", "TEXT");
+  addColumn("campers", "address_zip", "TEXT");
+
+  // Migration 9: Create small_group_info table
   db.exec(`
     CREATE TABLE IF NOT EXISTS small_group_info (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
