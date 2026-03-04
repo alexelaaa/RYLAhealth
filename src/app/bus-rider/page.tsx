@@ -15,6 +15,9 @@ interface CheckedInCamper {
   checked_in_at: string;
   checked_in_by: string;
   bus_number: string | null;
+  guardian_phone: string | null;
+  cell_phone: string | null;
+  bus_stop: string | null;
 }
 
 interface WaypointData {
@@ -400,13 +403,37 @@ function BusRiderContent({
                       {camper.lastName}, {camper.firstName}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
-                      {(camper.cabinName || camper.cabinNumber) && (
-                        <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
-                          {camper.cabinName || `Cabin ${camper.cabinNumber}`}
+                      {camper.busStop && (
+                        <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                          {camper.busStop}
                         </span>
                       )}
-                      <span className="text-xs text-slate-400">{camper.school}</span>
+                      {camper.pickupTime && (
+                        <span className="text-xs text-slate-500">Pickup: {camper.pickupTime}</span>
+                      )}
                     </div>
+                    {(camper.guardianPhone || camper.cellPhone) && (
+                      <div className="flex items-center gap-2 mt-1">
+                        {camper.guardianPhone && (
+                          <a
+                            href={`tel:${camper.guardianPhone}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-xs text-blue-600 underline"
+                          >
+                            Parent: {camper.guardianPhone}
+                          </a>
+                        )}
+                        {camper.cellPhone && (
+                          <a
+                            href={`tel:${camper.cellPhone}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-xs text-blue-600 underline"
+                          >
+                            Camper: {camper.cellPhone}
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
                   {isCheckedIn ? (
                     <button
@@ -453,9 +480,28 @@ function BusRiderContent({
                     <p className="text-sm font-medium text-slate-900">
                       {ci.last_name}, {ci.first_name}
                     </p>
-                    <span className="text-xs text-slate-400">
-                      {new Date(ci.checked_in_at).toLocaleTimeString()}
-                    </span>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      {ci.bus_stop && (
+                        <span className="text-xs text-slate-500">{ci.bus_stop}</span>
+                      )}
+                      <span className="text-xs text-slate-400">
+                        {new Date(ci.checked_in_at).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    {(ci.guardian_phone || ci.cell_phone) && (
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {ci.guardian_phone && (
+                          <a href={`tel:${ci.guardian_phone}`} className="text-xs text-blue-600 underline">
+                            Parent: {ci.guardian_phone}
+                          </a>
+                        )}
+                        {ci.cell_phone && (
+                          <a href={`tel:${ci.cell_phone}`} className="text-xs text-blue-600 underline">
+                            Camper: {ci.cell_phone}
+                          </a>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={() => handleUndo(ci.camper_id)}
