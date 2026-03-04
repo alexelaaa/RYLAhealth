@@ -108,7 +108,7 @@ function ReportsContent() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
         </div>
       ) : !data ? (
-        <div className="bg-white rounded-xl p-6 border border-slate-100 text-center text-sm text-slate-400">
+        <div className="bg-white rounded-xl p-6 border border-slate-300 text-center text-sm text-slate-400">
           Failed to load report data
         </div>
       ) : tab === "groups" ? (
@@ -123,7 +123,7 @@ function ReportsContent() {
 }
 
 function SummaryCard({ label, value, color }: { label: string; value: number; color?: string }) {
-  const bg = color === "blue" ? "bg-blue-50" : color === "pink" ? "bg-pink-50" : "bg-slate-50";
+  const bg = color === "blue" ? "bg-blue-50" : color === "pink" ? "bg-pink-50" : "bg-slate-100";
   const text = color === "blue" ? "text-blue-700" : color === "pink" ? "text-pink-700" : "text-slate-900";
 
   return (
@@ -138,11 +138,11 @@ function CountTable({ rows, label }: { rows: CountRow[]; label: string }) {
   const grandTotal = rows.reduce((s, r) => s + r.total, 0);
 
   return (
-    <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
+    <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
+            <tr className="bg-slate-100 border-b border-slate-200">
               <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</th>
               <th className="text-right px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wide w-16">Total</th>
               <th className="text-right px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wide w-12">M</th>
@@ -151,7 +151,7 @@ function CountTable({ rows, label }: { rows: CountRow[]; label: string }) {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {rows.map((r) => (
-              <tr key={r.name} className="hover:bg-slate-50 transition-colors">
+              <tr key={r.name} className="hover:bg-slate-100 transition-colors">
                 <td className="px-3 py-2.5 font-medium text-slate-900">{r.name}</td>
                 <td className="px-3 py-2.5 text-right tabular-nums text-slate-700">{r.total}</td>
                 <td className="px-3 py-2.5 text-right tabular-nums text-blue-600">{r.male}</td>
@@ -160,7 +160,7 @@ function CountTable({ rows, label }: { rows: CountRow[]; label: string }) {
             ))}
           </tbody>
           <tfoot>
-            <tr className="bg-slate-50 border-t border-slate-200 font-semibold">
+            <tr className="bg-slate-100 border-t border-slate-200 font-semibold">
               <td className="px-3 py-2.5 text-slate-700">Total</td>
               <td className="px-3 py-2.5 text-right tabular-nums text-slate-900">{grandTotal}</td>
               <td className="px-3 py-2.5 text-right tabular-nums text-blue-700">{rows.reduce((s, r) => s + r.male, 0)}</td>
@@ -202,11 +202,11 @@ function DGLCabinTable({ rows }: { rows: DGLCabinRow[] }) {
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-semibold text-slate-700">DGL Sleeping Cabins</h3>
-      <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
+              <tr className="bg-slate-100 border-b border-slate-200">
                 <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wide">Sleeping Cabin</th>
                 <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wide">DGL</th>
                 <th className="text-left px-3 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wide">Small Group</th>
@@ -215,7 +215,7 @@ function DGLCabinTable({ rows }: { rows: DGLCabinRow[] }) {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {rows.map((r) => (
-                <tr key={r.smallGroup} className="hover:bg-slate-50 transition-colors">
+                <tr key={r.smallGroup} className="hover:bg-slate-100 transition-colors">
                   <td className="px-3 py-2.5">
                     <span className="text-xs bg-violet-50 text-violet-700 px-2 py-0.5 rounded font-medium">
                       {r.cabin}
@@ -228,7 +228,7 @@ function DGLCabinTable({ rows }: { rows: DGLCabinRow[] }) {
               ))}
             </tbody>
             <tfoot>
-              <tr className="bg-slate-50 border-t border-slate-200">
+              <tr className="bg-slate-100 border-t border-slate-200">
                 <td className="px-3 py-2.5 font-semibold text-slate-700" colSpan={4}>
                   {rows.length} DGLs across {cabinMap.size} cabins
                 </td>

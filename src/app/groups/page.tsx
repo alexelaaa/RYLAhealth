@@ -71,7 +71,7 @@ const biomeColors: Record<string, { bg: string; text: string; border: string; he
   Marine:     { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200",    headerBg: "bg-blue-100" },
 };
 
-const defaultColors = { bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-200", headerBg: "bg-slate-100" };
+const defaultColors = { bg: "bg-slate-100", text: "text-slate-700", border: "border-slate-200", headerBg: "bg-slate-100" };
 
 function getBiomeColors(name: string) {
   return biomeColors[name] || defaultColors;
@@ -197,7 +197,7 @@ function OverviewTab({ largeGroups }: { largeGroups: OverviewLargeGroup[] }) {
 
   if (largeGroups.length === 0) {
     return (
-      <div className="bg-white rounded-xl p-6 border border-slate-100 text-center text-sm text-slate-400">
+      <div className="bg-white rounded-xl p-6 border border-slate-300 text-center text-sm text-slate-400">
         No group assignments yet
       </div>
     );
@@ -259,10 +259,10 @@ function OverviewTab({ largeGroups }: { largeGroups: OverviewLargeGroup[] }) {
                 {lg.smallGroups.map((sg) => {
                   const sgExpanded = expandedSmall.has(sg.name);
                   return (
-                    <div key={sg.name} className="bg-white rounded-lg border border-slate-100 overflow-hidden">
+                    <div key={sg.name} className="bg-white rounded-lg border border-slate-300 overflow-hidden">
                       <button
                         onClick={() => toggleSmall(sg.name)}
-                        className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                        className="w-full px-3 py-2.5 flex items-center justify-between hover:bg-slate-100 transition-colors"
                       >
                         <div className="flex-1 min-w-0 text-left">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -300,12 +300,12 @@ function OverviewTab({ largeGroups }: { largeGroups: OverviewLargeGroup[] }) {
                       </button>
 
                       {sgExpanded && (
-                        <div className="border-t border-slate-100 px-3 py-1 divide-y divide-slate-50">
+                        <div className="border-t border-slate-300 px-3 py-1 divide-y divide-slate-50">
                           {sg.campers.map((c) => (
                             <Link
                               key={c.id}
                               href={`/campers/${c.id}`}
-                              className="flex items-center justify-between py-2 hover:bg-slate-50 -mx-3 px-3 transition-colors"
+                              className="flex items-center justify-between py-2 hover:bg-slate-100 -mx-3 px-3 transition-colors"
                             >
                               <span className="text-sm text-slate-700">
                                 {c.firstName} {c.lastName}
@@ -336,7 +336,7 @@ function SmallGroupsTab({ groups }: { groups: FlatGroup[] }) {
 
   if (groups.length === 0) {
     return (
-      <div className="bg-white rounded-xl p-6 border border-slate-100 text-center text-sm text-slate-400">
+      <div className="bg-white rounded-xl p-6 border border-slate-300 text-center text-sm text-slate-400">
         No group assignments yet
       </div>
     );
@@ -356,10 +356,10 @@ function SmallGroupsTab({ groups }: { groups: FlatGroup[] }) {
       {groups.map((group) => {
         const isExpanded = expanded.has(group.name);
         return (
-          <div key={group.name} className="bg-white rounded-xl border border-slate-100 overflow-hidden">
+          <div key={group.name} className="bg-white rounded-xl border border-slate-300 overflow-hidden">
             <button
               onClick={() => toggleExpand(group.name)}
-              className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors"
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-100 transition-colors"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -394,12 +394,12 @@ function SmallGroupsTab({ groups }: { groups: FlatGroup[] }) {
               </svg>
             </button>
             {isExpanded && (
-              <div className="border-t border-slate-100 px-4 py-2 divide-y divide-slate-50">
+              <div className="border-t border-slate-300 px-4 py-2 divide-y divide-slate-50">
                 {group.campers.map((c) => (
                   <Link
                     key={c.id}
                     href={`/campers/${c.id}`}
-                    className="block py-2 hover:bg-slate-50 -mx-4 px-4 transition-colors"
+                    className="block py-2 hover:bg-slate-100 -mx-4 px-4 transition-colors"
                   >
                     <span className="text-sm text-slate-700">
                       {c.firstName} {c.lastName}
@@ -422,7 +422,7 @@ function DGLCabinsTab({ entries }: { entries: DGLCabinEntry[] }) {
 
   if (entries.length === 0) {
     return (
-      <div className="bg-white rounded-xl p-6 border border-slate-100 text-center text-sm text-slate-400">
+      <div className="bg-white rounded-xl p-6 border border-slate-300 text-center text-sm text-slate-400">
         No DGL data available
       </div>
     );
@@ -444,10 +444,10 @@ function DGLCabinsTab({ entries }: { entries: DGLCabinEntry[] }) {
         const isExpanded = expanded.has(key);
 
         return (
-          <div key={key} className="bg-white rounded-xl border border-slate-100 overflow-hidden">
+          <div key={key} className="bg-white rounded-xl border border-slate-300 overflow-hidden">
             <button
               onClick={() => toggleExpand(key)}
-              className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors"
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-100 transition-colors"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -475,12 +475,12 @@ function DGLCabinsTab({ entries }: { entries: DGLCabinEntry[] }) {
             </button>
 
             {isExpanded && d.students.length > 0 && (
-              <div className="border-t border-slate-100 px-4 py-1 divide-y divide-slate-50">
+              <div className="border-t border-slate-300 px-4 py-1 divide-y divide-slate-50">
                 {d.students.map((s) => (
                   <Link
                     key={s.id}
                     href={`/campers/${s.id}`}
-                    className="flex items-center justify-between py-2 hover:bg-slate-50 -mx-4 px-4 transition-colors"
+                    className="flex items-center justify-between py-2 hover:bg-slate-100 -mx-4 px-4 transition-colors"
                   >
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-slate-700">
@@ -497,7 +497,7 @@ function DGLCabinsTab({ entries }: { entries: DGLCabinEntry[] }) {
             )}
 
             {isExpanded && d.students.length === 0 && (
-              <div className="border-t border-slate-100 px-4 py-3 text-xs text-slate-400">
+              <div className="border-t border-slate-300 px-4 py-3 text-xs text-slate-400">
                 No students assigned to this cabin
               </div>
             )}

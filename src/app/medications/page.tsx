@@ -170,7 +170,7 @@ function MedicationsContent() {
             return (
               <div
                 key={camper.id}
-                className="bg-white rounded-xl border border-slate-100 overflow-hidden"
+                className="bg-white rounded-xl border border-slate-300 overflow-hidden"
               >
                 {/* Header row */}
                 <div className="flex items-center gap-3 px-4 py-3">
@@ -196,7 +196,7 @@ function MedicationsContent() {
                 {/* Expanded medication text */}
                 {isExpanded && (
                   <div className="px-4 pb-2">
-                    <p className="text-sm text-slate-700 bg-slate-50 rounded-lg p-3">
+                    <p className="text-sm text-slate-700 bg-slate-100 rounded-lg p-3">
                       {camper.value}
                     </p>
                   </div>

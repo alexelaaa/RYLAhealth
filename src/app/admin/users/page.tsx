@@ -172,7 +172,7 @@ function UsersContent() {
 
       {/* Add user form */}
       {showAdd && (
-        <div className="bg-white rounded-xl p-4 border border-slate-100 space-y-3">
+        <div className="bg-white rounded-xl p-4 border border-slate-300 space-y-3">
           <h2 className="font-semibold text-sm text-slate-700">New User</h2>
           <input
             type="text"
@@ -214,7 +214,7 @@ function UsersContent() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
         </div>
       ) : users.length === 0 ? (
-        <div className="bg-white rounded-xl p-6 border border-slate-100 text-center text-sm text-slate-400">
+        <div className="bg-white rounded-xl p-6 border border-slate-300 text-center text-sm text-slate-400">
           No users configured
         </div>
       ) : (
@@ -222,7 +222,7 @@ function UsersContent() {
           {users.map((user) => {
             const isEditing = editingId === user.id;
             return (
-              <div key={user.id} className="bg-white rounded-xl border border-slate-100 overflow-hidden">
+              <div key={user.id} className="bg-white rounded-xl border border-slate-300 overflow-hidden">
                 {isEditing ? (
                   <div className="p-4 space-y-3">
                     <input

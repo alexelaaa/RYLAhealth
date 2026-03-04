@@ -80,7 +80,7 @@ const adminTools = [
     href: "/export",
     title: "Export Data",
     description: "Export campers, logs, and reports",
-    color: "bg-slate-50 text-slate-700 border-slate-100 hover:border-slate-300",
+    color: "bg-slate-100 text-slate-700 border-slate-300 hover:border-slate-300",
     iconColor: "text-slate-500",
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

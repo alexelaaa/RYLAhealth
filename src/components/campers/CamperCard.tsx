@@ -12,7 +12,7 @@ export default function CamperCard({ camper }: { camper: Camper }) {
 
   return (
     <Link href={`/campers/${camper.id}`}>
-      <div className="bg-white rounded-xl p-4 border border-slate-100 hover:border-blue-200 hover:shadow-sm transition-all active:scale-[0.98]">
+      <div className="bg-white rounded-xl p-4 border border-slate-300 hover:border-blue-200 hover:shadow-sm transition-all active:scale-[0.98]">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">

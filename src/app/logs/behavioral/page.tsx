@@ -195,7 +195,7 @@ function BehavioralIncidentPage() {
             <h2 className="text-sm font-semibold text-slate-700 mb-3">Recent Incidents</h2>
             <div className="space-y-2">
               {recentIncidents.map((incident) => (
-                <div key={incident.id} className="bg-white rounded-xl p-3 border border-slate-100">
+                <div key={incident.id} className="bg-white rounded-xl p-3 border border-slate-300">
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${severityColors[incident.severity] || "bg-slate-100"}`}>
                       {incident.severity}

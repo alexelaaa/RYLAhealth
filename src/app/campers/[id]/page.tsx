@@ -25,8 +25,8 @@ function Section({ title, children, className, headerRight }: {
   headerRight?: React.ReactNode;
 }) {
   return (
-    <div className={`bg-white rounded-xl border border-slate-100 overflow-hidden ${className || ""}`}>
-      <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+    <div className={`bg-white rounded-xl border border-slate-300 overflow-hidden ${className || ""}`}>
+      <div className="px-4 py-3 bg-slate-100 border-b border-slate-300 flex items-center justify-between">
         <h2 className="font-semibold text-sm text-slate-700">{title}</h2>
         {headerRight}
       </div>

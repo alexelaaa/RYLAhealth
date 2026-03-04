@@ -162,7 +162,7 @@ function DashboardContent() {
               <h2 className="text-sm font-semibold text-slate-700 mb-3">Medical Overview</h2>
               <div className="grid grid-cols-2 gap-3">
                 <Link href="/alerts?tab=allergies" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-100 hover:border-red-200 transition-colors">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-red-200 transition-colors">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-lg font-bold text-red-600">{alertsData.summary.allergies}</span>
                       <span className="text-xs text-slate-500">Allergies</span>
@@ -173,7 +173,7 @@ function DashboardContent() {
                   </div>
                 </Link>
                 <Link href="/alerts?tab=medications" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-100 hover:border-blue-200 transition-colors">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-lg font-bold text-blue-600">{alertsData.summary.medications}</span>
                       <span className="text-xs text-slate-500">Medications</span>
@@ -184,7 +184,7 @@ function DashboardContent() {
                   </div>
                 </Link>
                 <Link href="/alerts?tab=conditions" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-100 hover:border-purple-200 transition-colors">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-purple-200 transition-colors">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-lg font-bold text-purple-600">{alertsData.summary.conditions}</span>
                       <span className="text-xs text-slate-500">Conditions</span>
@@ -195,7 +195,7 @@ function DashboardContent() {
                   </div>
                 </Link>
                 <Link href="/alerts?tab=dietary" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-100 hover:border-green-200 transition-colors">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-green-200 transition-colors">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-lg font-bold text-green-600">{alertsData.summary.dietary}</span>
                       <span className="text-xs text-slate-500">Dietary</span>
@@ -258,7 +258,7 @@ function DashboardContent() {
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 mb-3">
+                  <div className="bg-slate-100 border border-slate-200 rounded-xl px-4 py-2.5 mb-3">
                     <p className="text-sm text-slate-500">No scheduled medications due right now</p>
                   </div>
                 )}
@@ -301,7 +301,7 @@ function DashboardContent() {
               <h2 className="text-sm font-semibold text-slate-700 mb-3">Camp Organization</h2>
               <div className="grid grid-cols-2 gap-3">
                 <Link href="/groups" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-100 hover:border-blue-200 transition-colors">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
                     <svg className="w-5 h-5 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
@@ -312,7 +312,7 @@ function DashboardContent() {
                   </div>
                 </Link>
                 <Link href="/cabins" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-100 hover:border-blue-200 transition-colors">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
                     <svg className="w-5 h-5 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
@@ -321,7 +321,7 @@ function DashboardContent() {
                   </div>
                 </Link>
                 <Link href="/staff" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-100 hover:border-blue-200 transition-colors">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
                     <svg className="w-5 h-5 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
@@ -330,7 +330,7 @@ function DashboardContent() {
                   </div>
                 </Link>
                 <Link href="/reports" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-100 hover:border-blue-200 transition-colors">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
                     <svg className="w-5 h-5 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
@@ -413,7 +413,7 @@ function DashboardContent() {
           <div>
             <h2 className="text-sm font-semibold text-slate-700 mb-3">Recent Activity</h2>
             {stats.recentActivity.length === 0 ? (
-              <div className="bg-white rounded-xl p-6 border border-slate-100 text-center text-sm text-slate-400">
+              <div className="bg-white rounded-xl p-6 border border-slate-300 text-center text-sm text-slate-400">
                 No activity yet. Start logging medical entries or incidents.
               </div>
             ) : (
@@ -424,7 +424,7 @@ function DashboardContent() {
                     href={`/campers/${entry.camperId}`}
                     className="block"
                   >
-                    <div className="bg-white rounded-xl p-3 border border-slate-100 hover:border-blue-200 transition-colors">
+                    <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
                       <div className="flex items-center gap-2 mb-1">
                         <span
                           className={`text-xs px-2 py-0.5 rounded-full ${

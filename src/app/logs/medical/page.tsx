@@ -234,7 +234,7 @@ function MedicalLogPage() {
             <h2 className="text-sm font-semibold text-slate-700 mb-3">Recent Logs</h2>
             <div className="space-y-2">
               {recentLogs.map((log) => (
-                <div key={log.id} className="bg-white rounded-xl p-3 border border-slate-100">
+                <div key={log.id} className="bg-white rounded-xl p-3 border border-slate-300">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full">
                       {logTypeLabels[log.type] || log.type}

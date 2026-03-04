@@ -128,7 +128,7 @@ function StaffContent() {
           {staff.map((s) => (
             <div
               key={s.id}
-              className="bg-white rounded-xl p-4 border border-slate-100"
+              className="bg-white rounded-xl p-4 border border-slate-300"
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">

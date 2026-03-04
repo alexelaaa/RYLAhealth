@@ -102,7 +102,7 @@ export default function CamperSelect({ value, onChange, initialCamperId }: Campe
                 <button
                   key={camper.id}
                   onClick={() => selectCamper(camper)}
-                  className="w-full px-4 py-3 text-left hover:bg-slate-50 border-b border-slate-50 last:border-0"
+                  className="w-full px-4 py-3 text-left hover:bg-slate-100 border-b border-slate-50 last:border-0"
                 >
                   <div className="text-sm font-medium text-slate-900">
                     {camper.lastName}, {camper.firstName}

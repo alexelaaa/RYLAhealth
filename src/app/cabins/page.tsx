@@ -63,7 +63,7 @@ function CabinsContent() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
         </div>
       ) : cabins.length === 0 ? (
-        <div className="bg-white rounded-xl p-6 border border-slate-100 text-center text-sm text-slate-400">
+        <div className="bg-white rounded-xl p-6 border border-slate-300 text-center text-sm text-slate-400">
           No cabin assignments yet
         </div>
       ) : (
@@ -71,10 +71,10 @@ function CabinsContent() {
           {cabins.map((cabin) => {
             const isExpanded = expanded.has(cabin.name);
             return (
-              <div key={cabin.name} className="bg-white rounded-xl border border-slate-100 overflow-hidden">
+              <div key={cabin.name} className="bg-white rounded-xl border border-slate-300 overflow-hidden">
                 <button
                   onClick={() => toggleExpand(cabin.name)}
-                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-100 transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-sm text-slate-900">Cabin {cabin.name}</span>
@@ -92,13 +92,13 @@ function CabinsContent() {
                   </svg>
                 </button>
                 {isExpanded && (
-                  <div className="border-t border-slate-100 px-4 py-2">
+                  <div className="border-t border-slate-300 px-4 py-2">
                     <div className="divide-y divide-slate-50">
                       {cabin.campers.map((c) => (
                         <Link
                           key={c.id}
                           href={`/campers/${c.id}`}
-                          className="block py-2 hover:bg-slate-50 -mx-4 px-4 transition-colors"
+                          className="block py-2 hover:bg-slate-100 -mx-4 px-4 transition-colors"
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-slate-700">

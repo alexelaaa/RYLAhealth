@@ -58,7 +58,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <CampContext.Provider value={{ campWeekend, setCampWeekend, session }}>
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-200">
         {/* Top bar */}
         <header className="bg-blue-700 text-white sticky top-0 z-40">
           <div className="flex items-center justify-between px-4 h-14">

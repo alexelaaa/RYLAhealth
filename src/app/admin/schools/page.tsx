@@ -161,7 +161,7 @@ function SchoolCleanupContent() {
                           </div>
                         ))}
                       </div>
-                      <div className="px-4 py-3 border-t border-slate-100">
+                      <div className="px-4 py-3 border-t border-slate-300">
                         <button
                           onClick={() => handleMerge(group)}
                           disabled={isMerging}
@@ -183,7 +183,7 @@ function SchoolCleanupContent() {
               <h2 className="text-sm font-semibold text-slate-700 mb-2">
                 Clean ({singleGroups.length})
               </h2>
-              <div className="bg-white rounded-xl border border-slate-100 divide-y divide-slate-50">
+              <div className="bg-white rounded-xl border border-slate-300 divide-y divide-slate-50">
                 {singleGroups.map((group) => (
                   <div key={group.canonical} className="px-4 py-2 flex items-center justify-between">
                     <span className="text-sm text-slate-700">{group.variants[0].name}</span>

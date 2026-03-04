@@ -192,13 +192,13 @@ function AlertsContent() {
           <div className="flex gap-2">
             <button
               onClick={handleExportCSV}
-              className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+              className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors"
             >
               Export CSV
             </button>
             <button
               onClick={handleExportPDF}
-              className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+              className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 transition-colors"
             >
               Export PDF
             </button>
@@ -206,7 +206,7 @@ function AlertsContent() {
 
           {/* Camper list */}
           {currentList.length === 0 ? (
-            <div className="bg-white rounded-xl p-6 border border-slate-100 text-center text-sm text-slate-400">
+            <div className="bg-white rounded-xl p-6 border border-slate-300 text-center text-sm text-slate-400">
               No campers flagged in this category.
             </div>
           ) : (
@@ -217,7 +217,7 @@ function AlertsContent() {
                   href={`/campers/${camper.id}`}
                   className="block"
                 >
-                  <div className="bg-white rounded-xl p-3 border border-slate-100 hover:border-blue-200 transition-colors">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">

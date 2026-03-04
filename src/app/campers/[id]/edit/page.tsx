@@ -28,8 +28,8 @@ interface DropdownOptions {
 
 function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
-      <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
+    <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
+      <div className="px-4 py-3 bg-slate-100 border-b border-slate-300">
         <h2 className="font-semibold text-sm text-slate-700">{title}</h2>
       </div>
       <div className="px-4 py-3 space-y-3">{children}</div>

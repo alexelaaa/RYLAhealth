@@ -82,7 +82,7 @@ function BusMapContent() {
             {buses.length > 0 ? (
               <BusMapView buses={buses} />
             ) : (
-              <div className="w-full h-full bg-slate-50 flex items-center justify-center">
+              <div className="w-full h-full bg-slate-100 flex items-center justify-center">
                 <p className="text-sm text-slate-400">
                   No bus locations reported yet. Staff must start tracking on their devices.
                 </p>
@@ -141,7 +141,7 @@ function BusMapContent() {
                   return (
                     <div
                       key={bus.bus_id}
-                      className="bg-slate-50 rounded-xl p-3 border border-slate-100"
+                      className="bg-slate-100 rounded-xl p-3 border border-slate-300"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -168,7 +168,7 @@ function BusMapContent() {
                 {neverReportedBuses.map((bus) => (
                   <div
                     key={bus.id}
-                    className="bg-white rounded-xl p-3 border border-slate-100"
+                    className="bg-white rounded-xl p-3 border border-slate-300"
                   >
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 bg-slate-200 rounded-full" />

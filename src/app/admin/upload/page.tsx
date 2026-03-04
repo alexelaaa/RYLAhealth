@@ -130,7 +130,7 @@ export default function AdminUploadPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-xl p-4 border border-slate-100">
+        <div className="bg-white rounded-xl p-4 border border-slate-300">
           <label className="block text-sm font-medium text-slate-700 mb-2">
             Select CSV File (.csv)
           </label>
@@ -149,7 +149,7 @@ export default function AdminUploadPage() {
         </div>
 
         {/* Replace all toggle */}
-        <label className="flex items-center gap-3 bg-white rounded-xl p-4 border border-slate-100 cursor-pointer">
+        <label className="flex items-center gap-3 bg-white rounded-xl p-4 border border-slate-300 cursor-pointer">
           <input
             type="checkbox"
             checked={replaceAll}
@@ -175,7 +175,7 @@ export default function AdminUploadPage() {
         )}
 
         {preview && (
-          <div className="bg-white rounded-xl p-4 border border-slate-100 space-y-3">
+          <div className="bg-white rounded-xl p-4 border border-slate-300 space-y-3">
             <h2 className="font-semibold text-sm text-slate-700">Preview</h2>
             <div className="grid grid-cols-3 gap-3">
               <div className="text-center">
@@ -244,7 +244,7 @@ export default function AdminUploadPage() {
           </div>
         )}
 
-        <div className="bg-white rounded-xl p-4 border border-slate-100">
+        <div className="bg-white rounded-xl p-4 border border-slate-300">
           <label className="block text-sm font-medium text-slate-700 mb-2">
             Select Group Info CSV (.csv)
           </label>
@@ -295,7 +295,7 @@ export default function AdminUploadPage() {
         )}
 
         {groupPreview && (
-          <div className="bg-white rounded-xl p-4 border border-slate-100 space-y-3">
+          <div className="bg-white rounded-xl p-4 border border-slate-300 space-y-3">
             <h3 className="font-semibold text-sm text-slate-700">Preview</h3>
             <div className="text-center">
               <p className="text-2xl font-bold text-slate-900">{groupPreview.totalParsed}</p>

@@ -56,7 +56,7 @@ export default function BusRiderPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-200">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
       </div>
     );
@@ -67,7 +67,7 @@ export default function BusRiderPage() {
   const busNumber = extractBusNumber(session.label);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-200">
       {/* Minimal header */}
       <header className="bg-blue-700 text-white sticky top-0 z-40">
         <div className="flex items-center justify-between px-4 h-14">
@@ -317,7 +317,7 @@ function BusRiderContent({
   return (
     <div className="p-4 space-y-4">
       {/* GPS Status bar */}
-      <div className={`rounded-xl px-4 py-3 border ${tracking ? "bg-green-50 border-green-200" : "bg-slate-50 border-slate-200"}`}>
+      <div className={`rounded-xl px-4 py-3 border ${tracking ? "bg-green-50 border-green-200" : "bg-slate-200 border-slate-200"}`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {tracking ? (
@@ -351,7 +351,7 @@ function BusRiderContent({
       </div>
 
       {/* Progress */}
-      <div className="bg-white rounded-xl p-4 border border-slate-100">
+      <div className="bg-white rounded-xl p-4 border border-slate-300">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold text-slate-700">{busLabel} Check-In</span>
           <span className="text-sm font-bold text-green-600">{checkedInCount} / {totalCampers}</span>
@@ -391,7 +391,7 @@ function BusRiderContent({
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
         </div>
       ) : totalCampers === 0 ? (
-        <div className="bg-white rounded-xl p-6 border border-slate-100 text-center text-sm text-slate-400">
+        <div className="bg-white rounded-xl p-6 border border-slate-300 text-center text-sm text-slate-400">
           No campers assigned to {busLabel}.
         </div>
       ) : (
@@ -401,8 +401,8 @@ function BusRiderContent({
             const campers = groupedByStop.get(stop)!;
             const stopChecked = campers.filter((c) => checkedIn.has(c.id)).length;
             return (
-              <div key={stop} className="bg-white rounded-xl border border-slate-100 overflow-hidden">
-                <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+              <div key={stop} className="bg-white rounded-xl border border-slate-300 overflow-hidden">
+                <div className="px-4 py-2.5 bg-slate-200 border-b border-slate-300 flex items-center justify-between">
                   <span className="text-sm font-semibold text-slate-700">
                     Stop {stop}
                   </span>

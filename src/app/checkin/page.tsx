@@ -166,7 +166,7 @@ function CheckInContent() {
       )}
 
       {/* Progress */}
-      <div className="bg-white rounded-xl p-4 border border-slate-100">
+      <div className="bg-white rounded-xl p-4 border border-slate-300">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-semibold text-slate-700">Arrivals</span>
           <span className="text-sm font-bold text-green-600">{arrivedCount} / {onBusCount} on bus</span>
@@ -217,7 +217,7 @@ function CheckInContent() {
                     ? "bg-green-50 border-green-200"
                     : status === "on_bus"
                     ? "bg-yellow-50 border-yellow-200"
-                    : "bg-white border-slate-100"
+                    : "bg-white border-slate-300"
                 }`}
               >
                 <div className="flex items-center justify-between gap-3">
@@ -314,7 +314,7 @@ function CheckInContent() {
               Awaiting Arrival ({awaitingArrival.length})
             </h2>
             {awaitingArrival.length === 0 ? (
-              <div className="bg-white rounded-xl p-4 border border-slate-100 text-center text-sm text-slate-400">
+              <div className="bg-white rounded-xl p-4 border border-slate-300 text-center text-sm text-slate-400">
                 No campers awaiting arrival.
               </div>
             ) : (
@@ -374,7 +374,7 @@ function CheckInContent() {
               Arrived ({arrived.length})
             </h2>
             {arrived.length === 0 ? (
-              <div className="bg-white rounded-xl p-4 border border-slate-100 text-center text-sm text-slate-400">
+              <div className="bg-white rounded-xl p-4 border border-slate-300 text-center text-sm text-slate-400">
                 No arrivals yet. Confirm camper arrivals above or search to check in walk-ins.
               </div>
             ) : (
