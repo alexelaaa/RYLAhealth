@@ -18,7 +18,7 @@ export type {
   NewSmallGroupInfo,
 } from "@/db/schema";
 
-export type UserRole = "nurse" | "staff" | "admin";
+export type UserRole = "nurse" | "staff" | "admin" | "bussing";
 
 export type SessionData = {
   isLoggedIn: boolean;

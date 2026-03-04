@@ -143,6 +143,7 @@ function UsersContent() {
     admin: "bg-red-100 text-red-700",
     nurse: "bg-green-100 text-green-700",
     staff: "bg-blue-100 text-blue-700",
+    bussing: "bg-teal-100 text-teal-700",
   };
 
   return (
@@ -194,6 +195,7 @@ function UsersContent() {
           >
             <option value="staff">Staff</option>
             <option value="nurse">Nurse</option>
+            <option value="bussing">Bussing</option>
             <option value="admin">Admin</option>
           </select>
           <button
@@ -243,6 +245,7 @@ function UsersContent() {
                     >
                       <option value="staff">Staff</option>
                       <option value="nurse">Nurse</option>
+                      <option value="bussing">Bussing</option>
                       <option value="admin">Admin</option>
                     </select>
                     <div className="flex gap-2">

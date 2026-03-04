@@ -40,6 +40,17 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Bussing role restriction: only bus-tracker, bus-rider, and API routes
+  if (session.role === "bussing") {
+    if (
+      !pathname.startsWith("/bus-tracker") &&
+      !pathname.startsWith("/bus-rider") &&
+      !pathname.startsWith("/api/")
+    ) {
+      return NextResponse.redirect(new URL("/bus-tracker", request.url));
+    }
+  }
+
   // Admin-only routes
   if (pathname.startsWith("/admin") && session.role !== "admin") {
     return NextResponse.redirect(new URL("/dashboard", request.url));

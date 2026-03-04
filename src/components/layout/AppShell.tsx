@@ -98,7 +98,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           {children}
         </main>
 
-        <BottomNav />
+        {session?.role !== "bussing" && <BottomNav />}
       </div>
     </CampContext.Provider>
   );
