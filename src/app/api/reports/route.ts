@@ -76,6 +76,31 @@ export async function GET(request: NextRequest) {
     // table may not exist
   }
 
+  // Insurance audit: campers missing insurance info
+  const insuranceWhere = weekend ? "AND camp_weekend = ?" : "";
+  const insuranceParams = weekend ? [weekend] : [];
+  const noInsurance = sqlite.prepare(`
+    SELECT id, first_name AS firstName, last_name AS lastName, school, camp_weekend AS campWeekend,
+      has_insurance AS hasInsurance, insurance_provider AS insuranceProvider, policy_number AS policyNumber,
+      guardian_first_name AS guardianFirstName, guardian_last_name AS guardianLastName, guardian_phone AS guardianPhone
+    FROM campers
+    WHERE (
+      has_insurance IS NULL OR has_insurance = '' OR LOWER(has_insurance) = 'no'
+      OR insurance_provider IS NULL OR insurance_provider = ''
+      OR policy_number IS NULL OR policy_number = ''
+    ) ${insuranceWhere}
+    ORDER BY last_name, first_name
+  `).all(...insuranceParams) as {
+    id: number; firstName: string; lastName: string; school: string | null;
+    campWeekend: string; hasInsurance: string | null; insuranceProvider: string | null;
+    policyNumber: string | null; guardianFirstName: string | null;
+    guardianLastName: string | null; guardianPhone: string | null;
+  }[];
+
+  const totalCampersForInsurance = sqlite.prepare(`
+    SELECT COUNT(*) AS count FROM campers ${weekend ? "WHERE camp_weekend = ?" : ""}
+  `).get(...(weekend ? [weekend] : [])) as { count: number };
+
   return NextResponse.json({
     totals,
     largeGroups,
@@ -84,5 +109,10 @@ export async function GET(request: NextRequest) {
     buses,
     busStops,
     dglCabins,
+    insuranceAudit: {
+      missing: noInsurance,
+      totalCampers: totalCampersForInsurance.count,
+      missingCount: noInsurance.length,
+    },
   });
 }

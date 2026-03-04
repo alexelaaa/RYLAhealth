@@ -20,6 +20,20 @@ interface DGLCabinRow {
   gender: string;
 }
 
+interface InsuranceCamper {
+  id: number;
+  firstName: string;
+  lastName: string;
+  school: string | null;
+  campWeekend: string;
+  hasInsurance: string | null;
+  insuranceProvider: string | null;
+  policyNumber: string | null;
+  guardianFirstName: string | null;
+  guardianLastName: string | null;
+  guardianPhone: string | null;
+}
+
 interface ReportData {
   totals: { total: number; male: number; female: number };
   largeGroups: CountRow[];
@@ -28,9 +42,14 @@ interface ReportData {
   buses: CountRow[];
   busStops: CountRow[];
   dglCabins: DGLCabinRow[];
+  insuranceAudit: {
+    missing: InsuranceCamper[];
+    totalCampers: number;
+    missingCount: number;
+  };
 }
 
-type Tab = "groups" | "cabins" | "buses";
+type Tab = "groups" | "cabins" | "buses" | "insurance";
 
 export default function ReportsPage() {
   return (
@@ -64,6 +83,7 @@ function ReportsContent() {
     { key: "groups", label: "Groups" },
     { key: "cabins", label: "Cabins" },
     { key: "buses", label: "Buses" },
+    { key: "insurance", label: "Insurance" },
   ];
 
   return (
@@ -115,8 +135,10 @@ function ReportsContent() {
         <GroupsReport data={data} />
       ) : tab === "cabins" ? (
         <CabinsReport data={data} />
-      ) : (
+      ) : tab === "buses" ? (
         <BusesReport data={data} />
+      ) : (
+        <InsuranceReport audit={data.insuranceAudit} />
       )}
     </div>
   );
@@ -246,6 +268,174 @@ function BusesReport({ data }: { data: ReportData }) {
     <div className="space-y-4">
       <CountTable rows={data.buses} label="Bus" />
       <CountTable rows={data.busStops} label="Bus Stop" />
+    </div>
+  );
+}
+
+function InsuranceReport({ audit }: { audit: ReportData["insuranceAudit"] }) {
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [form, setForm] = useState({ hasInsurance: "", insuranceProvider: "", policyNumber: "" });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState<Set<number>>(new Set());
+
+  const startEdit = (c: InsuranceCamper) => {
+    setEditingId(c.id);
+    setForm({
+      hasInsurance: c.hasInsurance || "",
+      insuranceProvider: c.insuranceProvider || "",
+      policyNumber: c.policyNumber || "",
+    });
+  };
+
+  const handleSave = async () => {
+    if (!editingId) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/campers/${editingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (res.ok) {
+        setSaved((prev) => new Set(prev).add(editingId));
+        setEditingId(null);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const covered = audit.totalCampers - audit.missingCount;
+  const pct = audit.totalCampers > 0 ? Math.round((covered / audit.totalCampers) * 100) : 0;
+
+  return (
+    <div className="space-y-4">
+      {/* Summary */}
+      <div className="bg-white rounded-xl border border-slate-300 p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-semibold text-slate-700">Insurance Coverage</span>
+          <span className="text-sm font-bold text-slate-900">{covered} / {audit.totalCampers}</span>
+        </div>
+        <div className="w-full bg-slate-100 rounded-full h-3">
+          <div
+            className="bg-green-500 h-3 rounded-full transition-all"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between mt-2 text-xs">
+          <span className="text-green-600 font-medium">{pct}% covered</span>
+          <span className="text-red-600 font-medium">{audit.missingCount} missing or incomplete</span>
+        </div>
+      </div>
+
+      {/* Missing list */}
+      {audit.missing.length === 0 ? (
+        <div className="bg-green-50 rounded-xl p-6 border border-green-200 text-center text-sm text-green-700">
+          All campers have insurance information on file.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-red-700">
+            Missing / Incomplete Insurance ({audit.missingCount})
+          </h3>
+          {audit.missing.map((c) => {
+            const isEditing = editingId === c.id;
+            const wasSaved = saved.has(c.id);
+
+            return (
+              <div key={c.id} className={`rounded-xl border overflow-hidden ${
+                wasSaved ? "bg-green-50 border-green-200" : "bg-white border-slate-300"
+              }`}>
+                <button
+                  onClick={() => isEditing ? setEditingId(null) : startEdit(c)}
+                  className="w-full text-left px-4 py-3 hover:bg-slate-50 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">
+                        {c.lastName}, {c.firstName}
+                        {wasSaved && <span className="text-green-600 ml-2 text-xs">Updated</span>}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                        {c.school && <span className="text-xs text-slate-500">{c.school}</span>}
+                        <span className="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">{c.campWeekend}</span>
+                        {!c.hasInsurance || c.hasInsurance.toLowerCase() === "no" ? (
+                          <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded">No insurance</span>
+                        ) : !c.insuranceProvider ? (
+                          <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">No provider</span>
+                        ) : (
+                          <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">No policy #</span>
+                        )}
+                      </div>
+                      {c.guardianPhone && (
+                        <a
+                          href={`tel:${c.guardianPhone}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-xs text-blue-600 underline mt-0.5 inline-block"
+                        >
+                          {c.guardianFirstName} {c.guardianLastName}: {c.guardianPhone}
+                        </a>
+                      )}
+                    </div>
+                    <svg
+                      className={`w-4 h-4 text-slate-400 transition-transform shrink-0 ${isEditing ? "rotate-180" : ""}`}
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </button>
+
+                {isEditing && (
+                  <div className="border-t border-slate-200 px-4 py-3 space-y-3 bg-slate-50">
+                    <div>
+                      <label className="block text-xs font-medium text-slate-500 mb-1">Has Insurance?</label>
+                      <select
+                        value={form.hasInsurance}
+                        onChange={(e) => setForm({ ...form, hasInsurance: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Unknown</option>
+                        <option value="Yes">Yes</option>
+                        <option value="No">No</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-500 mb-1">Insurance Provider</label>
+                      <input
+                        type="text"
+                        value={form.insuranceProvider}
+                        onChange={(e) => setForm({ ...form, insuranceProvider: e.target.value })}
+                        placeholder="e.g. Blue Cross, Kaiser..."
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-slate-500 mb-1">Policy Number</label>
+                      <input
+                        type="text"
+                        value={form.policyNumber}
+                        onChange={(e) => setForm({ ...form, policyNumber: e.target.value })}
+                        placeholder="Policy / Member ID"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold disabled:opacity-40"
+                    >
+                      {saving ? "Saving..." : "Save Insurance Info"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
