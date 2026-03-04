@@ -374,14 +374,14 @@ function DashboardContent() {
                 Campers
               </Link>
               <Link
-                href="/bus-tracker"
+                href={session?.role === "admin" ? "/admin/bus-map" : "/bus-tracker"}
                 className="bg-teal-50 text-teal-700 rounded-xl py-4 text-center text-sm font-medium hover:bg-teal-100 transition-colors"
               >
                 <svg className="w-6 h-6 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                Bus Tracker
+                {session?.role === "admin" ? "Bus Map" : "Bus Tracker"}
               </Link>
               {(session?.role === "nurse" || session?.role === "admin") && (
                 <Link
