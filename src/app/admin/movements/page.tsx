@@ -529,7 +529,7 @@ function MovementsContent() {
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">—</option>
-                  {options.smallGroups.map((sg) => (
+                  {(smallGroup && !options.smallGroups.includes(smallGroup) ? [smallGroup, ...options.smallGroups] : options.smallGroups).map((sg) => (
                     <option key={sg} value={sg}>{sg}</option>
                   ))}
                 </select>
@@ -554,7 +554,7 @@ function MovementsContent() {
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">—</option>
-                  {options.cabinNames.map((cn) => (
+                  {(cabinName && !options.cabinNames.includes(cabinName) ? [cabinName, ...options.cabinNames] : options.cabinNames).map((cn) => (
                     <option key={cn} value={cn}>{cn}</option>
                   ))}
                 </select>
@@ -569,7 +569,7 @@ function MovementsContent() {
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">—</option>
-                  {options.busNumbers.map((bn) => (
+                  {(busNumber && !options.busNumbers.includes(busNumber) ? [busNumber, ...options.busNumbers] : options.busNumbers).map((bn) => (
                     <option key={bn} value={bn}>Bus {bn}</option>
                   ))}
                 </select>
