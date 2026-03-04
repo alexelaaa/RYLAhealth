@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import AppShell from "@/components/layout/AppShell";
+import { BUSES } from "@/lib/constants";
 
 interface User {
   id: number;
@@ -28,6 +29,7 @@ function UsersContent() {
   const [newLabel, setNewLabel] = useState("");
   const [newPin, setNewPin] = useState("");
   const [newRole, setNewRole] = useState("staff");
+  const [newBusNumber, setNewBusNumber] = useState("");
   const [saving, setSaving] = useState(false);
 
   // Edit state
@@ -35,6 +37,7 @@ function UsersContent() {
   const [editLabel, setEditLabel] = useState("");
   const [editPin, setEditPin] = useState("");
   const [editRole, setEditRole] = useState("");
+  const [editBusNumber, setEditBusNumber] = useState("");
 
   const fetchUsers = async () => {
     try {
@@ -53,8 +56,13 @@ function UsersContent() {
   }, []);
 
   const handleAdd = async () => {
-    if (!newLabel.trim() || !newPin.trim()) {
-      setError("Label and PIN are required");
+    const label = newRole === "bussing" ? `Bus ${newBusNumber} Staff` : newLabel.trim();
+    if (!label || !newPin.trim()) {
+      setError(newRole === "bussing" ? "Bus number and PIN are required" : "Label and PIN are required");
+      return;
+    }
+    if (newRole === "bussing" && !newBusNumber) {
+      setError("Select a bus number");
       return;
     }
     setSaving(true);
@@ -63,7 +71,7 @@ function UsersContent() {
       const res = await fetch("/api/admin/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ label: newLabel, pin: newPin, role: newRole }),
+        body: JSON.stringify({ label, pin: newPin, role: newRole }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -73,6 +81,7 @@ function UsersContent() {
       setNewLabel("");
       setNewPin("");
       setNewRole("staff");
+      setNewBusNumber("");
       setShowAdd(false);
       setSuccess("User added");
       setTimeout(() => setSuccess(""), 3000);
@@ -89,7 +98,11 @@ function UsersContent() {
     setError("");
     try {
       const body: Record<string, string | number> = { id };
-      if (editLabel.trim()) body.label = editLabel;
+      if (editRole === "bussing" && editBusNumber) {
+        body.label = `Bus ${editBusNumber} Staff`;
+      } else if (editLabel.trim()) {
+        body.label = editLabel;
+      }
       if (editPin.trim()) body.pin = editPin;
       if (editRole) body.role = editRole;
 
@@ -137,6 +150,9 @@ function UsersContent() {
     setEditLabel(user.label);
     setEditPin("");
     setEditRole(user.role);
+    // Extract bus number from label like "Bus 3 Staff"
+    const busMatch = user.label.match(/^Bus (\d+) Staff$/i);
+    setEditBusNumber(busMatch ? busMatch[1] : "");
   };
 
   const roleColors: Record<string, string> = {
@@ -174,23 +190,9 @@ function UsersContent() {
       {showAdd && (
         <div className="bg-white rounded-xl p-4 border border-slate-300 space-y-3">
           <h2 className="font-semibold text-sm text-slate-700">New User</h2>
-          <input
-            type="text"
-            placeholder="Label (e.g. Bus 3 Staff)"
-            value={newLabel}
-            onChange={(e) => setNewLabel(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <input
-            type="text"
-            placeholder="PIN"
-            value={newPin}
-            onChange={(e) => setNewPin(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
           <select
             value={newRole}
-            onChange={(e) => setNewRole(e.target.value)}
+            onChange={(e) => { setNewRole(e.target.value); if (e.target.value !== "bussing") setNewBusNumber(""); }}
             className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="staff">Staff</option>
@@ -198,6 +200,39 @@ function UsersContent() {
             <option value="bussing">Bussing</option>
             <option value="admin">Admin</option>
           </select>
+          {newRole === "bussing" ? (
+            <div>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Assign to Bus</label>
+              <select
+                value={newBusNumber}
+                onChange={(e) => setNewBusNumber(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select bus...</option>
+                {BUSES.map((bus) => (
+                  <option key={bus.id} value={bus.id.replace("bus-", "")}>{bus.label}</option>
+                ))}
+              </select>
+              {newBusNumber && (
+                <p className="text-xs text-slate-500 mt-1">Will be created as &quot;Bus {newBusNumber} Staff&quot;</p>
+              )}
+            </div>
+          ) : (
+            <input
+              type="text"
+              placeholder="Label (e.g. Head Nurse)"
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          )}
+          <input
+            type="text"
+            placeholder="PIN"
+            value={newPin}
+            onChange={(e) => setNewPin(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
           <button
             onClick={handleAdd}
             disabled={saving}
@@ -225,22 +260,9 @@ function UsersContent() {
               <div key={user.id} className="bg-white rounded-xl border border-slate-300 overflow-hidden">
                 {isEditing ? (
                   <div className="p-4 space-y-3">
-                    <input
-                      type="text"
-                      value={editLabel}
-                      onChange={(e) => setEditLabel(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                      type="text"
-                      placeholder="New PIN (leave blank to keep current)"
-                      value={editPin}
-                      onChange={(e) => setEditPin(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
                     <select
                       value={editRole}
-                      onChange={(e) => setEditRole(e.target.value)}
+                      onChange={(e) => { setEditRole(e.target.value); if (e.target.value !== "bussing") setEditBusNumber(""); }}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="staff">Staff</option>
@@ -248,6 +270,35 @@ function UsersContent() {
                       <option value="bussing">Bussing</option>
                       <option value="admin">Admin</option>
                     </select>
+                    {editRole === "bussing" ? (
+                      <div>
+                        <label className="block text-xs font-medium text-slate-500 mb-1">Assign to Bus</label>
+                        <select
+                          value={editBusNumber}
+                          onChange={(e) => setEditBusNumber(e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value="">Select bus...</option>
+                          {BUSES.map((bus) => (
+                            <option key={bus.id} value={bus.id.replace("bus-", "")}>{bus.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : (
+                      <input
+                        type="text"
+                        value={editLabel}
+                        onChange={(e) => setEditLabel(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    )}
+                    <input
+                      type="text"
+                      placeholder="New PIN (leave blank to keep current)"
+                      value={editPin}
+                      onChange={(e) => setEditPin(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
                     <div className="flex gap-2">
                       <button
                         onClick={() => setEditingId(null)}
@@ -266,7 +317,7 @@ function UsersContent() {
                   </div>
                 ) : (
                   <div className="px-4 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium text-sm text-slate-900">{user.label}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${roleColors[user.role] || "bg-slate-100 text-slate-600"}`}>
                         {user.role}

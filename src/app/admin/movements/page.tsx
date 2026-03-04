@@ -24,13 +24,6 @@ interface Options {
   groupMapping: Record<string, string>;
 }
 
-interface BusStat {
-  busNumber: string;
-  assigned: number;
-  checkedIn: number;
-  arrived: number;
-}
-
 interface CheckInRecord {
   camper_id: number;
   checked_in_at: string | null;
@@ -88,8 +81,6 @@ function MovementsContent() {
   // Options
   const [options, setOptions] = useState<Options>({ smallGroups: [], cabinNames: [], groupMapping: {} });
 
-  // Bus stats
-  const [busStats, setBusStats] = useState<BusStat[]>([]);
 
   // Feed
   const [tab, setTab] = useState<"changes" | "noshows">("changes");
@@ -157,16 +148,6 @@ function MovementsContent() {
 
   useEffect(() => { fetchNoShows(); }, [fetchNoShows]);
 
-  // Load bus stats
-  const fetchBusStats = useCallback(() => {
-    const weekendParam = campWeekend ? `?weekend=${encodeURIComponent(campWeekend)}` : "";
-    fetch(`/api/admin/bus-stats${weekendParam}`)
-      .then((r) => r.json())
-      .then((data) => setBusStats(data))
-      .catch(() => {});
-  }, [campWeekend]);
-
-  useEffect(() => { fetchBusStats(); }, [fetchBusStats]);
 
   // Fetch check-in status for selected camper
   const fetchCheckInStatus = useCallback(async (camperId: number) => {
@@ -222,7 +203,6 @@ function MovementsContent() {
       });
       if (res.ok) {
         setCheckInStatus("on_bus");
-        fetchBusStats();
       }
     } catch {
       // ignore
@@ -242,7 +222,6 @@ function MovementsContent() {
       });
       if (res.ok) {
         setCheckInStatus("arrived");
-        fetchBusStats();
       }
     } catch {
       // ignore
@@ -260,7 +239,6 @@ function MovementsContent() {
       });
       if (res.ok) {
         setCheckInStatus("not_checked_in");
-        fetchBusStats();
       }
     } catch {
       // ignore
@@ -578,46 +556,6 @@ function MovementsContent() {
           )}
         </div>
       </div>
-
-      {/* Groups & Buses */}
-      {busStats.length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
-          <div className="px-4 py-3 bg-slate-100 border-b border-slate-300">
-            <h2 className="font-semibold text-sm text-slate-700">Buses</h2>
-          </div>
-          <div className="p-4 grid grid-cols-2 gap-3">
-            {busStats.map((bus) => (
-              <div
-                key={bus.busNumber}
-                className="rounded-lg border border-slate-200 p-3"
-              >
-                <p className="text-sm font-semibold text-slate-900 mb-1">Bus {bus.busNumber}</p>
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-slate-500">Assigned</span>
-                    <span className="text-xs font-medium text-slate-700">{bus.assigned}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-yellow-600">On Bus</span>
-                    <span className="text-xs font-medium text-yellow-700">{bus.checkedIn}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-green-600">Arrived</span>
-                    <span className="text-xs font-medium text-green-700">{bus.arrived}</span>
-                  </div>
-                </div>
-                {/* Mini progress bar */}
-                <div className="mt-2 w-full bg-slate-100 rounded-full h-1.5">
-                  <div
-                    className="bg-green-500 h-1.5 rounded-full transition-all"
-                    style={{ width: `${bus.assigned > 0 ? Math.round((bus.arrived / bus.assigned) * 100) : 0}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Change Feed */}
       <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">

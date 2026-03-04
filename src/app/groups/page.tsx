@@ -51,6 +51,13 @@ interface DGLCabinStudent {
   smallGroup: string | null;
 }
 
+interface BusStat {
+  busNumber: string;
+  assigned: number;
+  checkedIn: number;
+  arrived: number;
+}
+
 interface DGLCabinEntry {
   dglName: string | null;
   dglCabin: string | null;
@@ -87,7 +94,7 @@ export default function GroupsPage() {
   );
 }
 
-type Tab = "overview" | "small" | "dgls";
+type Tab = "overview" | "small" | "dgls" | "buses";
 
 function GroupsContent() {
   const { campWeekend } = useCamp();
@@ -95,6 +102,7 @@ function GroupsContent() {
   const [overviewData, setOverviewData] = useState<OverviewLargeGroup[]>([]);
   const [smallGroups, setSmallGroups] = useState<FlatGroup[]>([]);
   const [dglCabins, setDglCabins] = useState<DGLCabinEntry[]>([]);
+  const [busStats, setBusStats] = useState<BusStat[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Overview data
@@ -145,10 +153,25 @@ function GroupsContent() {
       .catch(() => setLoading(false));
   }, [campWeekend, tab]);
 
+  // Bus stats data
+  useEffect(() => {
+    if (tab !== "buses") return;
+    setLoading(true);
+    const weekendParam = campWeekend ? `?weekend=${encodeURIComponent(campWeekend)}` : "";
+    fetch(`/api/admin/bus-stats${weekendParam}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setBusStats(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [campWeekend, tab]);
+
   const tabs: { key: Tab; label: string }[] = [
     { key: "overview", label: "Overview" },
     { key: "small", label: "Small Groups" },
     { key: "dgls", label: "DGL Cabins" },
+    { key: "buses", label: "Buses" },
   ];
 
   return (
@@ -180,8 +203,10 @@ function GroupsContent() {
         <OverviewTab largeGroups={overviewData} />
       ) : tab === "small" ? (
         <SmallGroupsTab groups={smallGroups} />
-      ) : (
+      ) : tab === "dgls" ? (
         <DGLCabinsTab entries={dglCabins} />
+      ) : (
+        <BusesTab busStats={busStats} />
       )}
     </div>
   );
@@ -504,6 +529,78 @@ function DGLCabinsTab({ entries }: { entries: DGLCabinEntry[] }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// --- Buses Tab ---
+
+function BusesTab({ busStats }: { busStats: BusStat[] }) {
+  if (busStats.length === 0) {
+    return (
+      <div className="bg-white rounded-xl p-6 border border-slate-300 text-center text-sm text-slate-400">
+        No bus assignments yet
+      </div>
+    );
+  }
+
+  const totalAssigned = busStats.reduce((s, b) => s + b.assigned, 0);
+  const totalOnBus = busStats.reduce((s, b) => s + b.checkedIn, 0);
+  const totalArrived = busStats.reduce((s, b) => s + b.arrived, 0);
+
+  return (
+    <div className="space-y-3">
+      {/* Summary */}
+      <div className="bg-white rounded-xl border border-slate-300 p-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-semibold text-slate-700">All Buses</span>
+          <span className="text-sm font-bold text-slate-900">{totalAssigned} campers</span>
+        </div>
+        <div className="flex items-center gap-4 text-xs">
+          <span className="text-yellow-700 font-medium">On Bus: {totalOnBus}</span>
+          <span className="text-green-700 font-medium">Arrived: {totalArrived}</span>
+          <span className="text-slate-500">Remaining: {totalAssigned - totalOnBus}</span>
+        </div>
+        <div className="mt-2 w-full bg-slate-100 rounded-full h-2">
+          <div
+            className="bg-green-500 h-2 rounded-full transition-all"
+            style={{ width: `${totalAssigned > 0 ? Math.round((totalArrived / totalAssigned) * 100) : 0}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Per-bus cards */}
+      <div className="grid grid-cols-2 gap-3">
+        {busStats.map((bus) => {
+          const pct = bus.assigned > 0 ? Math.round((bus.arrived / bus.assigned) * 100) : 0;
+          return (
+            <div key={bus.busNumber} className="bg-white rounded-xl border border-slate-300 p-4">
+              <p className="text-sm font-bold text-slate-900 mb-2">Bus {bus.busNumber}</p>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500">Assigned</span>
+                  <span className="text-xs font-semibold text-slate-800">{bus.assigned}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-yellow-600">On Bus</span>
+                  <span className="text-xs font-semibold text-yellow-700">{bus.checkedIn}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-green-600">Arrived</span>
+                  <span className="text-xs font-semibold text-green-700">{bus.arrived}</span>
+                </div>
+              </div>
+              <div className="mt-2 w-full bg-slate-100 rounded-full h-1.5">
+                <div
+                  className="bg-green-500 h-1.5 rounded-full transition-all"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1 text-right">{pct}%</p>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
