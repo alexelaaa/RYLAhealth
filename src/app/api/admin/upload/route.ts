@@ -130,32 +130,36 @@ export async function POST(request: Request) {
 
   const now = new Date().toISOString();
   let deleted = 0;
-  const tx = sqlite.transaction(() => {
-    if (replaceAll) {
-      // Clear all existing camper data (preserves logs, pins, etc.)
-      const delResult = sqlite.prepare("DELETE FROM campers").run();
-      deleted = delResult.changes;
-    }
-    for (const camper of parsed) {
-      // Convert empty strings to null for clean storage
-      const params: Record<string, string | null> = { createdAt: now, updatedAt: now };
-      for (const [key, value] of Object.entries(camper)) {
-        params[key] = (value as string) || null;
+
+  try {
+    const tx = sqlite.transaction(() => {
+      if (replaceAll) {
+        const delResult = sqlite.prepare("DELETE FROM campers").run();
+        deleted = delResult.changes;
       }
-      // These must always have values
-      params.uniqueRegistrationId = camper.uniqueRegistrationId;
-      params.firstName = camper.firstName;
-      params.lastName = camper.lastName;
-      params.campWeekend = camper.campWeekend;
-      params.role = camper.role;
+      for (const camper of parsed) {
+        const params: Record<string, string | null> = { createdAt: now, updatedAt: now };
+        for (const [key, value] of Object.entries(camper)) {
+          params[key] = (value as string) || null;
+        }
+        params.uniqueRegistrationId = camper.uniqueRegistrationId;
+        params.firstName = camper.firstName;
+        params.lastName = camper.lastName;
+        params.campWeekend = camper.campWeekend;
+        params.role = camper.role;
 
-      const result = upsertStmt.run(params);
-      if (result.changes === 1) inserted++;
-      else updated++;
-    }
-  });
+        const result = upsertStmt.run(params);
+        if (result.changes === 1) inserted++;
+        else updated++;
+      }
+    });
 
-  tx();
+    tx();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Import error:", message);
+    return NextResponse.json({ error: `Import failed: ${message}` }, { status: 500 });
+  }
 
   return NextResponse.json({
     success: true,

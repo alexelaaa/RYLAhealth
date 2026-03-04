@@ -27,6 +27,11 @@ export default function AdminUploadPage() {
   const [replaceAll, setReplaceAll] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Nuke state
+  const [nuking, setNuking] = useState(false);
+  const [nukeResult, setNukeResult] = useState<Record<string, number> | null>(null);
+  const [nukeConfirm, setNukeConfirm] = useState(false);
+
   // Group Info upload state
   const [groupFile, setGroupFile] = useState<File | null>(null);
   const [groupPreview, setGroupPreview] = useState<{ totalParsed: number } | null>(null);
@@ -340,6 +345,68 @@ export default function AdminUploadPage() {
                 className="flex-1 py-3 bg-green-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40"
               >
                 {groupLoading ? "Importing..." : "Confirm Import"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Divider */}
+        <hr className="border-slate-200" />
+
+        {/* Nuke All Data */}
+        <h2 className="text-lg font-bold text-red-700">Delete All Data</h2>
+        <p className="text-sm text-slate-500">
+          Permanently delete all campers, check-ins, medical logs, behavioral incidents,
+          group info, staff, and bus waypoints. This cannot be undone.
+        </p>
+
+        {nukeResult && (
+          <div className="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 text-sm">
+            All data deleted: {Object.entries(nukeResult).map(([t, n]) => `${t}: ${n}`).join(", ")}
+          </div>
+        )}
+
+        {!nukeConfirm ? (
+          <button
+            onClick={() => setNukeConfirm(true)}
+            className="w-full py-3 bg-red-100 text-red-700 rounded-xl font-semibold text-sm hover:bg-red-200 transition-colors"
+          >
+            Delete All Data...
+          </button>
+        ) : (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
+            <p className="text-sm font-medium text-red-800">
+              Are you sure? This will delete EVERYTHING from the database.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setNukeConfirm(false)}
+                className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setNuking(true);
+                  try {
+                    const res = await fetch("/api/admin/nuke", { method: "POST" });
+                    if (res.ok) {
+                      const data = await res.json();
+                      setNukeResult(data.deleted);
+                    } else {
+                      setError("Failed to delete data");
+                    }
+                  } catch {
+                    setError("Failed to delete data");
+                  } finally {
+                    setNuking(false);
+                    setNukeConfirm(false);
+                  }
+                }}
+                disabled={nuking}
+                className="flex-1 py-3 bg-red-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40"
+              >
+                {nuking ? "Deleting..." : "Yes, Delete Everything"}
               </button>
             </div>
           </div>
