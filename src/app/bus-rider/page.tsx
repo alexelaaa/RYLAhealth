@@ -408,8 +408,11 @@ function BusRiderContent({
                           {camper.busStop}
                         </span>
                       )}
+                      {camper.school && (
+                        <span className="text-xs text-slate-500">{camper.school}</span>
+                      )}
                       {camper.pickupTime && (
-                        <span className="text-xs text-slate-500">Pickup: {camper.pickupTime}</span>
+                        <span className="text-xs text-slate-400">Pickup: {camper.pickupTime}</span>
                       )}
                     </div>
                     {(camper.guardianPhone || camper.cellPhone) && (
