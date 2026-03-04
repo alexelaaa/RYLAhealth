@@ -53,6 +53,7 @@ export const campers = sqliteTable(
     dropoffTime: text("dropoff_time"),
     timedMedicationOverride: integer("timed_medication_override").default(0),
     medicationSchedule: text("medication_schedule"),
+    noShow: integer("no_show").default(0),
     // Medical
     dietaryRestrictions: text("dietary_restrictions"),
     allergies: text("allergies"),
