@@ -12,6 +12,8 @@ interface CheckedInCamper {
   last_name: string;
   checked_in_at: string;
   checked_in_by: string;
+  camp_arrived_at: string | null;
+  camp_arrived_by: string | null;
   bus_number: string | null;
   cabin_number: string | null;
   cabin_name: string | null;
@@ -32,7 +34,7 @@ function CheckInContent() {
   const { campWeekend } = useCamp();
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<Camper[]>([]);
-  const [checkedIn, setCheckedIn] = useState<Set<number>>(new Set());
+  const [checkedInMap, setCheckedInMap] = useState<Map<number, CheckedInCamper>>(new Map());
   const [checkedInList, setCheckedInList] = useState<CheckedInCamper[]>([]);
   const [totalCampers, setTotalCampers] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -48,11 +50,15 @@ function CheckInContent() {
         fetch(`/api/check-ins${weekendParam}`),
         fetch(`/api/campers?${campWeekend ? `weekend=${encodeURIComponent(campWeekend)}&` : ""}limit=0`),
       ]);
-      const checkInsData = await checkInsRes.json();
+      const checkInsData: CheckedInCamper[] = await checkInsRes.json();
       const campersData = await campersRes.json();
 
       setCheckedInList(checkInsData);
-      setCheckedIn(new Set(checkInsData.map((c: CheckedInCamper) => c.camper_id)));
+      const map = new Map<number, CheckedInCamper>();
+      for (const ci of checkInsData) {
+        map.set(ci.camper_id, ci);
+      }
+      setCheckedInMap(map);
       setTotalCampers(campersData.total);
     } catch {
       // ignore
@@ -81,6 +87,7 @@ function CheckInContent() {
     }
   }, [debouncedSearch, campWeekend]);
 
+  // Check in (create record — for walk-ins or bus riders not yet checked in)
   const handleCheckIn = async (camperId: number) => {
     setActionLoading(camperId);
     try {
@@ -99,6 +106,26 @@ function CheckInContent() {
     }
   };
 
+  // Confirm camp arrival (PATCH)
+  const handleConfirmArrival = async (camperId: number) => {
+    setActionLoading(camperId);
+    try {
+      const res = await fetch("/api/check-ins", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ camperId }),
+      });
+      if (res.ok) {
+        await fetchCheckIns();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Undo (delete entire check-in record)
   const handleUndo = async (camperId: number) => {
     setActionLoading(camperId);
     try {
@@ -115,12 +142,22 @@ function CheckInContent() {
     }
   };
 
-  const checkedInCount = checkedIn.size;
-  const progressPct = totalCampers > 0 ? Math.round((checkedInCount / totalCampers) * 100) : 0;
+  const onBusCount = checkedInList.length;
+  const arrivedCount = checkedInList.filter((ci) => ci.camp_arrived_at).length;
+  const awaitingArrival = checkedInList.filter((ci) => !ci.camp_arrived_at);
+  const arrived = checkedInList.filter((ci) => ci.camp_arrived_at);
+  const progressPct = onBusCount > 0 ? Math.round((arrivedCount / onBusCount) * 100) : 0;
+
+  const getStatus = (camperId: number): "not_checked_in" | "on_bus" | "arrived" => {
+    const ci = checkedInMap.get(camperId);
+    if (!ci) return "not_checked_in";
+    if (ci.camp_arrived_at) return "arrived";
+    return "on_bus";
+  };
 
   return (
     <div className="p-4 space-y-4">
-      <h1 className="text-xl font-bold text-slate-900">Bus Check-In</h1>
+      <h1 className="text-xl font-bold text-slate-900">Camp Arrival</h1>
 
       {!campWeekend && (
         <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3 text-sm">
@@ -131,8 +168,8 @@ function CheckInContent() {
       {/* Progress */}
       <div className="bg-white rounded-xl p-4 border border-slate-100">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-semibold text-slate-700">Progress</span>
-          <span className="text-sm font-bold text-green-600">{checkedInCount} / {totalCampers}</span>
+          <span className="text-sm font-semibold text-slate-700">Arrivals</span>
+          <span className="text-sm font-bold text-green-600">{arrivedCount} / {onBusCount} on bus</span>
         </div>
         <div className="w-full bg-slate-100 rounded-full h-4">
           <div
@@ -140,7 +177,9 @@ function CheckInContent() {
             style={{ width: `${progressPct}%` }}
           />
         </div>
-        <p className="text-xs text-slate-500 mt-1 text-right">{progressPct}% checked in</p>
+        <p className="text-xs text-slate-500 mt-1 text-right">
+          {arrivedCount} arrived · {onBusCount - arrivedCount} awaiting · {totalCampers - onBusCount} not on bus
+        </p>
       </div>
 
       {/* Search */}
@@ -167,15 +206,17 @@ function CheckInContent() {
       {searchResults.length > 0 && (
         <div className="space-y-2">
           {searchResults.map((camper) => {
-            const isCheckedIn = checkedIn.has(camper.id);
+            const status = getStatus(camper.id);
             const isLoading = actionLoading === camper.id;
 
             return (
               <div
                 key={camper.id}
                 className={`rounded-xl p-4 border transition-colors ${
-                  isCheckedIn
+                  status === "arrived"
                     ? "bg-green-50 border-green-200"
+                    : status === "on_bus"
+                    ? "bg-yellow-50 border-yellow-200"
                     : "bg-white border-slate-100"
                 }`}
               >
@@ -184,7 +225,7 @@ function CheckInContent() {
                     <p className="font-medium text-slate-900">
                       {camper.lastName}, {camper.firstName}
                     </p>
-                    <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
                       {camper.busNumber && (
                         <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
                           Bus {camper.busNumber}
@@ -232,13 +273,21 @@ function CheckInContent() {
                       </div>
                     )}
                   </div>
-                  {isCheckedIn ? (
+                  {status === "arrived" ? (
                     <button
                       onClick={() => handleUndo(camper.id)}
                       disabled={isLoading}
                       className="px-4 py-2.5 bg-slate-200 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-300 transition-colors disabled:opacity-40"
                     >
                       {isLoading ? "..." : "Undo"}
+                    </button>
+                  ) : status === "on_bus" ? (
+                    <button
+                      onClick={() => handleConfirmArrival(camper.id)}
+                      disabled={isLoading}
+                      className="px-4 py-2.5 bg-yellow-500 text-white rounded-xl text-sm font-bold hover:bg-yellow-600 transition-colors disabled:opacity-40"
+                    >
+                      {isLoading ? "..." : "CONFIRM ARRIVAL"}
                     </button>
                   ) : (
                     <button
@@ -256,66 +305,115 @@ function CheckInContent() {
         </div>
       )}
 
-      {/* No search active: show recent check-ins */}
+      {/* No search active: show Awaiting Arrival + Arrived */}
       {searchResults.length === 0 && !search && !loading && (
-        <div>
-          <h2 className="text-sm font-semibold text-slate-700 mb-2">
-            Recent Check-Ins ({checkedInCount})
-          </h2>
-          {checkedInList.length === 0 ? (
-            <div className="bg-white rounded-xl p-6 border border-slate-100 text-center text-sm text-slate-400">
-              No check-ins yet. Search for a camper above to check them in.
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {checkedInList.slice(0, 20).map((ci) => (
-                <div
-                  key={ci.camper_id}
-                  className="bg-green-50 rounded-xl p-3 border border-green-100 flex items-center justify-between"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">
-                      {ci.last_name}, {ci.first_name}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      {ci.bus_number && (
-                        <span className="text-xs text-blue-600">Bus {ci.bus_number}</span>
-                      )}
-                      {ci.bus_stop && (
-                        <span className="text-xs text-slate-500">{ci.bus_stop}</span>
-                      )}
-                      <span className="text-xs text-slate-400">
-                        {new Date(ci.checked_in_at).toLocaleTimeString()}
-                      </span>
-                      <span className="text-xs text-slate-400">by {ci.checked_in_by}</span>
-                    </div>
-                    {(ci.guardian_phone || ci.cell_phone) && (
-                      <div className="flex items-center gap-2 mt-0.5">
-                        {ci.guardian_phone && (
-                          <a href={`tel:${ci.guardian_phone}`} className="text-xs text-blue-600 underline">
-                            Parent: {ci.guardian_phone}
-                          </a>
-                        )}
-                        {ci.cell_phone && (
-                          <a href={`tel:${ci.cell_phone}`} className="text-xs text-blue-600 underline">
-                            Camper: {ci.cell_phone}
-                          </a>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => handleUndo(ci.camper_id)}
-                    disabled={actionLoading === ci.camper_id}
-                    className="text-xs text-slate-500 hover:text-red-600 transition-colors"
+        <>
+          {/* Awaiting Arrival */}
+          <div>
+            <h2 className="text-sm font-semibold text-yellow-700 mb-2">
+              Awaiting Arrival ({awaitingArrival.length})
+            </h2>
+            {awaitingArrival.length === 0 ? (
+              <div className="bg-white rounded-xl p-4 border border-slate-100 text-center text-sm text-slate-400">
+                No campers awaiting arrival.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {awaitingArrival.map((ci) => (
+                  <div
+                    key={ci.camper_id}
+                    className="bg-yellow-50 rounded-xl p-3 border border-yellow-100 flex items-center justify-between"
                   >
-                    Undo
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">
+                        {ci.last_name}, {ci.first_name}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                        {ci.bus_number && (
+                          <span className="text-xs text-blue-600">Bus {ci.bus_number}</span>
+                        )}
+                        {ci.bus_stop && (
+                          <span className="text-xs text-slate-500">{ci.bus_stop}</span>
+                        )}
+                        <span className="text-xs text-slate-400">
+                          on bus {new Date(ci.checked_in_at).toLocaleTimeString()}
+                        </span>
+                        <span className="text-xs text-slate-400">by {ci.checked_in_by}</span>
+                      </div>
+                      {(ci.guardian_phone || ci.cell_phone) && (
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {ci.guardian_phone && (
+                            <a href={`tel:${ci.guardian_phone}`} className="text-xs text-blue-600 underline">
+                              Parent: {ci.guardian_phone}
+                            </a>
+                          )}
+                          {ci.cell_phone && (
+                            <a href={`tel:${ci.cell_phone}`} className="text-xs text-blue-600 underline">
+                              Camper: {ci.cell_phone}
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleConfirmArrival(ci.camper_id)}
+                      disabled={actionLoading === ci.camper_id}
+                      className="px-3 py-1.5 bg-yellow-500 text-white rounded-lg text-xs font-bold hover:bg-yellow-600 transition-colors disabled:opacity-40 shrink-0"
+                    >
+                      {actionLoading === ci.camper_id ? "..." : "ARRIVED"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Arrived */}
+          <div>
+            <h2 className="text-sm font-semibold text-green-700 mb-2">
+              Arrived ({arrived.length})
+            </h2>
+            {arrived.length === 0 ? (
+              <div className="bg-white rounded-xl p-4 border border-slate-100 text-center text-sm text-slate-400">
+                No arrivals yet. Confirm camper arrivals above or search to check in walk-ins.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {arrived.slice(0, 20).map((ci) => (
+                  <div
+                    key={ci.camper_id}
+                    className="bg-green-50 rounded-xl p-3 border border-green-100 flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-slate-900">
+                        {ci.last_name}, {ci.first_name}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                        {ci.bus_number && (
+                          <span className="text-xs text-blue-600">Bus {ci.bus_number}</span>
+                        )}
+                        {ci.bus_stop && (
+                          <span className="text-xs text-slate-500">{ci.bus_stop}</span>
+                        )}
+                        <span className="text-xs text-slate-400">
+                          arrived {new Date(ci.camp_arrived_at!).toLocaleTimeString()}
+                        </span>
+                        <span className="text-xs text-slate-400">by {ci.camp_arrived_by}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleUndo(ci.camper_id)}
+                      disabled={actionLoading === ci.camper_id}
+                      className="text-xs text-slate-500 hover:text-red-600 transition-colors"
+                    >
+                      Undo
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       {loading && (

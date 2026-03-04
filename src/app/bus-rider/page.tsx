@@ -101,14 +101,15 @@ function BusRiderContent({
   session: SessionData;
   busNumber: string;
 }) {
-  // Check-in state
-  const [search, setSearch] = useState("");
-  const [searchResults, setSearchResults] = useState<Camper[]>([]);
+  // All campers for this bus
+  const [allCampers, setAllCampers] = useState<Camper[]>([]);
   const [checkedIn, setCheckedIn] = useState<Set<number>>(new Set());
-  const [checkedInList, setCheckedInList] = useState<CheckedInCamper[]>([]);
-  const [totalCampers, setTotalCampers] = useState(0);
   const [checkInLoading, setCheckInLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+
+  // Search filter (filters the pre-loaded list, not an API call)
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 150);
 
   // GPS tracker state
   const [tracking, setTracking] = useState(false);
@@ -121,30 +122,28 @@ function BusRiderContent({
   const bufferRef = useRef<WaypointData[]>([]);
   const flushIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const debouncedSearch = useDebounce(search, 200);
-
   const busId = `bus-${busNumber}`;
   const busLabel = BUSES.find((b) => b.id === busId)?.label || `Bus ${busNumber}`;
   const weekendParam = session.campWeekend ? `weekend=${encodeURIComponent(session.campWeekend)}` : "";
 
-  // Fetch check-ins for this bus
-  const fetchCheckIns = useCallback(async () => {
+  // Fetch all campers for this bus + check-ins
+  const fetchData = useCallback(async () => {
     setCheckInLoading(true);
     try {
-      const [checkInsRes, campersRes] = await Promise.all([
+      const [campersRes, checkInsRes] = await Promise.all([
+        fetch(`/api/campers?busNumber=${busNumber}${weekendParam ? `&${weekendParam}` : ""}&limit=500&sortBy=lastName&sortOrder=asc`),
         fetch(`/api/check-ins${weekendParam ? `?${weekendParam}` : ""}`),
-        fetch(`/api/campers?busNumber=${busNumber}${weekendParam ? `&${weekendParam}` : ""}&limit=0`),
       ]);
-      const checkInsData = await checkInsRes.json();
       const campersData = await campersRes.json();
+      const checkInsData = await checkInsRes.json();
 
-      // Only show check-ins for our bus
+      setAllCampers(campersData.campers || []);
+
+      // Only track check-ins for our bus
       const busCheckIns = checkInsData.filter(
         (c: CheckedInCamper) => c.bus_number === busNumber
       );
-      setCheckedInList(busCheckIns);
       setCheckedIn(new Set(busCheckIns.map((c: CheckedInCamper) => c.camper_id)));
-      setTotalCampers(campersData.total);
     } catch {
       // ignore
     } finally {
@@ -153,27 +152,8 @@ function BusRiderContent({
   }, [busNumber, weekendParam]);
 
   useEffect(() => {
-    fetchCheckIns();
-  }, [fetchCheckIns]);
-
-  // Search for campers on this bus
-  useEffect(() => {
-    if (debouncedSearch.length >= 2) {
-      const params = new URLSearchParams({
-        search: debouncedSearch,
-        busNumber,
-        limit: "20",
-      });
-      if (session.campWeekend) params.set("weekend", session.campWeekend);
-
-      fetch(`/api/campers?${params}`)
-        .then((r) => r.json())
-        .then((data) => setSearchResults(data.campers))
-        .catch(() => {});
-    } else {
-      setSearchResults([]);
-    }
-  }, [debouncedSearch, busNumber, session.campWeekend]);
+    fetchData();
+  }, [fetchData]);
 
   const handleCheckIn = async (camperId: number) => {
     setActionLoading(camperId);
@@ -183,7 +163,7 @@ function BusRiderContent({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ camperId }),
       });
-      if (res.ok) await fetchCheckIns();
+      if (res.ok) await fetchData();
     } catch {
       // ignore
     } finally {
@@ -195,7 +175,7 @@ function BusRiderContent({
     setActionLoading(camperId);
     try {
       const res = await fetch(`/api/check-ins/${camperId}`, { method: "DELETE" });
-      if (res.ok) await fetchCheckIns();
+      if (res.ok) await fetchData();
     } catch {
       // ignore
     } finally {
@@ -308,8 +288,31 @@ function BusRiderContent({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Filter campers by search (client-side)
+  const filteredCampers = debouncedSearch.length >= 1
+    ? allCampers.filter((c) => {
+        const term = debouncedSearch.toLowerCase();
+        return (
+          c.firstName.toLowerCase().includes(term) ||
+          c.lastName.toLowerCase().includes(term)
+        );
+      })
+    : allCampers;
+
+  // Group campers by bus stop
+  const groupedByStop = new Map<string, Camper[]>();
+  for (const c of filteredCampers) {
+    const stop = c.busStop || "No Stop Assigned";
+    if (!groupedByStop.has(stop)) groupedByStop.set(stop, []);
+    groupedByStop.get(stop)!.push(c);
+  }
+  // Sort stops naturally
+  const sortedStops = Array.from(groupedByStop.keys()).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
   const checkedInCount = checkedIn.size;
+  const totalCampers = allCampers.length;
   const progressPct = totalCampers > 0 ? Math.round((checkedInCount / totalCampers) * 100) : 0;
+  const notCheckedIn = allCampers.filter((c) => !checkedIn.has(c.id));
 
   return (
     <div className="p-4 space-y-4">
@@ -359,10 +362,12 @@ function BusRiderContent({
             style={{ width: `${progressPct}%` }}
           />
         </div>
-        <p className="text-xs text-slate-500 mt-1 text-right">{progressPct}% checked in</p>
+        <p className="text-xs text-slate-500 mt-1 text-right">
+          {progressPct}% checked in · {notCheckedIn.length} remaining
+        </p>
       </div>
 
-      {/* Search */}
+      {/* Search filter */}
       <div className="relative">
         <svg
           className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"
@@ -374,155 +379,107 @@ function BusRiderContent({
         </svg>
         <input
           type="search"
-          placeholder="Search camper by name..."
+          placeholder="Filter by name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-4 rounded-xl border border-slate-200 bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          autoFocus
+          className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
-      {/* Search Results */}
-      {searchResults.length > 0 && (
-        <div className="space-y-2">
-          {searchResults.map((camper) => {
-            const isCheckedIn = checkedIn.has(camper.id);
-            const isLoading = actionLoading === camper.id;
+      {checkInLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        </div>
+      ) : totalCampers === 0 ? (
+        <div className="bg-white rounded-xl p-6 border border-slate-100 text-center text-sm text-slate-400">
+          No campers assigned to {busLabel}.
+        </div>
+      ) : (
+        /* Camper list grouped by bus stop */
+        <div className="space-y-4">
+          {sortedStops.map((stop) => {
+            const campers = groupedByStop.get(stop)!;
+            const stopChecked = campers.filter((c) => checkedIn.has(c.id)).length;
             return (
-              <div
-                key={camper.id}
-                className={`rounded-xl p-4 border transition-colors ${
-                  isCheckedIn
-                    ? "bg-green-50 border-green-200"
-                    : "bg-white border-slate-100"
-                }`}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-slate-900">
-                      {camper.lastName}, {camper.firstName}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1">
-                      {camper.busStop && (
-                        <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
-                          {camper.busStop}
-                        </span>
-                      )}
-                      {camper.school && (
-                        <span className="text-xs text-slate-500">{camper.school}</span>
-                      )}
-                      {camper.pickupTime && (
-                        <span className="text-xs text-slate-400">Pickup: {camper.pickupTime}</span>
-                      )}
-                    </div>
-                    {(camper.guardianPhone || camper.cellPhone) && (
-                      <div className="flex items-center gap-2 mt-1">
-                        {camper.guardianPhone && (
-                          <a
-                            href={`tel:${camper.guardianPhone}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-xs text-blue-600 underline"
+              <div key={stop} className="bg-white rounded-xl border border-slate-100 overflow-hidden">
+                <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                  <span className="text-sm font-semibold text-slate-700">
+                    Stop {stop}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    {stopChecked}/{campers.length}
+                  </span>
+                </div>
+                <div className="divide-y divide-slate-100">
+                  {campers.map((camper) => {
+                    const isCheckedIn = checkedIn.has(camper.id);
+                    const isLoading = actionLoading === camper.id;
+                    return (
+                      <div
+                        key={camper.id}
+                        className={`px-4 py-3 flex items-center justify-between gap-3 ${
+                          isCheckedIn ? "bg-green-50" : ""
+                        }`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-sm font-medium ${isCheckedIn ? "text-green-800" : "text-slate-900"}`}>
+                            {camper.lastName}, {camper.firstName}
+                          </p>
+                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                            {camper.school && (
+                              <span className="text-xs text-slate-500">{camper.school}</span>
+                            )}
+                            {camper.pickupTime && (
+                              <span className="text-xs text-slate-400">Pickup: {camper.pickupTime}</span>
+                            )}
+                          </div>
+                          {(camper.guardianPhone || camper.cellPhone) && (
+                            <div className="flex items-center gap-2 mt-0.5">
+                              {camper.guardianPhone && (
+                                <a
+                                  href={`tel:${camper.guardianPhone}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-xs text-blue-600 underline"
+                                >
+                                  Parent: {camper.guardianPhone}
+                                </a>
+                              )}
+                              {camper.cellPhone && (
+                                <a
+                                  href={`tel:${camper.cellPhone}`}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="text-xs text-blue-600 underline"
+                                >
+                                  Camper: {camper.cellPhone}
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        {isCheckedIn ? (
+                          <button
+                            onClick={() => handleUndo(camper.id)}
+                            disabled={isLoading}
+                            className="px-3 py-2 bg-slate-200 text-slate-700 rounded-xl text-xs font-medium hover:bg-slate-300 transition-colors disabled:opacity-40 shrink-0"
                           >
-                            Parent: {camper.guardianPhone}
-                          </a>
-                        )}
-                        {camper.cellPhone && (
-                          <a
-                            href={`tel:${camper.cellPhone}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="text-xs text-blue-600 underline"
+                            {isLoading ? "..." : "Undo"}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleCheckIn(camper.id)}
+                            disabled={isLoading}
+                            className="px-4 py-2 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-colors disabled:opacity-40 shrink-0"
                           >
-                            Camper: {camper.cellPhone}
-                          </a>
+                            {isLoading ? "..." : "CHECK IN"}
+                          </button>
                         )}
                       </div>
-                    )}
-                  </div>
-                  {isCheckedIn ? (
-                    <button
-                      onClick={() => handleUndo(camper.id)}
-                      disabled={isLoading}
-                      className="px-4 py-2.5 bg-slate-200 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-300 transition-colors disabled:opacity-40"
-                    >
-                      {isLoading ? "..." : "Undo"}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleCheckIn(camper.id)}
-                      disabled={isLoading}
-                      className="px-4 py-2.5 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-colors disabled:opacity-40"
-                    >
-                      {isLoading ? "..." : "CHECK IN"}
-                    </button>
-                  )}
+                    );
+                  })}
                 </div>
               </div>
             );
           })}
-        </div>
-      )}
-
-      {/* No search: show recent check-ins */}
-      {searchResults.length === 0 && !search && !checkInLoading && (
-        <div>
-          <h2 className="text-sm font-semibold text-slate-700 mb-2">
-            Recent Check-Ins ({checkedInCount})
-          </h2>
-          {checkedInList.length === 0 ? (
-            <div className="bg-white rounded-xl p-6 border border-slate-100 text-center text-sm text-slate-400">
-              No check-ins yet. Search for a camper above.
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {checkedInList.slice(0, 30).map((ci) => (
-                <div
-                  key={ci.camper_id}
-                  className="bg-green-50 rounded-xl p-3 border border-green-100 flex items-center justify-between"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-slate-900">
-                      {ci.last_name}, {ci.first_name}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      {ci.bus_stop && (
-                        <span className="text-xs text-slate-500">{ci.bus_stop}</span>
-                      )}
-                      <span className="text-xs text-slate-400">
-                        {new Date(ci.checked_in_at).toLocaleTimeString()}
-                      </span>
-                    </div>
-                    {(ci.guardian_phone || ci.cell_phone) && (
-                      <div className="flex items-center gap-2 mt-0.5">
-                        {ci.guardian_phone && (
-                          <a href={`tel:${ci.guardian_phone}`} className="text-xs text-blue-600 underline">
-                            Parent: {ci.guardian_phone}
-                          </a>
-                        )}
-                        {ci.cell_phone && (
-                          <a href={`tel:${ci.cell_phone}`} className="text-xs text-blue-600 underline">
-                            Camper: {ci.cell_phone}
-                          </a>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => handleUndo(ci.camper_id)}
-                    disabled={actionLoading === ci.camper_id}
-                    className="text-xs text-slate-500 hover:text-red-600 transition-colors"
-                  >
-                    Undo
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {checkInLoading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
         </div>
       )}
     </div>

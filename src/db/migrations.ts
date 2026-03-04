@@ -124,7 +124,11 @@ export function runMigrations(db: Database.Database) {
   // Migration 9: Add no_show column to campers
   addColumn("campers", "no_show", "INTEGER DEFAULT 0");
 
-  // Migration 10: Create small_group_info table
+  // Migration 10: Add camp arrival columns to check_ins
+  addColumn("check_ins", "camp_arrived_at", "TEXT");
+  addColumn("check_ins", "camp_arrived_by", "TEXT");
+
+  // Migration 11: Create small_group_info table
   db.exec(`
     CREATE TABLE IF NOT EXISTS small_group_info (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

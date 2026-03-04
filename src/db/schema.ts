@@ -160,6 +160,8 @@ export const checkIns = sqliteTable("check_ins", {
   checkedInAt: text("checked_in_at").notNull(),
   checkedInBy: text("checked_in_by").notNull(),
   notes: text("notes"),
+  campArrivedAt: text("camp_arrived_at"),
+  campArrivedBy: text("camp_arrived_by"),
 });
 
 export const busWaypoints = sqliteTable(

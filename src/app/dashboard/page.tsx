@@ -39,6 +39,7 @@ interface Stats {
   totalMedicalLogs: number;
   totalBehavioralIncidents: number;
   checkedIn?: number;
+  campArrived?: number;
   totalForCheckIn?: number;
   largeGroupCount?: number;
   smallGroupCount?: number;
@@ -135,11 +136,13 @@ function DashboardContent() {
               <div className="bg-green-50 rounded-xl p-4 border border-green-100 h-full">
                 <p className="text-2xl font-bold text-green-600">
                   {stats.checkedIn !== undefined && stats.totalForCheckIn
-                    ? `${Math.round((stats.checkedIn / stats.totalForCheckIn) * 100)}%`
+                    ? `${Math.round(((stats.campArrived || 0) / stats.totalForCheckIn) * 100)}%`
                     : "—"}
                 </p>
                 <p className="text-xs text-green-500 mt-1">
-                  Checked In{stats.checkedIn !== undefined ? ` (${stats.checkedIn}/${stats.totalForCheckIn})` : ""}
+                  {stats.checkedIn !== undefined
+                    ? `On Bus ${stats.checkedIn} · Arrived ${stats.campArrived || 0}`
+                    : "Check-In"}
                 </p>
               </div>
             </Link>

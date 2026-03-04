@@ -154,6 +154,7 @@ export async function GET(request: NextRequest) {
 
   // Check-in counts
   let checkedIn = 0;
+  let campArrived = 0;
   let totalForCheckIn = 0;
   try {
     if (weekend) {
@@ -163,12 +164,22 @@ export async function GET(request: NextRequest) {
          WHERE c.camp_weekend = ?`
       ).get(weekend) as { cnt: number } | undefined;
       checkedIn = checkInResult?.cnt || 0;
+      const arrivedResult = sqlite.prepare(
+        `SELECT COUNT(*) as cnt FROM check_ins ci
+         INNER JOIN campers c ON ci.camper_id = c.id
+         WHERE c.camp_weekend = ? AND ci.camp_arrived_at IS NOT NULL`
+      ).get(weekend) as { cnt: number } | undefined;
+      campArrived = arrivedResult?.cnt || 0;
       totalForCheckIn = totalCampers?.count || 0;
     } else {
       const checkInResult = sqlite.prepare(
         `SELECT COUNT(*) as cnt FROM check_ins`
       ).get() as { cnt: number } | undefined;
       checkedIn = checkInResult?.cnt || 0;
+      const arrivedResult = sqlite.prepare(
+        `SELECT COUNT(*) as cnt FROM check_ins WHERE camp_arrived_at IS NOT NULL`
+      ).get() as { cnt: number } | undefined;
+      campArrived = arrivedResult?.cnt || 0;
       totalForCheckIn = totalCampers?.count || 0;
     }
   } catch {
@@ -216,6 +227,7 @@ export async function GET(request: NextRequest) {
     totalMedicalLogs: totalMedical?.count || 0,
     totalBehavioralIncidents: totalBehavioral?.count || 0,
     checkedIn,
+    campArrived,
     totalForCheckIn,
     largeGroupCount,
     smallGroupCount,

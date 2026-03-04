@@ -24,6 +24,19 @@ interface Options {
   groupMapping: Record<string, string>;
 }
 
+interface BusStat {
+  busNumber: string;
+  assigned: number;
+  checkedIn: number;
+  arrived: number;
+}
+
+interface CheckInRecord {
+  camper_id: number;
+  checked_in_at: string | null;
+  camp_arrived_at: string | null;
+}
+
 const FIELD_LABELS: Record<string, string> = {
   cabinName: "Cabin",
   cabinNumber: "Cabin #",
@@ -68,8 +81,15 @@ function MovementsContent() {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
 
+  // Check-in status for selected camper
+  const [checkInStatus, setCheckInStatus] = useState<"not_checked_in" | "on_bus" | "arrived">("not_checked_in");
+  const [checkInLoading, setCheckInLoading] = useState(false);
+
   // Options
   const [options, setOptions] = useState<Options>({ smallGroups: [], cabinNames: [], groupMapping: {} });
+
+  // Bus stats
+  const [busStats, setBusStats] = useState<BusStat[]>([]);
 
   // Feed
   const [tab, setTab] = useState<"changes" | "noshows">("changes");
@@ -137,6 +157,36 @@ function MovementsContent() {
 
   useEffect(() => { fetchNoShows(); }, [fetchNoShows]);
 
+  // Load bus stats
+  const fetchBusStats = useCallback(() => {
+    const weekendParam = campWeekend ? `?weekend=${encodeURIComponent(campWeekend)}` : "";
+    fetch(`/api/admin/bus-stats${weekendParam}`)
+      .then((r) => r.json())
+      .then((data) => setBusStats(data))
+      .catch(() => {});
+  }, [campWeekend]);
+
+  useEffect(() => { fetchBusStats(); }, [fetchBusStats]);
+
+  // Fetch check-in status for selected camper
+  const fetchCheckInStatus = useCallback(async (camperId: number) => {
+    try {
+      const weekendParam = campWeekend ? `?weekend=${encodeURIComponent(campWeekend)}` : "";
+      const res = await fetch(`/api/check-ins${weekendParam}`);
+      const data: CheckInRecord[] = await res.json();
+      const ci = data.find((r) => r.camper_id === camperId);
+      if (!ci) {
+        setCheckInStatus("not_checked_in");
+      } else if (ci.camp_arrived_at) {
+        setCheckInStatus("arrived");
+      } else {
+        setCheckInStatus("on_bus");
+      }
+    } catch {
+      setCheckInStatus("not_checked_in");
+    }
+  }, [campWeekend]);
+
   // Select a camper
   const handleSelect = (camper: Camper) => {
     setSelected(camper);
@@ -147,6 +197,7 @@ function MovementsContent() {
     setSearch("");
     setSearchResults([]);
     setSaveMsg("");
+    fetchCheckInStatus(camper.id);
   };
 
   // Auto-cascade large group from small group
@@ -156,6 +207,65 @@ function MovementsContent() {
       setLargeGroup(options.groupMapping[sg]);
     } else if (!sg) {
       setLargeGroup("");
+    }
+  };
+
+  // Check-in actions
+  const handleCheckIn = async () => {
+    if (!selected) return;
+    setCheckInLoading(true);
+    try {
+      const res = await fetch("/api/check-ins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ camperId: selected.id }),
+      });
+      if (res.ok) {
+        setCheckInStatus("on_bus");
+        fetchBusStats();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setCheckInLoading(false);
+    }
+  };
+
+  const handleConfirmArrival = async () => {
+    if (!selected) return;
+    setCheckInLoading(true);
+    try {
+      const res = await fetch("/api/check-ins", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ camperId: selected.id }),
+      });
+      if (res.ok) {
+        setCheckInStatus("arrived");
+        fetchBusStats();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setCheckInLoading(false);
+    }
+  };
+
+  const handleUndoCheckIn = async () => {
+    if (!selected) return;
+    setCheckInLoading(true);
+    try {
+      const res = await fetch(`/api/check-ins/${selected.id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setCheckInStatus("not_checked_in");
+        fetchBusStats();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setCheckInLoading(false);
     }
   };
 
@@ -327,6 +437,70 @@ function MovementsContent() {
                 </button>
               </div>
 
+              {/* Check-in Status & Action */}
+              <div className={`rounded-lg p-3 border ${
+                checkInStatus === "arrived"
+                  ? "bg-green-50 border-green-200"
+                  : checkInStatus === "on_bus"
+                  ? "bg-yellow-50 border-yellow-200"
+                  : "bg-slate-50 border-slate-200"
+              }`}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-medium text-slate-500">Check-in Status</p>
+                    <p className={`text-sm font-semibold ${
+                      checkInStatus === "arrived"
+                        ? "text-green-700"
+                        : checkInStatus === "on_bus"
+                        ? "text-yellow-700"
+                        : "text-slate-600"
+                    }`}>
+                      {checkInStatus === "arrived"
+                        ? "Arrived at Camp"
+                        : checkInStatus === "on_bus"
+                        ? "On Bus"
+                        : "Not Checked In"}
+                    </p>
+                  </div>
+                  {checkInStatus === "not_checked_in" && (
+                    <button
+                      onClick={handleCheckIn}
+                      disabled={checkInLoading}
+                      className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-xs font-bold hover:bg-green-700 transition-colors disabled:opacity-40"
+                    >
+                      {checkInLoading ? "..." : "Check In"}
+                    </button>
+                  )}
+                  {checkInStatus === "on_bus" && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleConfirmArrival}
+                        disabled={checkInLoading}
+                        className="px-3 py-1.5 bg-yellow-500 text-white rounded-lg text-xs font-bold hover:bg-yellow-600 transition-colors disabled:opacity-40"
+                      >
+                        {checkInLoading ? "..." : "Confirm Arrival"}
+                      </button>
+                      <button
+                        onClick={handleUndoCheckIn}
+                        disabled={checkInLoading}
+                        className="px-2 py-1.5 text-slate-400 hover:text-red-600 text-xs transition-colors disabled:opacity-40"
+                      >
+                        Undo
+                      </button>
+                    </div>
+                  )}
+                  {checkInStatus === "arrived" && (
+                    <button
+                      onClick={handleUndoCheckIn}
+                      disabled={checkInLoading}
+                      className="px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-300 transition-colors disabled:opacity-40"
+                    >
+                      {checkInLoading ? "..." : "Undo"}
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {/* Small Group */}
               <div>
                 <label className="block text-xs font-medium text-slate-500 mb-1">Small Group</label>
@@ -404,6 +578,46 @@ function MovementsContent() {
           )}
         </div>
       </div>
+
+      {/* Groups & Buses */}
+      {busStats.length > 0 && (
+        <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
+          <div className="px-4 py-3 bg-slate-50 border-b border-slate-100">
+            <h2 className="font-semibold text-sm text-slate-700">Buses</h2>
+          </div>
+          <div className="p-4 grid grid-cols-2 gap-3">
+            {busStats.map((bus) => (
+              <div
+                key={bus.busNumber}
+                className="rounded-lg border border-slate-200 p-3"
+              >
+                <p className="text-sm font-semibold text-slate-900 mb-1">Bus {bus.busNumber}</p>
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-slate-500">Assigned</span>
+                    <span className="text-xs font-medium text-slate-700">{bus.assigned}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-yellow-600">On Bus</span>
+                    <span className="text-xs font-medium text-yellow-700">{bus.checkedIn}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-green-600">Arrived</span>
+                    <span className="text-xs font-medium text-green-700">{bus.arrived}</span>
+                  </div>
+                </div>
+                {/* Mini progress bar */}
+                <div className="mt-2 w-full bg-slate-100 rounded-full h-1.5">
+                  <div
+                    className="bg-green-500 h-1.5 rounded-full transition-all"
+                    style={{ width: `${bus.assigned > 0 ? Math.round((bus.arrived / bus.assigned) * 100) : 0}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Change Feed */}
       <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">

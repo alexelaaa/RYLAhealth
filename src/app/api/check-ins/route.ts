@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
   if (weekend) {
     rows = sqlite.prepare(`
       SELECT ci.id, ci.camper_id, ci.checked_in_at, ci.checked_in_by, ci.notes,
+             ci.camp_arrived_at, ci.camp_arrived_by,
              c.first_name, c.last_name, c.camp_weekend, c.bus_number, c.cabin_number, c.cabin_name,
              c.guardian_phone, c.cell_phone, c.bus_stop
       FROM check_ins ci
@@ -22,6 +23,7 @@ export async function GET(request: NextRequest) {
   } else {
     rows = sqlite.prepare(`
       SELECT ci.id, ci.camper_id, ci.checked_in_at, ci.checked_in_by, ci.notes,
+             ci.camp_arrived_at, ci.camp_arrived_by,
              c.first_name, c.last_name, c.camp_weekend, c.bus_number, c.cabin_number, c.cabin_name,
              c.guardian_phone, c.cell_phone, c.bus_stop
       FROM check_ins ci
@@ -66,4 +68,34 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+export async function PATCH(request: NextRequest) {
+  const session = await getIronSession<SessionData>(
+    cookies(),
+    sessionOptions
+  );
+
+  if (!session.isLoggedIn) {
+    return NextResponse.json({ error: "Not logged in" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const { camperId } = body;
+
+  if (!camperId) {
+    return NextResponse.json({ error: "camperId is required" }, { status: 400 });
+  }
+
+  const now = new Date().toISOString();
+  const result = sqlite.prepare(`
+    UPDATE check_ins SET camp_arrived_at = ?, camp_arrived_by = ?
+    WHERE camper_id = ?
+  `).run(now, session.label || session.role, camperId);
+
+  if (result.changes === 0) {
+    return NextResponse.json({ error: "No check-in found for this camper" }, { status: 404 });
+  }
+
+  return NextResponse.json({ success: true, campArrivedAt: now });
 }
