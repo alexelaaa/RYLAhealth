@@ -73,9 +73,9 @@ function UsersContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ label, pin: newPin, role: newRole }),
       });
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
-        setError(data.error || "Failed to add user");
+        setError(data.error || `Failed to add user (${res.status})`);
         return;
       }
       setNewLabel("");
@@ -86,8 +86,8 @@ function UsersContent() {
       setSuccess("User added");
       setTimeout(() => setSuccess(""), 3000);
       await fetchUsers();
-    } catch {
-      setError("Failed to add user");
+    } catch (err) {
+      setError(`Failed to add user: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setSaving(false);
     }
