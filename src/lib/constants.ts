@@ -38,6 +38,70 @@ export const BUSES = [
   { id: "bus-6", label: "Bus 6" },
 ] as const;
 
+export const LARGE_GROUPS = [
+  "Arctic",
+  "Desert",
+  "Grasslands",
+  "Jungle",
+  "Marine",
+] as const;
+
+export const SMALL_GROUPS: Record<string, string[]> = {
+  Arctic: ["Arctic Wolves", "Penguins", "Polar Bears", "Reindeer", "Walruses"],
+  Desert: ["Camels", "Coyotes", "Lizards", "Scorpions", "Snakes"],
+  Grasslands: ["Elephants", "Giraffe", "Lions", "Rhinos", "Tigers"],
+  Jungle: ["Capibaras", "Crocodiles", "Frogs", "Macaws", "Monkies"],
+  Marine: ["Jellyfish", "Octopi", "Sharks", "Starfish", "Turtles"],
+};
+
+export const ALL_SMALL_GROUPS = Object.values(SMALL_GROUPS).flat().sort();
+
+export const CABIN_NAMES = [
+  "Cabin 1",
+  "Cabin 2",
+  "Cabin 3",
+  "Cabin 4",
+  "Cabin 7",
+  "Cabin 16 A1",
+  "Cabin 16 A2",
+  "Cabin 16 B1",
+  "Cabin 16 B2",
+  "Cabin 16 C1",
+  "Cabin 16 C2",
+  "Cabin 17 A1",
+  "Cabin 17 A2",
+  "Cabin 17 B1",
+  "Cabin 17 B2",
+  "Cabin 17 C1",
+  "Cabin 17 C2",
+  "Cabin 18 A1",
+  "Cabin 18 A2",
+  "Cabin 18 B1",
+  "Cabin 18 B2",
+  "Cabin 18 C1",
+  "Cabin 18 C2",
+  "Cabin 19 A1",
+  "Cabin 19 A2",
+  "Cabin 19 B1",
+  "Cabin 19 B2",
+  "Cabin 19 C1",
+  "Cabin 19 C2",
+  "Cabin 21 A",
+  "Cabin 21 B",
+  "Cabin 22 A1",
+  "Cabin 22 A2",
+  "Cabin 22 B1",
+  "Cabin 22 B2",
+  "Cabin 22 C1",
+  "Cabin 22 C2",
+  "Cabin 23 A1",
+  "Cabin 23 A2",
+  "Cabin 23 B1",
+  "Cabin 23 B2",
+] as const;
+
+export const BUS_NUMBERS = ["1", "2", "3", "4", "5"] as const;
+
 export const BUS_TRACKER_INTERVAL_MS = 30_000;
 export const BUS_MAP_REFRESH_MS = 15_000;
 export const BUS_ACTIVE_THRESHOLD_MIN = 5;
