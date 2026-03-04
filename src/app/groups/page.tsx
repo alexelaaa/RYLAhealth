@@ -156,18 +156,24 @@ function GroupsContent() {
       .catch(() => setLoading(false));
   }, [campWeekend, tab]);
 
-  // Bus stats data
+  // Bus stats data (with auto-refresh)
   useEffect(() => {
     if (tab !== "buses") return;
-    setLoading(true);
     const weekendParam = campWeekend ? `?weekend=${encodeURIComponent(campWeekend)}` : "";
-    fetch(`/api/admin/bus-stats${weekendParam}`)
-      .then((r) => r.json())
-      .then((data) => {
-        setBusStats(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    let first = true;
+    const fetchBusStats = () => {
+      if (first) setLoading(true);
+      fetch(`/api/admin/bus-stats${weekendParam}`)
+        .then((r) => r.json())
+        .then((data) => {
+          setBusStats(data);
+          if (first) { setLoading(false); first = false; }
+        })
+        .catch(() => { if (first) { setLoading(false); first = false; } });
+    };
+    fetchBusStats();
+    const interval = setInterval(fetchBusStats, 30000);
+    return () => clearInterval(interval);
   }, [campWeekend, tab]);
 
   const tabs: { key: Tab; label: string }[] = [

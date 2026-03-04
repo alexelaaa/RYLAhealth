@@ -69,6 +69,8 @@ function CheckInContent() {
 
   useEffect(() => {
     fetchCheckIns();
+    const interval = setInterval(fetchCheckIns, 15000);
+    return () => clearInterval(interval);
   }, [fetchCheckIns]);
 
   // Search for campers

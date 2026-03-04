@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import AppShell from "@/components/layout/AppShell";
 import { useCamp } from "@/lib/camp-context";
@@ -99,20 +99,28 @@ function DashboardContent() {
   const [alertsData, setAlertsData] = useState<AlertsData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    setLoading(true);
+  const fetchData = useCallback(async (showLoading = false) => {
+    if (showLoading) setLoading(true);
     const weekendParam = campWeekend ? `?weekend=${encodeURIComponent(campWeekend)}` : "";
-    Promise.all([
-      fetch(`/api/stats${weekendParam}`).then((r) => r.json()),
-      fetch(`/api/alerts${weekendParam}`).then((r) => r.json()),
-    ])
-      .then(([statsData, alerts]) => {
-        setStats(statsData);
-        setAlertsData(alerts);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
+    try {
+      const [statsData, alerts] = await Promise.all([
+        fetch(`/api/stats${weekendParam}`).then((r) => r.json()),
+        fetch(`/api/alerts${weekendParam}`).then((r) => r.json()),
+      ]);
+      setStats(statsData);
+      setAlertsData(alerts);
+    } catch {
+      // ignore
+    } finally {
+      if (showLoading) setLoading(false);
+    }
   }, [campWeekend]);
+
+  useEffect(() => {
+    fetchData(true);
+    const interval = setInterval(() => fetchData(false), 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
   return (
     <div className="p-4 space-y-6">
