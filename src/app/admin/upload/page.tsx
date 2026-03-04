@@ -31,6 +31,7 @@ export default function AdminUploadPage() {
   const [nuking, setNuking] = useState(false);
   const [nukeResult, setNukeResult] = useState<Record<string, number> | null>(null);
   const [nukeConfirm, setNukeConfirm] = useState(false);
+  const [nukePassword, setNukePassword] = useState("");
 
   // Group Info upload state
   const [groupFile, setGroupFile] = useState<File | null>(null);
@@ -376,17 +377,28 @@ export default function AdminUploadPage() {
         ) : (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
             <p className="text-sm font-medium text-red-800">
-              Are you sure? This will delete EVERYTHING from the database.
+              Enter the password to confirm deletion of ALL data.
             </p>
+            <input
+              type="password"
+              placeholder="Enter password..."
+              value={nukePassword}
+              onChange={(e) => setNukePassword(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-red-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+            />
             <div className="flex gap-2">
               <button
-                onClick={() => setNukeConfirm(false)}
+                onClick={() => { setNukeConfirm(false); setNukePassword(""); }}
                 className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={async () => {
+                  if (nukePassword !== "02231991") {
+                    setError("Incorrect password");
+                    return;
+                  }
                   setNuking(true);
                   try {
                     const res = await fetch("/api/admin/nuke", { method: "POST" });
@@ -401,9 +413,10 @@ export default function AdminUploadPage() {
                   } finally {
                     setNuking(false);
                     setNukeConfirm(false);
+                    setNukePassword("");
                   }
                 }}
-                disabled={nuking}
+                disabled={nuking || !nukePassword}
                 className="flex-1 py-3 bg-red-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40"
               >
                 {nuking ? "Deleting..." : "Yes, Delete Everything"}
