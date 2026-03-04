@@ -302,14 +302,9 @@ function OverviewTab({ largeGroups }: { largeGroups: OverviewLargeGroup[] }) {
                                 DGL: {sg.dglName}
                               </span>
                             )}
-                            {sg.dglCabin && (
-                              <span className="text-xs bg-violet-50 text-violet-600 px-1.5 py-0.5 rounded">
-                                Sleeps: {sg.dglCabin}
-                              </span>
-                            )}
                             {sg.meetingLocation && (
                               <span className="text-xs text-slate-400">
-                                · Meets: {sg.meetingLocation}
+                                · Meeting Location: {sg.meetingLocation}
                               </span>
                             )}
                           </div>
