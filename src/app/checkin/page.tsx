@@ -199,6 +199,16 @@ function CheckInContent() {
                         <span className="text-xs text-slate-400">{camper.busStop}</span>
                       )}
                     </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      {camper.school && (
+                        <span className="text-xs text-slate-500">{camper.school}</span>
+                      )}
+                      {camper.smallGroup && (
+                        <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
+                          {camper.smallGroup}
+                        </span>
+                      )}
+                    </div>
                     {(camper.guardianPhone || camper.cellPhone) && (
                       <div className="flex items-center gap-2 mt-1">
                         {camper.guardianPhone && (
