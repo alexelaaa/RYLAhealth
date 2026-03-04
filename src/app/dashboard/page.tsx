@@ -326,6 +326,15 @@ function DashboardContent() {
                     <p className="text-xs text-slate-400">Directory</p>
                   </div>
                 </Link>
+                <Link href="/reports" className="block">
+                  <div className="bg-white rounded-xl p-3 border border-slate-100 hover:border-blue-200 transition-colors">
+                    <svg className="w-5 h-5 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p className="text-sm font-medium text-slate-900">Reports</p>
+                    <p className="text-xs text-slate-400">Group & bus counts</p>
+                  </div>
+                </Link>
               </div>
             </div>
           )}

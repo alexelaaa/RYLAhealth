@@ -7,7 +7,7 @@ const excelPath = path.resolve("/Users/alex/Downloads/RYLACamperRegistration_Dat
 const csvPath = path.resolve("/Users/alex/Downloads/RYLA 2026.xlsx - March Campers.csv");
 const outputPath = path.resolve("/Users/alex/Desktop/RYLAhealth/merged-campers.csv");
 
-function str(val: string | number | undefined | null): string {
+function str(val: unknown): string {
   if (val === undefined || val === null) return "";
   return String(val).trim();
 }

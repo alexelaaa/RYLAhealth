@@ -8,6 +8,24 @@ import { useCamp } from "@/lib/camp-context";
 import { CAMP_WEEKENDS } from "@/lib/constants";
 import type { Camper } from "@/types";
 
+interface BusStopCombo {
+  stop: string;
+  location: string;
+  address: string;
+}
+
+interface DropdownOptions {
+  largeGroups: string[];
+  smallGroups: string[];
+  cabinNames: string[];
+  busNumbers: string[];
+  busStops: string[];
+  busStopLocations: string[];
+  busStopAddresses: string[];
+  groupMapping: Record<string, string>;
+  busStopCombos: BusStopCombo[];
+}
+
 function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
@@ -50,6 +68,30 @@ function FormField({ label, value, onChange, type = "text", placeholder }: {
   );
 }
 
+function SelectField({ label, value, onChange, options, allowEmpty = true }: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  allowEmpty?: boolean;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-slate-500 mb-1">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        {allowEmpty && <option value="">—</option>}
+        {options.map((opt) => (
+          <option key={opt} value={opt}>{opt}</option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 export default function CamperEditPage() {
   return (
     <AppShell>
@@ -69,6 +111,15 @@ function CamperEditContent() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [opts, setOpts] = useState<DropdownOptions | null>(null);
+
+  // Load dropdown options
+  useEffect(() => {
+    fetch("/api/options")
+      .then((r) => r.json())
+      .then((data) => setOpts(data))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetch(`/api/campers/${id}`)
@@ -134,6 +185,28 @@ function CamperEditContent() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  // When small group changes, auto-set large group from mapping
+  const handleSmallGroupChange = (value: string) => {
+    setForm((prev) => {
+      const updates: Record<string, string> = { ...prev, smallGroup: value };
+      if (opts?.groupMapping[value]) {
+        updates.largeGroup = opts.groupMapping[value];
+      }
+      return updates;
+    });
+  };
+
+  // When bus stop changes, auto-fill location & address
+  const handleBusStopChange = (value: string) => {
+    const combo = opts?.busStopCombos.find((c) => c.stop === value);
+    setForm((prev) => ({
+      ...prev,
+      busStop: value,
+      busStopLocation: combo?.location || prev.busStopLocation,
+      busStopAddress: combo?.address || prev.busStopAddress,
+    }));
+  };
+
   const handleSave = async () => {
     if (!camper) return;
     setSaving(true);
@@ -175,6 +248,13 @@ function CamperEditContent() {
   }
 
   const weekendChanged = form.campWeekend !== camper.campWeekend;
+
+  // Filter small groups by selected large group
+  const filteredSmallGroups = opts
+    ? form.largeGroup
+      ? opts.smallGroups.filter((sg) => opts.groupMapping[sg] === form.largeGroup)
+      : opts.smallGroups
+    : [];
 
   return (
     <div className="p-4 space-y-4 pb-24">
@@ -279,14 +359,14 @@ function CamperEditContent() {
             <option value="Alternate">Alternate</option>
           </select>
         </div>
-        <FormField label="Large Group" value={form.largeGroup} onChange={updateField("largeGroup")} />
-        <FormField label="Small Group" value={form.smallGroup} onChange={updateField("smallGroup")} />
-        <FormField label="Cabin Name" value={form.cabinName} onChange={updateField("cabinName")} />
+        <SelectField label="Large Group" value={form.largeGroup} onChange={updateField("largeGroup")} options={opts?.largeGroups || []} />
+        <SelectField label="Small Group" value={form.smallGroup} onChange={handleSmallGroupChange} options={filteredSmallGroups} />
+        <SelectField label="Cabin Name" value={form.cabinName} onChange={updateField("cabinName")} options={opts?.cabinNames || []} />
         <FormField label="Cabin Location" value={form.cabinLocation} onChange={updateField("cabinLocation")} />
-        <FormField label="Bus Number" value={form.busNumber} onChange={updateField("busNumber")} />
-        <FormField label="Bus Stop" value={form.busStop} onChange={updateField("busStop")} />
-        <FormField label="Bus Stop Location" value={form.busStopLocation} onChange={updateField("busStopLocation")} />
-        <FormField label="Bus Stop Address" value={form.busStopAddress} onChange={updateField("busStopAddress")} />
+        <SelectField label="Bus Number" value={form.busNumber} onChange={updateField("busNumber")} options={opts?.busNumbers || []} />
+        <SelectField label="Bus Stop" value={form.busStop} onChange={handleBusStopChange} options={opts?.busStops || []} />
+        <SelectField label="Bus Stop Location" value={form.busStopLocation} onChange={updateField("busStopLocation")} options={opts?.busStopLocations || []} />
+        <SelectField label="Bus Stop Address" value={form.busStopAddress} onChange={updateField("busStopAddress")} options={opts?.busStopAddresses || []} />
         <FormField label="Pickup Time" value={form.pickupTime} onChange={updateField("pickupTime")} />
         <FormField label="Drop-off Time" value={form.dropoffTime} onChange={updateField("dropoffTime")} />
       </FormSection>
