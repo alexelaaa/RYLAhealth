@@ -397,15 +397,18 @@ function SmallGroupsTab({ groups }: { groups: FlatGroup[] }) {
                     {group.count}
                   </span>
                 </div>
-                {(group.dglName || group.meetingLocation) && (
+                {(group.dglName || group.dglCabin || group.meetingLocation) && (
                   <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     {group.dglName && (
                       <span className="text-xs text-slate-500">DGL: {group.dglName}</span>
                     )}
-                    {group.meetingLocation && (
-                      <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium">
-                        Meeting: {group.meetingLocation}
+                    {group.dglCabin && (
+                      <span className="text-xs bg-violet-50 text-violet-600 px-1.5 py-0.5 rounded">
+                        Sleeps: {group.dglCabin}
                       </span>
+                    )}
+                    {group.meetingLocation && (
+                      <span className="text-xs text-slate-400">Meets: {group.meetingLocation}</span>
                     )}
                   </div>
                 )}

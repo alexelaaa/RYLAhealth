@@ -4,8 +4,41 @@ import { sessionOptions } from "@/lib/session";
 import type { SessionData } from "@/types";
 import { cookies } from "next/headers";
 import { db, sqlite } from "@/db";
-import { campers } from "@/db/schema";
+import { campers, camperEdits } from "@/db/schema";
 import { parseRegistrationCsv } from "@/lib/csv-parser";
+
+// Map camelCase param keys to snake_case DB columns
+const CAMEL_TO_SNAKE: Record<string, string> = {
+  uniqueRegistrationId: "unique_registration_id",
+  firstName: "first_name", lastName: "last_name", birthDate: "birth_date",
+  gender: "gender", email: "email", cellPhone: "cell_phone",
+  addressStreet: "address_street", addressCity: "address_city",
+  addressState: "address_state", addressZip: "address_zip",
+  school: "school", gradeLevel: "grade_level",
+  guardianFirstName: "guardian_first_name", guardianLastName: "guardian_last_name",
+  guardianEmail: "guardian_email", guardianPhone: "guardian_phone",
+  emergencyFirstName: "emergency_first_name", emergencyLastName: "emergency_last_name",
+  emergencyRelationship: "emergency_relationship", emergencyPhone: "emergency_phone",
+  sponsoringRotaryClub: "sponsoring_rotary_club",
+  campWeekend: "camp_weekend", role: "role",
+  hasRelativeAttending: "has_relative_attending",
+  relativeFirstName: "relative_first_name", relativeLastName: "relative_last_name",
+  relativeRole: "relative_role",
+  dietaryRestrictions: "dietary_restrictions", allergies: "allergies",
+  currentMedications: "current_medications", medicalConditions: "medical_conditions",
+  recentInjuries: "recent_injuries", physicalLimitations: "physical_limitations",
+  lastTetanusShot: "last_tetanus_shot", otherMedicalNeeds: "other_medical_needs",
+  hasInsurance: "has_insurance", insuranceProvider: "insurance_provider",
+  policyNumber: "policy_number",
+  insuredFirstName: "insured_first_name", insuredLastName: "insured_last_name",
+  insurancePhone: "insurance_phone",
+  firstAidPermission: "first_aid_permission", otcMedicationPermission: "otc_medication_permission",
+  largeGroup: "large_group", smallGroup: "small_group",
+  cabinName: "cabin_name", cabinLocation: "cabin_location",
+  busStop: "bus_stop", busStopLocation: "bus_stop_location",
+  busStopAddress: "bus_stop_address", pickupTime: "pickup_time",
+  dropoffTime: "dropoff_time", busNumber: "bus_number",
+};
 
 export async function POST(request: Request) {
   const session = await getIronSession<SessionData>(cookies(), sessionOptions);
@@ -54,12 +87,14 @@ export async function POST(request: Request) {
     });
   }
 
-  // Actual import with upsert
+  // Actual import
   let inserted = 0;
   let updated = 0;
+  const changes: Array<{ name: string; field: string; oldValue: string; newValue: string }> = [];
 
-  const upsertStmt = sqlite.prepare(`
-    INSERT INTO campers (
+  // Insert statement for NEW campers only
+  const insertStmt = sqlite.prepare(`
+    INSERT OR IGNORE INTO campers (
       unique_registration_id, first_name, last_name, birth_date, gender, email,
       cell_phone, address_street, address_city, address_state, address_zip,
       school, grade_level,
@@ -93,40 +128,10 @@ export async function POST(request: Request) {
       @largeGroup, @smallGroup, @cabinName, @cabinLocation,
       @busStop, @busStopLocation, @busStopAddress, @pickupTime, @dropoffTime,
       @busNumber, @createdAt, @updatedAt
-    ) ON CONFLICT(unique_registration_id) DO UPDATE SET
-      first_name=excluded.first_name, last_name=excluded.last_name,
-      birth_date=excluded.birth_date, gender=excluded.gender, email=excluded.email,
-      cell_phone=excluded.cell_phone,
-      address_street=excluded.address_street, address_city=excluded.address_city,
-      address_state=excluded.address_state, address_zip=excluded.address_zip,
-      school=excluded.school, grade_level=excluded.grade_level,
-      guardian_first_name=excluded.guardian_first_name, guardian_last_name=excluded.guardian_last_name,
-      guardian_email=excluded.guardian_email, guardian_phone=excluded.guardian_phone,
-      emergency_first_name=excluded.emergency_first_name, emergency_last_name=excluded.emergency_last_name,
-      emergency_relationship=excluded.emergency_relationship, emergency_phone=excluded.emergency_phone,
-      sponsoring_rotary_club=excluded.sponsoring_rotary_club,
-      camp_weekend=excluded.camp_weekend, role=excluded.role,
-      has_relative_attending=excluded.has_relative_attending,
-      relative_first_name=excluded.relative_first_name, relative_last_name=excluded.relative_last_name,
-      relative_role=excluded.relative_role,
-      dietary_restrictions=excluded.dietary_restrictions,
-      allergies=excluded.allergies, current_medications=excluded.current_medications,
-      medical_conditions=excluded.medical_conditions,
-      recent_injuries=excluded.recent_injuries, physical_limitations=excluded.physical_limitations,
-      last_tetanus_shot=excluded.last_tetanus_shot, other_medical_needs=excluded.other_medical_needs,
-      has_insurance=excluded.has_insurance, insurance_provider=excluded.insurance_provider,
-      policy_number=excluded.policy_number,
-      insured_first_name=excluded.insured_first_name, insured_last_name=excluded.insured_last_name,
-      insurance_phone=excluded.insurance_phone,
-      first_aid_permission=excluded.first_aid_permission,
-      otc_medication_permission=excluded.otc_medication_permission,
-      large_group=excluded.large_group, small_group=excluded.small_group,
-      cabin_name=excluded.cabin_name, cabin_location=excluded.cabin_location,
-      bus_stop=excluded.bus_stop, bus_stop_location=excluded.bus_stop_location,
-      bus_stop_address=excluded.bus_stop_address, pickup_time=excluded.pickup_time,
-      dropoff_time=excluded.dropoff_time, bus_number=excluded.bus_number,
-      updated_at=excluded.updated_at
+    )
   `);
+
+  const lookupStmt = sqlite.prepare("SELECT * FROM campers WHERE unique_registration_id = ?");
 
   const now = new Date().toISOString();
   let deleted = 0;
@@ -148,9 +153,54 @@ export async function POST(request: Request) {
         params.campWeekend = camper.campWeekend;
         params.role = camper.role;
 
-        const result = upsertStmt.run(params);
-        if (result.changes === 1) inserted++;
-        else updated++;
+        const existing = lookupStmt.get(camper.uniqueRegistrationId) as Record<string, unknown> | undefined;
+
+        if (!existing || replaceAll) {
+          // New camper or replace-all mode — insert all fields
+          insertStmt.run(params);
+          inserted++;
+        } else {
+          // Existing camper — only update fields where the new CSV has a non-empty value
+          const setClauses: string[] = [];
+          const values: (string | null)[] = [];
+
+          for (const [camelKey, snakeKey] of Object.entries(CAMEL_TO_SNAKE)) {
+            const newVal = String(params[camelKey] ?? "");
+            if (!newVal) continue; // Skip empty — don't overwrite existing data with blanks
+
+            const oldVal = String(existing[snakeKey] ?? "");
+            if (oldVal !== newVal) {
+              setClauses.push(`${snakeKey} = ?`);
+              values.push(newVal);
+              changes.push({
+                name: `${camper.firstName} ${camper.lastName}`,
+                field: snakeKey,
+                oldValue: oldVal,
+                newValue: newVal,
+              });
+
+              // Write to camper_edits audit trail
+              db.insert(camperEdits).values({
+                camperId: existing.id as number,
+                fieldName: camelKey,
+                oldValue: oldVal || null,
+                newValue: newVal || null,
+                changedBy: "CSV Import",
+                changedAt: now,
+              }).run();
+            }
+          }
+
+          if (setClauses.length > 0) {
+            setClauses.push("updated_at = ?");
+            values.push(now);
+            values.push(String(existing.id));
+            sqlite.prepare(
+              `UPDATE campers SET ${setClauses.join(", ")} WHERE id = ?`
+            ).run(...values);
+            updated++;
+          }
+        }
       }
     });
 
@@ -167,5 +217,6 @@ export async function POST(request: Request) {
     updated,
     deleted,
     total: parsed.length,
+    changes,
   });
 }
