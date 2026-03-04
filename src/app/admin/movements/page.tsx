@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import AppShell from "@/components/layout/AppShell";
 import { useCamp } from "@/lib/camp-context";
 import { useDebounce } from "@/hooks/useDebounce";
+import { CAMP_WEEKENDS } from "@/lib/constants";
 import type { Camper } from "@/types";
 
 interface EditEntry {
@@ -21,6 +22,7 @@ interface EditEntry {
 interface Options {
   smallGroups: string[];
   cabinNames: string[];
+  busNumbers: string[];
   groupMapping: Record<string, string>;
 }
 
@@ -31,11 +33,13 @@ interface CheckInRecord {
 }
 
 const FIELD_LABELS: Record<string, string> = {
+  campWeekend: "Weekend",
   cabinName: "Cabin",
   cabinNumber: "Cabin #",
   cabinLocation: "Cabin Location",
   smallGroup: "Small Group",
   largeGroup: "Large Group",
+  busNumber: "Bus",
   noShow: "No-Show",
 };
 
@@ -67,9 +71,11 @@ function MovementsContent() {
   const debouncedSearch = useDebounce(search, 200);
 
   // Assignment form
+  const [weekend, setWeekend] = useState("");
   const [smallGroup, setSmallGroup] = useState("");
   const [largeGroup, setLargeGroup] = useState("");
   const [cabinName, setCabinName] = useState("");
+  const [busNumber, setBusNumber] = useState("");
   const [noShow, setNoShow] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
@@ -79,7 +85,7 @@ function MovementsContent() {
   const [checkInLoading, setCheckInLoading] = useState(false);
 
   // Options
-  const [options, setOptions] = useState<Options>({ smallGroups: [], cabinNames: [], groupMapping: {} });
+  const [options, setOptions] = useState<Options>({ smallGroups: [], cabinNames: [], busNumbers: [], groupMapping: {} });
 
 
   // Feed
@@ -100,16 +106,16 @@ function MovementsContent() {
       .then((data) => setOptions({
         smallGroups: data.smallGroups || [],
         cabinNames: data.cabinNames || [],
+        busNumbers: data.busNumbers || [],
         groupMapping: data.groupMapping || {},
       }))
       .catch(() => {});
   }, []);
 
-  // Search campers
+  // Search campers (search ALL weekends so you can move people between them)
   useEffect(() => {
     if (debouncedSearch.length >= 2) {
       const params = new URLSearchParams({ search: debouncedSearch });
-      if (campWeekend) params.set("weekend", campWeekend);
       params.set("limit", "15");
       fetch(`/api/campers?${params}`)
         .then((r) => r.json())
@@ -118,7 +124,7 @@ function MovementsContent() {
     } else {
       setSearchResults([]);
     }
-  }, [debouncedSearch, campWeekend]);
+  }, [debouncedSearch]);
 
   // Load change feed
   const fetchFeed = useCallback(() => {
@@ -171,9 +177,11 @@ function MovementsContent() {
   // Select a camper
   const handleSelect = (camper: Camper) => {
     setSelected(camper);
+    setWeekend(camper.campWeekend || "");
     setSmallGroup(camper.smallGroup || "");
     setLargeGroup(camper.largeGroup || "");
     setCabinName(camper.cabinName || "");
+    setBusNumber(camper.busNumber || "");
     setNoShow((camper as Camper & { noShow?: number }).noShow === 1);
     setSearch("");
     setSearchResults([]);
@@ -254,9 +262,11 @@ function MovementsContent() {
     setSaveMsg("");
     try {
       const body: Record<string, string | number> = {};
+      if (weekend !== (selected.campWeekend || "")) body.campWeekend = weekend;
       if (smallGroup !== (selected.smallGroup || "")) body.smallGroup = smallGroup;
       if (largeGroup !== (selected.largeGroup || "")) body.largeGroup = largeGroup;
       if (cabinName !== (selected.cabinName || "")) body.cabinName = cabinName;
+      if (busNumber !== (selected.busNumber || "")) body.busNumber = busNumber;
       const currentNoShow = (selected as Camper & { noShow?: number }).noShow === 1;
       if (noShow !== currentNoShow) body.noShow = noShow ? 1 : 0;
 
@@ -367,7 +377,12 @@ function MovementsContent() {
                         <span className="text-sm font-medium text-slate-900">
                           {c.lastName}, {c.firstName}
                         </span>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          {c.campWeekend && (
+                            <span className="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
+                              {c.campWeekend.split(" ")[0]}
+                            </span>
+                          )}
                           {c.smallGroup && (
                             <span className="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
                               {c.smallGroup}
@@ -376,6 +391,11 @@ function MovementsContent() {
                           {c.cabinName && (
                             <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
                               {c.cabinName}
+                            </span>
+                          )}
+                          {c.busNumber && (
+                            <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                              Bus {c.busNumber}
                             </span>
                           )}
                           {(c as Camper & { noShow?: number }).noShow === 1 && (
@@ -413,6 +433,27 @@ function MovementsContent() {
                 >
                   Clear
                 </button>
+              </div>
+
+              {/* Weekend */}
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1">Weekend</label>
+                <select
+                  value={weekend}
+                  onChange={(e) => setWeekend(e.target.value)}
+                  className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    weekend !== (selected.campWeekend || "")
+                      ? "border-amber-400 bg-amber-50"
+                      : "border-slate-200 bg-white"
+                  }`}
+                >
+                  {CAMP_WEEKENDS.map((w) => (
+                    <option key={w} value={w}>{w}</option>
+                  ))}
+                </select>
+                {weekend !== (selected.campWeekend || "") && (
+                  <p className="text-xs text-amber-600 mt-1">Moving from {selected.campWeekend}</p>
+                )}
               </div>
 
               {/* Check-in Status & Action */}
@@ -515,6 +556,21 @@ function MovementsContent() {
                   <option value="">—</option>
                   {options.cabinNames.map((cn) => (
                     <option key={cn} value={cn}>{cn}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Bus */}
+              <div>
+                <label className="block text-xs font-medium text-slate-500 mb-1">Bus</label>
+                <select
+                  value={busNumber}
+                  onChange={(e) => setBusNumber(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">—</option>
+                  {options.busNumbers.map((bn) => (
+                    <option key={bn} value={bn}>Bus {bn}</option>
                   ))}
                 </select>
               </div>
