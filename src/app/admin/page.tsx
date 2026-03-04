@@ -66,8 +66,8 @@ const adminTools = [
   },
   {
     href: "/checkin",
-    title: "Bus Check-In",
-    description: "Check in campers as they arrive",
+    title: "Camp Arrival",
+    description: "Confirm camper arrivals at camp",
     color: "bg-teal-50 text-teal-700 border-teal-100 hover:border-teal-300",
     iconColor: "text-teal-500",
     icon: (

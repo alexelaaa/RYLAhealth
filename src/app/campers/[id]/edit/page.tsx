@@ -75,6 +75,8 @@ function SelectField({ label, value, onChange, options, allowEmpty = true }: {
   options: string[];
   allowEmpty?: boolean;
 }) {
+  // Ensure the current value is always in the options list
+  const allOptions = value && !options.includes(value) ? [value, ...options] : options;
   return (
     <div>
       <label className="block text-xs font-medium text-slate-500 mb-1">{label}</label>
@@ -84,7 +86,7 @@ function SelectField({ label, value, onChange, options, allowEmpty = true }: {
         className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         {allowEmpty && <option value="">—</option>}
-        {options.map((opt) => (
+        {allOptions.map((opt) => (
           <option key={opt} value={opt}>{opt}</option>
         ))}
       </select>
