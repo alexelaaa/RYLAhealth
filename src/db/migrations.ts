@@ -128,7 +128,29 @@ export function runMigrations(db: Database.Database) {
   addColumn("check_ins", "camp_arrived_at", "TEXT");
   addColumn("check_ins", "camp_arrived_by", "TEXT");
 
-  // Migration 11: Create small_group_info table
+  // Migration 11: Rebuild staff_pins to allow 'bussing' role (SQLite can't alter CHECK constraints)
+  try {
+    const hasOldConstraint = db.prepare(
+      `SELECT sql FROM sqlite_master WHERE type='table' AND name='staff_pins'`
+    ).get() as { sql: string } | undefined;
+    if (hasOldConstraint?.sql && !hasOldConstraint.sql.includes("'bussing'")) {
+      db.exec(`
+        CREATE TABLE staff_pins_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          label TEXT NOT NULL UNIQUE,
+          pin_hash TEXT NOT NULL,
+          role TEXT NOT NULL CHECK(role IN ('nurse', 'staff', 'admin', 'bussing'))
+        )
+      `);
+      db.exec(`INSERT INTO staff_pins_new SELECT * FROM staff_pins`);
+      db.exec(`DROP TABLE staff_pins`);
+      db.exec(`ALTER TABLE staff_pins_new RENAME TO staff_pins`);
+    }
+  } catch {
+    // Already migrated
+  }
+
+  // Migration 12: Create small_group_info table
   db.exec(`
     CREATE TABLE IF NOT EXISTS small_group_info (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
