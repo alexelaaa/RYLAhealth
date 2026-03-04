@@ -146,8 +146,8 @@ function CheckInContent() {
 
   const onBusCount = checkedInList.length;
   const arrivedCount = checkedInList.filter((ci) => ci.camp_arrived_at).length;
-  const awaitingArrival = checkedInList.filter((ci) => !ci.camp_arrived_at);
-  const arrived = checkedInList.filter((ci) => ci.camp_arrived_at);
+  const awaitingArrival = checkedInList.filter((ci) => !ci.camp_arrived_at).sort((a, b) => a.last_name.localeCompare(b.last_name));
+  const arrived = checkedInList.filter((ci) => ci.camp_arrived_at).sort((a, b) => a.last_name.localeCompare(b.last_name));
   const progressPct = onBusCount > 0 ? Math.round((arrivedCount / onBusCount) * 100) : 0;
 
   const getStatus = (camperId: number): "not_checked_in" | "on_bus" | "arrived" => {
