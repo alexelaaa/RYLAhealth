@@ -64,9 +64,9 @@ export async function GET() {
     // table may not exist
   }
 
-  const mergedSmallGroups = [...new Set([...camperSmallGroups, ...infoSmallGroups])].sort();
-  const mergedLargeGroups = [...new Set([...getDistinct("large_group"), ...infoLargeGroups])].sort();
-  const mergedCabins = [...new Set([...getDistinct("cabin_name"), ...infoCabins])].sort();
+  const mergedSmallGroups = Array.from(new Set([...camperSmallGroups, ...infoSmallGroups])).sort();
+  const mergedLargeGroups = Array.from(new Set([...getDistinct("large_group"), ...infoLargeGroups])).sort();
+  const mergedCabins = Array.from(new Set([...getDistinct("cabin_name"), ...infoCabins])).sort();
 
   return NextResponse.json({
     largeGroups: mergedLargeGroups,
