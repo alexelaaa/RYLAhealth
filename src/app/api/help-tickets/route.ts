@@ -95,12 +95,15 @@ export async function POST(request: NextRequest) {
         description TEXT NOT NULL,
         urgency TEXT NOT NULL DEFAULT 'normal',
         status TEXT NOT NULL DEFAULT 'open',
+        assigned_to TEXT,
         resolved_by TEXT,
         resolved_note TEXT,
         resolved_at TEXT,
         created_at TEXT NOT NULL
       )
     `);
+    // Add assigned_to column if missing (table already existed)
+    try { sqlite.exec("ALTER TABLE help_tickets ADD COLUMN assigned_to TEXT"); } catch { /* already exists */ }
 
     const result = sqlite
       .prepare(
@@ -132,13 +135,19 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Admin access required" }, { status: 403 });
   }
 
-  const { id, status, note } = await request.json();
+  const { id, status, note, assignedTo } = await request.json();
   if (!id) {
     return NextResponse.json({ error: "Ticket ID required" }, { status: 400 });
   }
 
   const now = new Date().toISOString();
   const resolvedBy = session.label || session.role;
+
+  if (assignedTo !== undefined) {
+    sqlite
+      .prepare("UPDATE help_tickets SET assigned_to = ? WHERE id = ?")
+      .run(assignedTo || null, id);
+  }
 
   if (status === "resolved") {
     sqlite

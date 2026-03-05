@@ -11,11 +11,25 @@ interface Ticket {
   description: string;
   urgency: string;
   status: string;
+  assigned_to: string | null;
   resolved_by: string | null;
   resolved_note: string | null;
   resolved_at: string | null;
   created_at: string;
 }
+
+const STAFF_NAMES = [
+  "Mike Norkin",
+  "Jennifer Smith",
+  "Jamie Webber",
+  "Chris Webber",
+  "Alex Ela",
+  "Craig Davis",
+  "Larry Rice",
+  "Michele Munoz",
+  "Matthew Smith",
+  "Danielle Morse",
+];
 
 export default function TicketsPage() {
   return (
@@ -89,6 +103,17 @@ function TicketsContent() {
         body: JSON.stringify({ id, status: "open" }),
       });
       if (res.ok) fetchTickets();
+    } catch { /* ignore */ }
+  };
+
+  const handleAssign = async (id: number, assignedTo: string) => {
+    try {
+      const res = await fetch("/api/help-tickets", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, assignedTo }),
+      });
+      if (res.ok) fetchTickets(true);
     } catch { /* ignore */ }
   };
 
@@ -185,6 +210,31 @@ function TicketsContent() {
                     </div>
                   </div>
                 </div>
+
+                {/* Assign */}
+                {ticket.status === "open" && (
+                  <div className="mt-2">
+                    <select
+                      value={ticket.assigned_to || ""}
+                      onChange={(e) => handleAssign(ticket.id, e.target.value)}
+                      className={`w-full px-3 py-1.5 rounded-lg border text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        ticket.assigned_to
+                          ? "border-blue-200 bg-blue-50 text-blue-700"
+                          : "border-slate-200 bg-white text-slate-500"
+                      }`}
+                    >
+                      <option value="">Unassigned</option>
+                      {STAFF_NAMES.map((name) => (
+                        <option key={name} value={name}>{name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Assigned badge on resolved */}
+                {ticket.status === "resolved" && ticket.assigned_to && (
+                  <p className="text-xs text-slate-500 mt-2">Assigned to {ticket.assigned_to}</p>
+                )}
 
                 {/* Resolved info */}
                 {ticket.status === "resolved" && (
