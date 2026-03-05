@@ -1,17 +1,17 @@
 // ── Compact schedule (used by dashboard ScheduleNow widget + badge cards) ──
 
 export const FRIDAY: [string, string][] = [
-  ["9:00a", "Buses Arrive"],
-  ["11:15a", "Ice Breakers"],
-  ["12:15p", "Camp Photo"],
-  ["12:25p", "Lunch"],
-  ["1:35p", "Welcome"],
-  ["2:15p", "Discussion 1"],
-  ["3:10p", "Activity 1"],
-  ["4:05p", "Speaker – Max"],
-  ["5:05p", "Discussion 2"],
-  ["6:00p", "Dinner"],
-  ["7:10p", "Cabin Time"],
+  ["10:30a", "Buses Arrive"],
+  ["12:15p", "Small Group Meet"],
+  ["12:45p", "Lunch"],
+  ["1:45p", "Ice Breakers"],
+  ["2:40p", "Camp Photo"],
+  ["3:00p", "Welcome"],
+  ["3:45p", "Activity 1"],
+  ["4:40p", "Discussion 1"],
+  ["5:20p", "Speaker – Max"],
+  ["6:15p", "Dinner"],
+  ["7:10p", "Discussion 2"],
   ["7:40p", "Speaker – Jackie"],
   ["8:25p", "Culture Walk"],
   ["9:50p", "Discussion 3"],
@@ -61,22 +61,23 @@ export interface DetailedEvent {
 }
 
 export const FRIDAY_DETAILED: DetailedEvent[] = [
-  { time: "8:00 – 9:00", title: "DGL/Staff Meeting & Breakfast", location: "Dining Hall" },
-  { time: "9:00 – 11:00", title: "Buses Arrive & Unpack", location: "Meadow Camp", note: "Music, fruit, drinks, light snacks" },
-  { time: "11:15 – 12:15", title: "Ice Breakers", location: "Meadow Camp Field", note: "Max Dutton & Jackie G." },
-  { time: "12:15 – 12:20", title: "Camp Photo", location: "Main Amphitheater" },
-  { time: "12:25 – 1:25", title: "Lunch", location: "Dining Hall", note: "Eat with your group" },
-  { time: "1:35 – 2:05", title: "Welcome, Rules, Introductions", location: "McNeil Hall" },
-  { time: "2:15 – 3:00", title: "Discussion Group 1", location: "Meeting Places", note: "Meet and Greet", bold: true },
-  { time: "3:10 – 3:55", title: "Activity 1", location: "Activity Areas", bold: true },
-  { time: "4:05 – 4:55", title: "Speaker – Max Dutton", location: "McNeil Hall" },
-  { time: "5:05 – 5:50", title: "Discussion Group 2", location: "Meeting Places", bold: true },
-  { time: "6:00 – 7:00", title: "Dinner", location: "Dining Hall" },
-  { time: "7:10 – 7:30", title: "Cabin Time", note: "Meet Cabin Monitor, go over rules" },
+  { time: "8:00 – 9:30", title: "DGL/Staff Meeting & Breakfast", location: "Dining Hall" },
+  { time: "10:30 – 12:00", title: "Buses Arrive & Unpack", location: "Camp Field", note: "Music, fruit, drinks, light snacks. Luggage to cabins then back to field." },
+  { time: "12:15 – 12:35", title: "Initial Small Group Meet & Greet", location: "Meeting Places", bold: true },
+  { time: "12:45 – 1:30", title: "Lunch", location: "Dining Hall", note: "Eat with your group" },
+  { time: "1:45 – 2:30", title: "Ice Breakers", location: "Emerson Field", note: "Max Dutton & Jackie G." },
+  { time: "2:40 – 2:50", title: "Camp Photo", location: "Main Amphitheater" },
+  { time: "3:00 – 3:30", title: "Welcome, Rules, Introductions", location: "McNeil Hall" },
+  { time: "3:45 – 4:30", title: "Activity 1", location: "Activity Areas", bold: true },
+  { time: "4:40 – 5:10", title: "Discussion Group 1", location: "Meeting Places", note: "Rules and Objectives", bold: true },
+  { time: "5:20 – 6:10", title: "Speaker – Max Dutton", location: "McNeil Hall" },
+  { time: "6:15 – 7:00", title: "Dinner", location: "Dining Hall" },
+  { time: "7:10 – 7:30", title: "Discussion Group 2", location: "Meeting Places", bold: true },
   { time: "7:40 – 8:10", title: "Speaker – Jackie G.", location: "McNeil Hall", note: "Culture Walk Intro" },
-  { time: "8:25 – 9:45", title: "Culture Walk", location: "Culture Walk Areas" },
+  { time: "8:25 – 9:45", title: "Culture Walk", location: "Culture Walk Areas", note: "Do not leave location early" },
   { time: "9:50 – 10:20", title: "Discussion Group 3", location: "Meeting Places", note: "Culture Walk Discussion", bold: true },
-  { time: "10:30 – 11:30", title: "Alumni Introductions", location: "McNeil Hall" },
+  { time: "10:30 – 11:30", title: "Alumni Introductions", location: "McNeil Hall", note: "Get to know you activity" },
+  { time: "10:30 – 11:00", title: "DGL Mandatory Meeting", location: "Scott Hall" },
   { time: "12:00", title: "Lights Out" },
 ];
 
@@ -114,7 +115,8 @@ export const SUNDAY_DETAILED: DetailedEvent[] = [
 
 // ── Activity rotations ──
 
-export const ACTIVITY_ROTATIONS: Record<string, string[]> = {
+// March activity rotations
+export const MARCH_ACTIVITY_ROTATIONS: Record<string, string[]> = {
   Jungle:     ["XC Ski", "Spag Twr", "Boardwalk", "Egg Drop", "Capture"],
   Marine:     ["Capture", "XC Ski", "Spag Twr", "Boardwalk", "Egg Drop"],
   Arctic:     ["Egg Drop", "Capture", "XC Ski", "Spag Twr", "Boardwalk"],
@@ -122,21 +124,45 @@ export const ACTIVITY_ROTATIONS: Record<string, string[]> = {
   Grasslands: ["Spag Twr", "Boardwalk", "Egg Drop", "Capture", "XC Ski"],
 };
 
+// May activity rotations (Jeopardy replaces Capture the Flag)
+export const MAY_ACTIVITY_ROTATIONS: Record<string, string[]> = {
+  Jungle:     ["XC Ski", "Spag Twr", "Boardwalk", "Egg Drop", "Jeopardy"],
+  Marine:     ["Jeopardy", "XC Ski", "Spag Twr", "Boardwalk", "Egg Drop"],
+  Arctic:     ["Egg Drop", "Jeopardy", "XC Ski", "Spag Twr", "Boardwalk"],
+  Desert:     ["Boardwalk", "Egg Drop", "Jeopardy", "XC Ski", "Spag Twr"],
+  Grasslands: ["Spag Twr", "Boardwalk", "Egg Drop", "Jeopardy", "XC Ski"],
+};
+
+// Default to March
+export const ACTIVITY_ROTATIONS = MARCH_ACTIVITY_ROTATIONS;
+
 export const ACTIVITY_FULL_NAMES: Record<string, string> = {
   "XC Ski": "Cross Country Skiing",
   "Spag Twr": "Spaghetti Tower",
   "Boardwalk": "Boardwalk",
   "Egg Drop": "Egg Drop",
   "Capture": "Capture the Flag",
+  "Jeopardy": "Jeopardy",
 };
 
-export const ACTIVITY_LOCATIONS: Record<string, string> = {
+export const MARCH_ACTIVITY_LOCATIONS: Record<string, string> = {
   "XC Ski": "Emerson Field",
   "Spag Twr": "Gilboa Hall",
   "Boardwalk": "Basketball Court",
   "Egg Drop": "Schlenz Hall",
   "Capture": "Emerson Field",
 };
+
+export const MAY_ACTIVITY_LOCATIONS: Record<string, string> = {
+  "XC Ski": "Emerson Field",
+  "Spag Twr": "Gilboa Hall",
+  "Boardwalk": "Basketball Court",
+  "Egg Drop": "Patterson Patio",
+  "Jeopardy": "Schlenz Hall",
+};
+
+// Default to March
+export const ACTIVITY_LOCATIONS = MARCH_ACTIVITY_LOCATIONS;
 
 // ── Utility functions ──
 
