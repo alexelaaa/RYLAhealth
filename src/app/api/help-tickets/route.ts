@@ -70,37 +70,59 @@ export async function GET(request: NextRequest) {
 
 // POST: create a new ticket (DGL only)
 export async function POST(request: NextRequest) {
-  const session = await getIronSession<SessionData>(cookies(), sessionOptions);
-  if (!session.isLoggedIn) {
-    return NextResponse.json({ error: "Not logged in" }, { status: 401 });
+  try {
+    const session = await getIronSession<SessionData>(cookies(), sessionOptions);
+    if (!session.isLoggedIn) {
+      return NextResponse.json({ error: "Not logged in" }, { status: 401 });
+    }
+
+    const { cabin, category, description, urgency } = await request.json();
+
+    if (!category || !description?.trim()) {
+      return NextResponse.json({ error: "Category and description required" }, { status: 400 });
+    }
+
+    const dglName = (session.label || "").replace(/^DGL:\s*/, "").replace(/\s*\(.*\)$/, "");
+    const now = new Date().toISOString();
+
+    // Ensure table exists (migration may not have run yet)
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS help_tickets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        cabin TEXT NOT NULL,
+        dgl_name TEXT NOT NULL,
+        category TEXT NOT NULL,
+        description TEXT NOT NULL,
+        urgency TEXT NOT NULL DEFAULT 'normal',
+        status TEXT NOT NULL DEFAULT 'open',
+        resolved_by TEXT,
+        resolved_note TEXT,
+        resolved_at TEXT,
+        created_at TEXT NOT NULL
+      )
+    `);
+
+    const result = sqlite
+      .prepare(
+        `INSERT INTO help_tickets (cabin, dgl_name, category, description, urgency, status, created_at)
+         VALUES (?, ?, ?, ?, ?, 'open', ?)`
+      )
+      .run(cabin || "", category, description.trim(), urgency || "normal", now);
+
+    const ticketId = Number(result.lastInsertRowid);
+
+    // Push notification to admins (non-blocking)
+    const urgentPrefix = urgency === "urgent" ? "URGENT: " : "";
+    await notifyAdmins(
+      `${urgentPrefix}Help Request from ${dglName}`,
+      `${cabin ? cabin + " — " : ""}${category}: ${description.trim().slice(0, 100)}`
+    );
+
+    return NextResponse.json({ id: ticketId, success: true }, { status: 201 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const { cabin, category, description, urgency } = await request.json();
-
-  if (!category || !description?.trim()) {
-    return NextResponse.json({ error: "Category and description required" }, { status: 400 });
-  }
-
-  const dglName = (session.label || "").replace(/^DGL:\s*/, "").replace(/\s*\(.*\)$/, "");
-  const now = new Date().toISOString();
-
-  const result = sqlite
-    .prepare(
-      `INSERT INTO help_tickets (cabin, dgl_name, category, description, urgency, status, created_at)
-       VALUES (?, ?, ?, ?, ?, 'open', ?)`
-    )
-    .run(cabin || "", category, description.trim(), urgency || "normal", now);
-
-  const ticketId = Number(result.lastInsertRowid);
-
-  // Push notification to admins (non-blocking)
-  const urgentPrefix = urgency === "urgent" ? "URGENT: " : "";
-  await notifyAdmins(
-    `${urgentPrefix}Help Request from ${dglName}`,
-    `${cabin ? cabin + " — " : ""}${category}: ${description.trim().slice(0, 100)}`
-  );
-
-  return NextResponse.json({ id: ticketId, success: true }, { status: 201 });
 }
 
 // PATCH: resolve or update a ticket (admin only)

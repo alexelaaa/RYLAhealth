@@ -112,7 +112,8 @@ export default function CabinCheckinPage() {
         fetchTickets();
         setTimeout(() => setTicketMsg(""), 3000);
       } else {
-        setTicketMsg("Failed to send");
+        const err = await res.json().catch(() => ({ error: "Unknown error" }));
+        setTicketMsg(err.error || `Failed (${res.status})`);
       }
     } catch {
       setTicketMsg("Network error");
