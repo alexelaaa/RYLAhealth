@@ -174,7 +174,10 @@ function BadgesContent() {
     const saved = localStorage.getItem("badge-logo");
     if (saved) setLogo(saved);
     const savedSizes = localStorage.getItem("badge-sizes");
-    if (savedSizes) setSizes(JSON.parse(savedSizes));
+    if (savedSizes) {
+      const parsed = JSON.parse(savedSizes);
+      setSizes(prev => ({ ...prev, ...parsed, lineHeight: parsed.lineHeight ?? prev.lineHeight }));
+    }
   }, []);
 
   const fetchCampers = useCallback(async () => {
@@ -639,7 +642,7 @@ function BadgesContent() {
                 ))}
                 <div>
                   <label className="block text-xs font-medium text-slate-500">
-                    Line Spacing: {sizes.lineHeight.toFixed(1)}
+                    Line Spacing: {(sizes.lineHeight || 1.7).toFixed(1)}
                   </label>
                   <input
                     type="range" min={10} max={30} step={1} value={Math.round(sizes.lineHeight * 10)}
