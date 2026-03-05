@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { BIOME_COLORS } from "@/lib/constants";
+import { BIOME_COLORS, SMALL_GROUPS, LARGE_GROUPS } from "@/lib/constants";
 import {
   FRIDAY_DETAILED, SATURDAY_DETAILED, SUNDAY_DETAILED,
   ACTIVITY_ROTATIONS, ACTIVITY_FULL_NAMES, ACTIVITY_LOCATIONS,
@@ -14,7 +14,7 @@ const html2pdf = typeof window !== "undefined" ? require("html2pdf.js") : null;
 const PACKET_QR_URL = "http://ryla5330.org/wp-content/uploads/2026/03/RYLA-Packet-2026.docx.pdf";
 const APP_QR_URL = "https://ryla.up.railway.app/";
 
-type BadgeType = "camper" | "dgl" | "staff" | "schedule" | "back";
+type BadgeType = "camper" | "dgl" | "staff" | "schedule" | "back" | "groups";
 
 interface Camper {
   id: number;
@@ -288,6 +288,68 @@ function ActivityBadge() {
   );
 }
 
+function GroupsBadge() {
+  // Build columns: each large group with its small groups
+  const maxRows = Math.max(...LARGE_GROUPS.map(lg => (SMALL_GROUPS[lg] || []).length));
+
+  return (
+    <div
+      className="badge-cell"
+      style={{
+        width: "4in", height: "3in", overflow: "hidden", backgroundColor: "white",
+        boxSizing: "border-box", pageBreakInside: "avoid",
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}
+    >
+      <div style={{
+        width: "2.8in", height: "3.8in",
+        transform: "rotate(90deg)",
+        display: "flex", flexDirection: "column",
+        padding: "0.05in 0",
+      }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10px" }}>
+          <thead>
+            <tr>
+              {LARGE_GROUPS.map(lg => {
+                const colors = BIOME_COLORS[lg] || { hex: "#475569", hexLight: "#f1f5f9" };
+                return (
+                  <th key={lg} style={{
+                    backgroundColor: colors.hexLight, color: colors.hex,
+                    fontWeight: 900, fontSize: "11px", padding: "4px 2px",
+                    border: "1px solid #cbd5e1", textAlign: "center",
+                    textDecoration: "underline",
+                  }}>
+                    {lg}
+                  </th>
+                );
+              })}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: maxRows }, (_, row) => (
+              <tr key={row}>
+                {LARGE_GROUPS.map(lg => {
+                  const groups = SMALL_GROUPS[lg] || [];
+                  const name = groups[row] || "";
+                  return (
+                    <td key={lg} style={{
+                      border: "1px solid #cbd5e1", textAlign: "center",
+                      padding: "5px 2px", fontWeight: 600, color: "#1e293b",
+                      fontSize: "10px",
+                    }}>
+                      {name}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function ToolBar({ label, onDownloadPDF }: { label: string; onDownloadPDF: () => void }) {
   return (
     <div className="no-print" style={{ padding: "1rem", textAlign: "center", background: "#f1f5f9", borderBottom: "1px solid #e2e8f0" }}>
@@ -416,6 +478,42 @@ export default function PrintBadgesPage() {
       <div className="print-badges">
         <ToolBar
           label={`${totalCards} ${dayLabel} card${totalCards !== 1 ? "s" : ""} on ${pages.length} page${pages.length !== 1 ? "s" : ""}.`}
+          onDownloadPDF={downloadPDF}
+        />
+        <div ref={contentRef}>
+        {pages.map((page, pageIdx) => (
+          <div
+            key={pageIdx}
+            className="badge-page"
+            style={{
+              width: "8.5in", height: "11in", padding: "1in 0.25in",
+              display: "grid", gridTemplateColumns: "4in 4in", gridTemplateRows: "repeat(3, 3in)",
+              gap: "0in", justifyContent: "center", alignContent: "start",
+              pageBreakAfter: "always", boxSizing: "border-box", margin: "0 auto",
+            }}
+          >
+            {page.map((card) => card)}
+          </div>
+        ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (badgeType === "groups") {
+    const count = data.length > 0 ? (data[0] as { count?: number }).count || 1 : 1;
+    const allCards: React.ReactNode[] = [];
+    for (let s = 0; s < count; s++) {
+      allCards.push(<GroupsBadge key={`grp-${s}`} />);
+    }
+    const pages: React.ReactNode[][] = [];
+    for (let i = 0; i < allCards.length; i += 6) {
+      pages.push(allCards.slice(i, i + 6));
+    }
+    return (
+      <div className="print-badges">
+        <ToolBar
+          label={`${count} group card${count !== 1 ? "s" : ""} on ${pages.length} page${pages.length !== 1 ? "s" : ""}.`}
           onDownloadPDF={downloadPDF}
         />
         <div ref={contentRef}>

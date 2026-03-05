@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import { CAMP_WEEKENDS, LARGE_GROUPS, BIOME_COLORS } from "@/lib/constants";
 
-type BadgeType = "camper" | "dgl" | "staff" | "schedule" | "back";
+type BadgeType = "camper" | "dgl" | "staff" | "schedule" | "back" | "groups";
 
 interface Camper {
   id: number;
@@ -417,6 +417,7 @@ function BadgesContent() {
           ["dgl", "DGL"],
           ["staff", "Staff / Alumni"],
           ["schedule", "Schedule"],
+          ["groups", "Groups"],
           ["back", "Badge Back"],
         ] as const).map(([type, label]) => (
           <button
@@ -429,7 +430,41 @@ function BadgesContent() {
         ))}
       </div>
 
-      {badgeType === "back" ? (
+      {badgeType === "groups" ? (
+        <>
+          <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
+            <h2 className="font-semibold text-slate-700">Group Cards</h2>
+            <p className="text-sm text-slate-500">
+              Print biome group reference cards showing all small groups organized by large group.
+            </p>
+            <div>
+              <label className="block text-sm font-medium text-slate-600 mb-1">
+                Number of copies: {scheduleCount}
+              </label>
+              <input
+                type="range" min={1} max={60} value={scheduleCount}
+                onChange={e => setScheduleCount(Number(e.target.value))}
+                className="w-full h-1.5"
+              />
+              <div className="flex justify-between text-xs text-slate-400 mt-1">
+                <span>1</span>
+                <span>{scheduleCount} cards on {Math.ceil(scheduleCount / 6)} page{Math.ceil(scheduleCount / 6) !== 1 ? "s" : ""}</span>
+                <span>60</span>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              sessionStorage.setItem("badge-campers", JSON.stringify([{ count: scheduleCount }]));
+              sessionStorage.setItem("badge-type", "groups");
+              window.open("/badges/print", "_blank");
+            }}
+            className="w-full py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+          >
+            Print {scheduleCount} Group Card{scheduleCount !== 1 ? "s" : ""}
+          </button>
+        </>
+      ) : badgeType === "back" ? (
         <>
           {/* Back Role Selector */}
           <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
