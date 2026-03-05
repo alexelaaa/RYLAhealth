@@ -132,8 +132,8 @@ function BusRiderContent({
   const weekendParam = session.campWeekend ? `weekend=${encodeURIComponent(session.campWeekend)}` : "";
 
   // Fetch all campers for this bus + check-ins
-  const fetchData = useCallback(async () => {
-    setCheckInLoading(true);
+  const fetchData = useCallback(async (showLoading = false) => {
+    if (showLoading) setCheckInLoading(true);
     try {
       const [campersRes, checkInsRes] = await Promise.all([
         fetch(`/api/campers?busNumber=${busNumber}${weekendParam ? `&${weekendParam}` : ""}&limit=500&sortBy=lastName&sortOrder=asc`),
@@ -157,14 +157,14 @@ function BusRiderContent({
   }, [busNumber, weekendParam]);
 
   useEffect(() => {
-    fetchData();
+    fetchData(true);
   }, [fetchData]);
 
-  // Auto-poll every 30 seconds for new campers / check-in changes
+  // Auto-poll every 2 minutes for new campers / check-in changes (no loading flash)
   useEffect(() => {
     const interval = setInterval(() => {
       fetchData();
-    }, 30000);
+    }, 120000);
     return () => clearInterval(interval);
   }, [fetchData]);
 
