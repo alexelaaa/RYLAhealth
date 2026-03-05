@@ -49,8 +49,8 @@ export const LARGE_GROUPS = [
 export const SMALL_GROUPS: Record<string, string[]> = {
   Arctic: ["Arctic Wolves", "Penguins", "Polar Bears", "Reindeer", "Walruses"],
   Desert: ["Camels", "Coyotes", "Lizards", "Scorpions", "Snakes"],
-  Grasslands: ["Elephants", "Giraffe", "Lions", "Rhinos", "Tigers"],
-  Jungle: ["Capibaras", "Crocodiles", "Frogs", "Macaws", "Monkies"],
+  Grasslands: ["Capibaras", "Elephants", "Giraffe", "Lions", "Rhinos"],
+  Jungle: ["Crocodiles", "Frogs", "Macaws", "Monkies", "Tigers"],
   Marine: ["Jellyfish", "Octopi", "Sharks", "Starfish", "Turtles"],
 };
 
