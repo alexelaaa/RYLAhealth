@@ -37,7 +37,7 @@ interface StaffMember {
   staffRole: string | null;
 }
 
-interface Sizes { firstName: number; lastName: number; smallGroup: number; largeGroup: number; info: number; logoHeight: number; }
+interface Sizes { firstName: number; lastName: number; smallGroup: number; largeGroup: number; info: number; logoHeight: number; lineHeight: number; }
 
 function CamperBadgePreview({ camper, logo, sizes }: { camper: Camper | null; logo: string | null; sizes: Sizes }) {
   const c = camper || { firstName: "Jane", lastName: "Doe", largeGroup: "Arctic", smallGroup: "Polar Bears", cabinName: "Cabin 7", meetingLocation: "Lodge A", busNumber: "3" } as Camper;
@@ -49,13 +49,13 @@ function CamperBadgePreview({ camper, logo, sizes }: { camper: Camper | null; lo
         {logo && (
           <img src={logo} alt="Logo" className="object-contain" style={{ maxHeight: `${sizes.logoHeight}px`, maxWidth: "2in" }} />
         )}
-        <div className="font-extrabold text-center leading-tight" style={{ fontSize: `${sizes.firstName}px`, color: colors.hex, textShadow: "1px 1px 2px rgba(0,0,0,0.15)" }}>
+        <div className="font-extrabold text-center leading-tight" style={{ fontSize: `${sizes.firstName}px`, color: colors.hex, /* no shadow */ }}>
           {c.firstName}
         </div>
         <div className="text-gray-800 text-center font-bold" style={{ fontSize: `${sizes.lastName}px` }}>
           {c.lastName}
         </div>
-        <div className="w-full mt-1 space-y-0.5 text-center">
+        <div className="w-full mt-1 text-center" style={{ lineHeight: sizes.lineHeight }}>
           <div>
             <span className="font-bold" style={{ color: colors.hex, fontSize: `${sizes.smallGroup}px` }}>{c.smallGroup || "—"}</span>
           </div>
@@ -95,13 +95,13 @@ function DGLBadgePreview({ dgl, logo, sizes }: { dgl: DGL | null; logo: string |
         <div className="text-center font-bold text-slate-500" style={{ fontSize: `${sizes.info}px`, letterSpacing: "0.1em" }}>
           DISCUSSION GROUP LEADER
         </div>
-        <div className="font-extrabold text-center leading-tight" style={{ fontSize: `${sizes.firstName}px`, color: colors.hex, textShadow: "1px 1px 2px rgba(0,0,0,0.15)" }}>
+        <div className="font-extrabold text-center leading-tight" style={{ fontSize: `${sizes.firstName}px`, color: colors.hex, /* no shadow */ }}>
           {d.firstName}
         </div>
         <div className="text-gray-800 text-center font-bold" style={{ fontSize: `${sizes.lastName}px` }}>
           {d.lastName}
         </div>
-        <div className="w-full mt-1 space-y-0.5 text-center">
+        <div className="w-full mt-1 text-center" style={{ lineHeight: sizes.lineHeight }}>
           <div>
             <span className="font-bold" style={{ color: colors.hex, fontSize: `${sizes.smallGroup}px` }}>{d.smallGroup}</span>
           </div>
@@ -133,7 +133,7 @@ function StaffBadgePreview({ staff, logo, sizes }: { staff: StaffMember | null; 
           {logo && (
             <img src={logo} alt="Logo" className="object-contain" style={{ maxHeight: `${sizes.logoHeight}px`, maxWidth: "2in" }} />
           )}
-          <div className="font-extrabold text-center leading-tight text-slate-900" style={{ fontSize: `${sizes.firstName}px`, textShadow: "1px 1px 2px rgba(0,0,0,0.10)" }}>
+          <div className="font-extrabold text-center leading-tight text-slate-900" style={{ fontSize: `${sizes.firstName}px`, /* no shadow */ }}>
             {s.firstName}
           </div>
           <div className="text-gray-800 text-center font-bold" style={{ fontSize: `${sizes.lastName}px` }}>
@@ -164,7 +164,7 @@ function BadgesContent() {
   const [groupFilter, setGroupFilter] = useState("");
   const [search, setSearch] = useState("");
   const [logo, setLogo] = useState<string | null>(null);
-  const [sizes, setSizes] = useState({ firstName: 28, lastName: 20, smallGroup: 17, largeGroup: 14, info: 15, logoHeight: 55 });
+  const [sizes, setSizes] = useState({ firstName: 28, lastName: 20, smallGroup: 17, largeGroup: 14, info: 15, logoHeight: 55, lineHeight: 1.7 });
   const [loading, setLoading] = useState(true);
   const [scheduleCount, setScheduleCount] = useState(6);
   const [scheduleDay, setScheduleDay] = useState<"all" | "friday" | "saturday" | "sunday" | "activities">("all");
@@ -637,6 +637,16 @@ function BadgesContent() {
                     />
                   </div>
                 ))}
+                <div>
+                  <label className="block text-xs font-medium text-slate-500">
+                    Line Spacing: {sizes.lineHeight.toFixed(1)}
+                  </label>
+                  <input
+                    type="range" min={10} max={30} step={1} value={Math.round(sizes.lineHeight * 10)}
+                    onChange={e => updateSize("lineHeight", Number(e.target.value) / 10)}
+                    className="w-full h-1.5"
+                  />
+                </div>
               </div>
 
               {/* Live Preview */}

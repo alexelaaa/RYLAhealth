@@ -45,7 +45,7 @@ interface StaffMember {
   staffRole: string | null;
 }
 
-interface Sizes { firstName: number; lastName: number; smallGroup: number; largeGroup: number; info: number; logoHeight: number; }
+interface Sizes { firstName: number; lastName: number; smallGroup: number; largeGroup: number; info: number; logoHeight: number; lineHeight?: number; }
 
 function CamperBadge({ camper, logo, sizes }: { camper: Camper; logo: string | null; sizes: Sizes }) {
   const colors = BIOME_COLORS[camper.largeGroup || ""] || BIOME_COLORS.Arctic;
@@ -60,13 +60,13 @@ function CamperBadge({ camper, logo, sizes }: { camper: Camper; logo: string | n
       }}
     >
       {logo && <img src={logo} alt="" style={{ maxHeight: `${sizes.logoHeight}px`, maxWidth: "2in", objectFit: "contain" }} />}
-      <div style={{ fontSize: `${sizes.firstName}px`, fontWeight: 800, color: colors.hex, lineHeight: 1.1, textAlign: "center", textShadow: "1px 1px 2px rgba(0,0,0,0.15)" }}>
+      <div style={{ fontSize: `${sizes.firstName}px`, fontWeight: 800, color: colors.hex, lineHeight: 1.1, textAlign: "center" }}>
         {camper.firstName}
       </div>
       <div style={{ fontSize: `${sizes.lastName}px`, fontWeight: 700, color: "#1e293b", textAlign: "center" }}>
         {camper.lastName}
       </div>
-      <div style={{ marginTop: "4px", textAlign: "center", lineHeight: 1.7 }}>
+      <div style={{ marginTop: "4px", textAlign: "center", lineHeight: sizes.lineHeight || 1.7 }}>
         <div style={{ fontSize: `${sizes.smallGroup}px` }}>
           <span style={{ fontWeight: 700, color: colors.hex }}>{camper.smallGroup || "—"}</span>
         </div>
@@ -108,13 +108,13 @@ function DGLBadge({ dgl, logo, sizes }: { dgl: DGL; logo: string | null; sizes: 
       <div style={{ fontSize: `${sizes.info}px`, fontWeight: 700, color: "#64748b", textAlign: "center", letterSpacing: "0.1em" }}>
         DISCUSSION GROUP LEADER
       </div>
-      <div style={{ fontSize: `${sizes.firstName}px`, fontWeight: 800, color: colors.hex, lineHeight: 1.1, textAlign: "center", textShadow: "1px 1px 2px rgba(0,0,0,0.15)" }}>
+      <div style={{ fontSize: `${sizes.firstName}px`, fontWeight: 800, color: colors.hex, lineHeight: 1.1, textAlign: "center" }}>
         {dgl.firstName}
       </div>
       <div style={{ fontSize: `${sizes.lastName}px`, fontWeight: 700, color: "#1e293b", textAlign: "center" }}>
         {dgl.lastName}
       </div>
-      <div style={{ marginTop: "4px", textAlign: "center", lineHeight: 1.7 }}>
+      <div style={{ marginTop: "4px", textAlign: "center", lineHeight: sizes.lineHeight || 1.7 }}>
         <div style={{ fontSize: `${sizes.smallGroup}px` }}>
           <span style={{ fontWeight: 700, color: colors.hex }}>{dgl.smallGroup}</span>
         </div>
@@ -148,7 +148,7 @@ function StaffBadge({ staff, logo, sizes }: { staff: StaffMember; logo: string |
     >
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "6px", padding: "0.15in" }}>
         {logo && <img src={logo} alt="" style={{ maxHeight: `${sizes.logoHeight}px`, maxWidth: "2in", objectFit: "contain" }} />}
-        <div style={{ fontSize: `${sizes.firstName}px`, fontWeight: 800, color: "#1e293b", lineHeight: 1.1, textAlign: "center", textShadow: "1px 1px 2px rgba(0,0,0,0.10)" }}>
+        <div style={{ fontSize: `${sizes.firstName}px`, fontWeight: 800, color: "#1e293b", lineHeight: 1.1, textAlign: "center" }}>
           {staff.firstName}
         </div>
         <div style={{ fontSize: `${sizes.lastName}px`, fontWeight: 700, color: "#1e293b", textAlign: "center" }}>
