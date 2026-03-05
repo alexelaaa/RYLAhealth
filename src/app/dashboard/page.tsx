@@ -5,6 +5,7 @@ import Link from "next/link";
 import AppShell from "@/components/layout/AppShell";
 import ScheduleNow from "@/components/ScheduleNow";
 import NotificationToggle from "@/components/NotificationToggle";
+import InstallPrompt from "@/components/InstallPrompt";
 import { useCamp } from "@/lib/camp-context";
 import { MEDICATION_SCHEDULES } from "@/lib/constants";
 import { cacheGet, cacheSet } from "@/lib/offline-cache";
@@ -139,6 +140,8 @@ function DashboardContent() {
   return (
     <div className="p-4 space-y-6 pb-24">
       <h1 className="text-xl font-bold text-slate-900">Dashboard</h1>
+
+      <InstallPrompt />
 
       <NotificationToggle />
 

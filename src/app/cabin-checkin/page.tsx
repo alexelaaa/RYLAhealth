@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import InstallPrompt from "@/components/InstallPrompt";
 
 interface CamperCheckin {
   id: number;
@@ -122,6 +123,8 @@ export default function CabinCheckinPage() {
       </header>
 
       <div className="max-w-lg mx-auto p-4 space-y-4">
+        <InstallPrompt />
+
         {/* Quick Links */}
         <div className="flex gap-2">
           <Link
