@@ -16,6 +16,18 @@ interface CamperCheckin {
 
 type Night = "friday" | "saturday";
 
+const TICKET_CATEGORIES = ["Medical", "Forgot Item", "Behavioral", "Maintenance", "Other"];
+
+interface HelpTicket {
+  id: number;
+  category: string;
+  description: string;
+  urgency: string;
+  status: string;
+  created_at: string;
+  resolved_at: string | null;
+}
+
 export default function CabinCheckinPage() {
   const [campers, setCampers] = useState<CamperCheckin[]>([]);
   const [cabin, setCabin] = useState("");
@@ -24,6 +36,15 @@ export default function CabinCheckinPage() {
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<number | null>(null);
   const router = useRouter();
+
+  // Help ticket state
+  const [showHelp, setShowHelp] = useState(false);
+  const [ticketCategory, setTicketCategory] = useState("");
+  const [ticketDesc, setTicketDesc] = useState("");
+  const [ticketUrgent, setTicketUrgent] = useState(false);
+  const [ticketSubmitting, setTicketSubmitting] = useState(false);
+  const [ticketMsg, setTicketMsg] = useState("");
+  const [myTickets, setMyTickets] = useState<HelpTicket[]>([]);
 
   const fetchCampers = useCallback(async () => {
     try {
@@ -52,6 +73,53 @@ export default function CabinCheckinPage() {
   useEffect(() => {
     fetchCampers();
   }, [fetchCampers]);
+
+  // Fetch my tickets
+  const fetchTickets = useCallback(async () => {
+    try {
+      const res = await fetch("/api/help-tickets");
+      if (res.ok) {
+        const data = await res.json();
+        setMyTickets(data);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    fetchTickets();
+  }, [fetchTickets]);
+
+  const submitTicket = async () => {
+    if (!ticketCategory || !ticketDesc.trim()) return;
+    setTicketSubmitting(true);
+    setTicketMsg("");
+    try {
+      const res = await fetch("/api/help-tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cabin,
+          category: ticketCategory,
+          description: ticketDesc.trim(),
+          urgency: ticketUrgent ? "urgent" : "normal",
+        }),
+      });
+      if (res.ok) {
+        setTicketMsg("Help request sent!");
+        setTicketCategory("");
+        setTicketDesc("");
+        setTicketUrgent(false);
+        fetchTickets();
+        setTimeout(() => setTicketMsg(""), 3000);
+      } else {
+        setTicketMsg("Failed to send");
+      }
+    } catch {
+      setTicketMsg("Network error");
+    } finally {
+      setTicketSubmitting(false);
+    }
+  };
 
   const togglePresent = async (camperId: number) => {
     setToggling(camperId);
@@ -148,6 +216,111 @@ export default function CabinCheckinPage() {
             RYLA Packet
           </a>
         </div>
+
+        {/* Help Request */}
+        <button
+          onClick={() => setShowHelp(!showHelp)}
+          className={`w-full py-3 rounded-xl text-sm font-semibold transition-colors ${
+            showHelp
+              ? "bg-red-100 text-red-700 border border-red-200"
+              : "bg-red-600 text-white hover:bg-red-700"
+          }`}
+        >
+          {showHelp ? "Close" : "Request Help"}
+        </button>
+
+        {showHelp && (
+          <div className="bg-white rounded-xl border border-slate-300 p-4 space-y-3">
+            <p className="text-sm font-semibold text-slate-700">Submit a Help Request</p>
+
+            {/* Category */}
+            <div className="flex flex-wrap gap-2">
+              {TICKET_CATEGORIES.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setTicketCategory(cat)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    ticketCategory === cat
+                      ? "bg-blue-600 text-white"
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Description */}
+            <textarea
+              value={ticketDesc}
+              onChange={(e) => setTicketDesc(e.target.value)}
+              placeholder="Describe the issue..."
+              rows={3}
+              className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            />
+
+            {/* Urgency toggle */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-slate-500">Urgent?</span>
+              <button
+                onClick={() => setTicketUrgent(!ticketUrgent)}
+                className={`relative w-11 h-6 rounded-full transition-colors ${
+                  ticketUrgent ? "bg-red-500" : "bg-slate-300"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                    ticketUrgent ? "translate-x-5" : ""
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Submit */}
+            <button
+              onClick={submitTicket}
+              disabled={ticketSubmitting || !ticketCategory || !ticketDesc.trim()}
+              className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40"
+            >
+              {ticketSubmitting ? "Sending..." : "Send Request"}
+            </button>
+
+            {ticketMsg && (
+              <p className={`text-sm text-center ${ticketMsg === "Help request sent!" ? "text-green-600" : "text-red-600"}`}>
+                {ticketMsg}
+              </p>
+            )}
+
+            {/* My recent tickets */}
+            {myTickets.length > 0 && (
+              <div className="pt-2 border-t border-slate-200">
+                <p className="text-xs font-semibold text-slate-500 mb-2">My Requests</p>
+                <div className="space-y-2">
+                  {myTickets.slice(0, 5).map((t) => (
+                    <div
+                      key={t.id}
+                      className={`rounded-lg px-3 py-2 text-xs ${
+                        t.status === "resolved"
+                          ? "bg-green-50 border border-green-200"
+                          : t.urgency === "urgent"
+                          ? "bg-red-50 border border-red-200"
+                          : "bg-slate-50 border border-slate-200"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-slate-700">{t.category}</span>
+                        <span className={`font-medium ${t.status === "resolved" ? "text-green-600" : "text-amber-600"}`}>
+                          {t.status === "resolved" ? "Resolved" : "Open"}
+                        </span>
+                      </div>
+                      <p className="text-slate-500 mt-0.5">{t.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Night toggle */}
         <div className="flex rounded-xl overflow-hidden bg-white shadow-sm">

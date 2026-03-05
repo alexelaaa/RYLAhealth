@@ -289,4 +289,21 @@ export function runMigrations(db: Database.Database) {
       completed_by TEXT NOT NULL
     )
   `);
+
+  // Migration 20: Help tickets table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS help_tickets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      cabin TEXT NOT NULL,
+      dgl_name TEXT NOT NULL,
+      category TEXT NOT NULL,
+      description TEXT NOT NULL,
+      urgency TEXT NOT NULL DEFAULT 'normal',
+      status TEXT NOT NULL DEFAULT 'open',
+      resolved_by TEXT,
+      resolved_note TEXT,
+      resolved_at TEXT,
+      created_at TEXT NOT NULL
+    )
+  `);
 }
