@@ -132,31 +132,17 @@ function DashboardContent() {
         </div>
       ) : stats ? (
         <>
-          {/* Stats cards — 2x2 grid */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Stats cards */}
+          <div className="grid grid-cols-3 gap-3">
             <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
               <p className="text-2xl font-bold text-blue-600">{stats.totalCampers}</p>
               <p className="text-xs text-blue-500 mt-1">
                 {campWeekend ? "Weekend Campers" : "Total Campers"}
               </p>
             </div>
-            <Link href="/checkin" className="block">
-              <div className="bg-green-50 rounded-xl p-4 border border-green-100 h-full">
-                <p className="text-2xl font-bold text-green-600">
-                  {stats.checkedIn !== undefined && stats.totalForCheckIn
-                    ? `${Math.round(((stats.campArrived || 0) / stats.totalForCheckIn) * 100)}%`
-                    : "—"}
-                </p>
-                <p className="text-xs text-green-500 mt-1">
-                  {stats.checkedIn !== undefined
-                    ? `On Bus ${stats.checkedIn} · Arrived ${stats.campArrived || 0}`
-                    : "Check-In"}
-                </p>
-              </div>
-            </Link>
             <div className="bg-red-50 rounded-xl p-4 border border-red-100">
               <p className="text-2xl font-bold text-red-600">{stats.todayMedicalLogs}</p>
-              <p className="text-xs text-red-500 mt-1">Medical Logs Today</p>
+              <p className="text-xs text-red-500 mt-1">Medical Today</p>
             </div>
             <div className="bg-orange-50 rounded-xl p-4 border border-orange-100">
               <p className="text-2xl font-bold text-orange-600">{stats.todayBehavioralIncidents}</p>
@@ -164,7 +150,7 @@ function DashboardContent() {
             </div>
           </div>
 
-          {/* Medical Overview */}
+          {/* Medical Overview — high priority */}
           {alertsData && (
             <div>
               <h2 className="text-sm font-semibold text-slate-700 mb-3">Medical Overview</h2>
@@ -230,7 +216,6 @@ function DashboardContent() {
             const withMeals = alertsData.medications.filter(
               (m) => m.medicationSchedule?.includes("with_meals")
             );
-            // Show with_meals campers during morning/afternoon/evening (meal-adjacent times)
             const mealAdjacentKeys = ["morning", "afternoon", "evening"];
             const showMealMeds = activeKeys.some((k) => mealAdjacentKeys.includes(k));
             const allDueNow = [
@@ -303,54 +288,7 @@ function DashboardContent() {
             );
           })()}
 
-          {/* Camp Organization */}
-          {stats.largeGroupCount !== undefined && (stats.largeGroupCount > 0 || (stats.smallGroupCount || 0) > 0 || (stats.cabinCount || 0) > 0) && (
-            <div>
-              <h2 className="text-sm font-semibold text-slate-700 mb-3">Camp Organization</h2>
-              <div className="grid grid-cols-2 gap-3">
-                <Link href="/groups" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
-                    <svg className="w-5 h-5 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                    </svg>
-                    <p className="text-sm font-medium text-slate-900">Groups</p>
-                    <p className="text-xs text-slate-400">
-                      {stats.largeGroupCount} large, {stats.smallGroupCount || 0} small
-                    </p>
-                  </div>
-                </Link>
-                <Link href="/groups?tab=dgls" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
-                    <svg className="w-5 h-5 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    <p className="text-sm font-medium text-slate-900">Cabins</p>
-                    <p className="text-xs text-slate-400">{stats.cabinCount || 0} assigned</p>
-                  </div>
-                </Link>
-                <Link href="/staff" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
-                    <svg className="w-5 h-5 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <p className="text-sm font-medium text-slate-900">Staff</p>
-                    <p className="text-xs text-slate-400">Directory</p>
-                  </div>
-                </Link>
-                <Link href="/reports" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
-                    <svg className="w-5 h-5 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <p className="text-sm font-medium text-slate-900">Reports</p>
-                    <p className="text-xs text-slate-400">Group & bus counts</p>
-                  </div>
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Quick actions */}
+          {/* Quick Actions */}
           <div className="space-y-2">
             <h2 className="text-sm font-semibold text-slate-700">Quick Actions</h2>
             <div className="grid grid-cols-3 gap-2">
@@ -416,6 +354,57 @@ function DashboardContent() {
               )}
             </div>
           </div>
+
+          {/* Camp Organization */}
+          {stats.largeGroupCount !== undefined && (stats.largeGroupCount > 0 || (stats.smallGroupCount || 0) > 0 || (stats.cabinCount || 0) > 0) && (
+            <div>
+              <h2 className="text-sm font-semibold text-slate-700 mb-3">Camp Organization</h2>
+              <div className="grid grid-cols-2 gap-3">
+                <Link href="/groups" className="block">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
+                    <svg className="w-5 h-5 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <p className="text-sm font-medium text-slate-900">Groups</p>
+                    <p className="text-xs text-slate-400">
+                      {stats.largeGroupCount} large, {stats.smallGroupCount || 0} small
+                    </p>
+                  </div>
+                </Link>
+                <Link href="/groups?tab=dgls" className="block">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
+                    <svg className="w-5 h-5 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    <p className="text-sm font-medium text-slate-900">Cabins</p>
+                    <p className="text-xs text-slate-400">{stats.cabinCount || 0} assigned</p>
+                  </div>
+                </Link>
+                <Link href="/staff" className="block">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
+                    <svg className="w-5 h-5 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <p className="text-sm font-medium text-slate-900">Staff</p>
+                    <p className="text-xs text-slate-400">Directory</p>
+                  </div>
+                </Link>
+                <Link href="/checkin" className="block">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-green-200 transition-colors">
+                    <svg className="w-5 h-5 text-green-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <p className="text-sm font-medium text-slate-900">Check-In</p>
+                    <p className="text-xs text-slate-400">
+                      {stats.checkedIn !== undefined && stats.totalForCheckIn
+                        ? `${stats.campArrived || 0}/${stats.totalForCheckIn} arrived`
+                        : "Status"}
+                    </p>
+                  </div>
+                </Link>
+              </div>
+            </div>
+          )}
 
           {/* Recent activity */}
           <div>

@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import { CAMP_WEEKENDS, LARGE_GROUPS, BIOME_COLORS } from "@/lib/constants";
 
+type BadgeType = "camper" | "dgl" | "staff";
+
 interface Camper {
   id: number;
   firstName: string;
@@ -13,20 +15,36 @@ interface Camper {
   smallGroup: string | null;
   cabinName: string | null;
   campWeekend: string | null;
+  busNumber: string | null;
   meetingLocation?: string | null;
+}
+
+interface DGL {
+  id: string;
+  firstName: string;
+  lastName: string;
+  smallGroup: string;
+  largeGroup: string | null;
+  cabin: string | null;
+  meetingLocation: string | null;
+}
+
+interface StaffMember {
+  id: number;
+  firstName: string;
+  lastName: string;
+  staffType: string;
+  staffRole: string | null;
 }
 
 interface Sizes { firstName: number; lastName: number; smallGroup: number; largeGroup: number; info: number; }
 
-function BadgePreview({ camper, logo, sizes }: { camper: Camper | null; logo: string | null; sizes: Sizes }) {
-  const c = camper || { firstName: "Jane", lastName: "Doe", largeGroup: "Arctic", smallGroup: "Polar Bears", cabinName: "Cabin 7", meetingLocation: "Lodge A" } as Camper;
+function CamperBadgePreview({ camper, logo, sizes }: { camper: Camper | null; logo: string | null; sizes: Sizes }) {
+  const c = camper || { firstName: "Jane", lastName: "Doe", largeGroup: "Arctic", smallGroup: "Polar Bears", cabinName: "Cabin 7", meetingLocation: "Lodge A", busNumber: "3" } as Camper;
   const colors = BIOME_COLORS[c.largeGroup || ""] || BIOME_COLORS.Arctic;
 
   return (
-    <div
-      className="rounded-lg overflow-hidden bg-white border border-slate-200"
-      style={{ width: "4in", height: "3in" }}
-    >
+    <div className="rounded-lg overflow-hidden bg-white border border-slate-200" style={{ width: "4in", height: "3in" }}>
       <div className="flex flex-col items-center justify-center h-full p-3 gap-1">
         {logo && (
           <img src={logo} alt="Logo" className="object-contain" style={{ maxHeight: "0.55in", maxWidth: "1.5in" }} />
@@ -52,7 +70,82 @@ function BadgePreview({ camper, logo, sizes }: { camper: Camper | null; logo: st
             <span className="text-slate-400 font-semibold">Sleeping Cabin: </span>
             <span className="font-bold text-slate-800">{c.cabinName || "—"}</span>
           </div>
+          {c.busNumber && (
+            <div style={{ fontSize: `${sizes.info}px` }}>
+              <span className="text-slate-400 font-semibold">Bus: </span>
+              <span className="font-bold text-slate-800">{c.busNumber}</span>
+            </div>
+          )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function DGLBadgePreview({ dgl, logo, sizes }: { dgl: DGL | null; logo: string | null; sizes: Sizes }) {
+  const d = dgl || { firstName: "John", lastName: "Smith", smallGroup: "Polar Bears", largeGroup: "Arctic", cabin: "Cabin 16C", meetingLocation: "Lodge A" } as DGL;
+  const colors = BIOME_COLORS[d.largeGroup || ""] || BIOME_COLORS.Arctic;
+
+  return (
+    <div className="rounded-lg overflow-hidden bg-white border border-slate-200" style={{ width: "4in", height: "3in" }}>
+      <div className="flex flex-col items-center justify-center h-full p-3 gap-1">
+        {logo && (
+          <img src={logo} alt="Logo" className="object-contain" style={{ maxHeight: "0.55in", maxWidth: "1.5in" }} />
+        )}
+        <div className="text-center font-bold text-slate-500" style={{ fontSize: `${sizes.info}px`, letterSpacing: "0.1em" }}>
+          DISCUSSION GROUP LEADER
+        </div>
+        <div className="font-extrabold text-center leading-tight" style={{ fontSize: `${sizes.firstName}px`, color: colors.hex, textShadow: "1px 1px 2px rgba(0,0,0,0.15)" }}>
+          {d.firstName}
+        </div>
+        <div className="text-gray-800 text-center font-bold" style={{ fontSize: `${sizes.lastName}px` }}>
+          {d.lastName}
+        </div>
+        <div className="w-full mt-1 space-y-0.5 text-center">
+          <div>
+            <span className="font-bold" style={{ color: colors.hex, fontSize: `${sizes.smallGroup}px` }}>{d.smallGroup}</span>
+          </div>
+          <div>
+            <span className="font-semibold text-slate-500" style={{ fontSize: `${sizes.largeGroup}px` }}>{d.largeGroup || "—"}</span>
+          </div>
+          <div style={{ fontSize: `${sizes.info}px` }}>
+            <span className="text-slate-400 font-semibold">Discussion Meeting Location: </span>
+            <span className="font-bold text-slate-800">{d.meetingLocation || "—"}</span>
+          </div>
+          <div style={{ fontSize: `${sizes.info}px` }}>
+            <span className="text-slate-400 font-semibold">Sleeping Cabin: </span>
+            <span className="font-bold text-slate-800">{d.cabin || "—"}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StaffBadgePreview({ staff, logo, sizes }: { staff: StaffMember | null; logo: string | null; sizes: Sizes }) {
+  const s = staff || { firstName: "Alex", lastName: "Johnson", staffType: "alumni", staffRole: "Facilitator" } as StaffMember;
+  const roleLabel = s.staffType === "alumni" ? "ALUMNI STAFF" : "ADULT STAFF";
+
+  return (
+    <div className="rounded-lg overflow-hidden bg-white border border-slate-200" style={{ width: "4in", height: "3in" }}>
+      <div className="flex flex-col items-center justify-center h-full p-3 gap-2">
+        {logo && (
+          <img src={logo} alt="Logo" className="object-contain" style={{ maxHeight: "0.55in", maxWidth: "1.5in" }} />
+        )}
+        <div className="text-center font-bold text-slate-500" style={{ fontSize: `${sizes.info}px`, letterSpacing: "0.1em" }}>
+          {roleLabel}
+        </div>
+        <div className="font-extrabold text-center leading-tight text-slate-900" style={{ fontSize: `${sizes.firstName}px`, textShadow: "1px 1px 2px rgba(0,0,0,0.10)" }}>
+          {s.firstName}
+        </div>
+        <div className="text-gray-800 text-center font-bold" style={{ fontSize: `${sizes.lastName}px` }}>
+          {s.lastName}
+        </div>
+        {s.staffRole && (
+          <div className="text-center font-semibold text-slate-600" style={{ fontSize: `${sizes.smallGroup}px` }}>
+            {s.staffRole}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -60,8 +153,11 @@ function BadgePreview({ camper, logo, sizes }: { camper: Camper | null; logo: st
 
 function BadgesContent() {
   const searchParams = useSearchParams();
+  const [badgeType, setBadgeType] = useState<BadgeType>("camper");
   const [campers, setCampers] = useState<Camper[]>([]);
-  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [dgls, setDgls] = useState<DGL[]>([]);
+  const [staffList, setStaffList] = useState<StaffMember[]>([]);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [weekend, setWeekend] = useState(searchParams.get("weekend") || CAMP_WEEKENDS[0]);
   const [groupFilter, setGroupFilter] = useState("");
   const [search, setSearch] = useState("");
@@ -86,7 +182,6 @@ function BadgesContent() {
       const camperData = await camperRes.json();
       const groupData = await groupRes.json();
 
-      // Build meeting location lookup from small groups
       const meetingMap = new Map<string, string>();
       if (groupData.groups) {
         for (const g of groupData.groups) {
@@ -96,7 +191,6 @@ function BadgesContent() {
         }
       }
 
-      // Merge meeting locations into campers
       const enriched = (camperData.campers || []).map((c: Camper) => ({
         ...c,
         meetingLocation: c.smallGroup ? meetingMap.get(c.smallGroup) || null : null,
@@ -109,7 +203,66 @@ function BadgesContent() {
     }
   }, [weekend]);
 
-  useEffect(() => { fetchCampers(); }, [fetchCampers]);
+  const fetchDGLs = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/groups?${new URLSearchParams({ weekend, type: "small" })}`);
+      const data = await res.json();
+      const dglList: DGL[] = [];
+      if (data.groups) {
+        for (const g of data.groups) {
+          if (g.dglName) {
+            const [firstName, ...rest] = g.dglName.split(" ");
+            dglList.push({
+              id: `dgl-${g.name}`,
+              firstName: firstName || "",
+              lastName: rest.join(" ") || "",
+              smallGroup: g.name,
+              largeGroup: null,
+              cabin: g.dglCabin || null,
+              meetingLocation: g.meetingLocation || null,
+            });
+          }
+        }
+      }
+      // Enrich with large group from camper data
+      const groupRes = await fetch(`/api/groups?${new URLSearchParams({ weekend, type: "overview" })}`);
+      const overviewData = await groupRes.json();
+      if (overviewData.largeGroups) {
+        for (const lg of overviewData.largeGroups) {
+          for (const sg of lg.smallGroups) {
+            const dgl = dglList.find(d => d.smallGroup === sg.name);
+            if (dgl) dgl.largeGroup = lg.name;
+          }
+        }
+      }
+      setDgls(dglList);
+    } catch {
+      setDgls([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [weekend]);
+
+  const fetchStaff = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/camp-staff?${new URLSearchParams({ weekend })}`);
+      const data = await res.json();
+      setStaffList(data.staff || []);
+    } catch {
+      setStaffList([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [weekend]);
+
+  useEffect(() => {
+    setSelected(new Set());
+    if (badgeType === "camper") fetchCampers();
+    else if (badgeType === "dgl") fetchDGLs();
+    else fetchStaff();
+  }, [badgeType, fetchCampers, fetchDGLs, fetchStaff]);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -136,56 +289,111 @@ function BadgesContent() {
     });
   };
 
-  const filtered = campers.filter(c => {
-    if (groupFilter && c.largeGroup !== groupFilter) return false;
-    if (search) {
-      const term = search.toLowerCase();
-      const name = `${c.firstName} ${c.lastName}`.toLowerCase();
-      if (!name.includes(term)) return false;
-    }
-    return true;
-  });
+  // Build generic item list for selection
+  type ListItem = { key: string; label: string; sub: string; biome: string | null };
+  let items: ListItem[] = [];
+
+  if (badgeType === "camper") {
+    items = campers
+      .filter(c => {
+        if (groupFilter && c.largeGroup !== groupFilter) return false;
+        if (search) {
+          const term = search.toLowerCase();
+          if (!`${c.firstName} ${c.lastName}`.toLowerCase().includes(term)) return false;
+        }
+        return true;
+      })
+      .map(c => ({ key: String(c.id), label: `${c.lastName}, ${c.firstName}`, sub: c.cabinName || "—", biome: c.largeGroup }));
+  } else if (badgeType === "dgl") {
+    items = dgls
+      .filter(d => {
+        if (groupFilter && d.largeGroup !== groupFilter) return false;
+        if (search) {
+          const term = search.toLowerCase();
+          if (!`${d.firstName} ${d.lastName}`.toLowerCase().includes(term)) return false;
+        }
+        return true;
+      })
+      .map(d => ({ key: d.id, label: `${d.lastName}, ${d.firstName}`, sub: d.smallGroup, biome: d.largeGroup }));
+  } else {
+    items = staffList
+      .filter(s => {
+        if (search) {
+          const term = search.toLowerCase();
+          if (!`${s.firstName} ${s.lastName}`.toLowerCase().includes(term)) return false;
+        }
+        return true;
+      })
+      .map(s => ({ key: String(s.id), label: `${s.lastName}, ${s.firstName}`, sub: s.staffType === "alumni" ? "Alumni" : "Adult", biome: null }));
+  }
 
   const toggleAll = () => {
-    const filteredIds = new Set(filtered.map(c => c.id));
-    const allSelected = filtered.every(c => selected.has(c.id));
+    const keys = items.map(i => i.key);
+    const allSelected = keys.every(k => selected.has(k));
     if (allSelected) {
-      setSelected(prev => {
-        const next = new Set(prev);
-        filteredIds.forEach(id => next.delete(id));
-        return next;
-      });
+      setSelected(prev => { const next = new Set(prev); keys.forEach(k => next.delete(k)); return next; });
     } else {
-      setSelected(prev => {
-        const next = new Set(Array.from(prev));
-        filteredIds.forEach(id => next.add(id));
-        return next;
-      });
+      setSelected(prev => { const next = new Set(prev); keys.forEach(k => next.add(k)); return next; });
     }
   };
 
-  const toggleCamper = (id: number) => {
-    setSelected(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const toggle = (key: string) => {
+    setSelected(prev => { const next = new Set(prev); if (next.has(key)) next.delete(key); else next.add(key); return next; });
   };
 
   const openPrint = () => {
-    const selectedCampers = campers.filter(c => selected.has(c.id));
-    sessionStorage.setItem("badge-campers", JSON.stringify(selectedCampers));
+    if (badgeType === "camper") {
+      const selectedCampers = campers.filter(c => selected.has(String(c.id)));
+      sessionStorage.setItem("badge-campers", JSON.stringify(selectedCampers));
+      sessionStorage.setItem("badge-type", "camper");
+    } else if (badgeType === "dgl") {
+      const selectedDGLs = dgls.filter(d => selected.has(d.id));
+      sessionStorage.setItem("badge-campers", JSON.stringify(selectedDGLs));
+      sessionStorage.setItem("badge-type", "dgl");
+    } else {
+      const selectedStaff = staffList.filter(s => selected.has(String(s.id)));
+      sessionStorage.setItem("badge-campers", JSON.stringify(selectedStaff));
+      sessionStorage.setItem("badge-type", "staff");
+    }
     sessionStorage.setItem("badge-logo", logo || "");
     sessionStorage.setItem("badge-sizes", JSON.stringify(sizes));
     window.open("/badges/print", "_blank");
   };
 
-  const previewCamper = campers.find(c => selected.has(c.id)) || campers[0] || null;
+  // Preview badge
+  const previewBadge = () => {
+    if (badgeType === "camper") {
+      const c = campers.find(c => selected.has(String(c.id))) || campers[0] || null;
+      return <CamperBadgePreview camper={c} logo={logo} sizes={sizes} />;
+    } else if (badgeType === "dgl") {
+      const d = dgls.find(d => selected.has(d.id)) || dgls[0] || null;
+      return <DGLBadgePreview dgl={d} logo={logo} sizes={sizes} />;
+    } else {
+      const s = staffList.find(s => selected.has(String(s.id))) || staffList[0] || null;
+      return <StaffBadgePreview staff={s} logo={logo} sizes={sizes} />;
+    }
+  };
 
   return (
     <div className="p-4 space-y-4 pb-24">
       <h1 className="text-xl font-bold text-slate-900">Name Badges</h1>
+
+      {/* Badge Type Selector */}
+      <div className="flex rounded-lg border border-slate-300 overflow-hidden">
+        {([
+          ["camper", "Camper"],
+          ["dgl", "DGL"],
+          ["staff", "Staff / Alumni"],
+        ] as const).map(([type, label]) => (
+          <button
+            key={type}
+            onClick={() => { setBadgeType(type); setSelected(new Set()); setSearch(""); setGroupFilter(""); }}
+            className={`flex-1 py-2 text-sm font-medium transition-colors ${badgeType === type ? "bg-blue-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
 
       {/* Template Designer */}
       <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
@@ -209,9 +417,9 @@ function BadgesContent() {
             {([
               ["firstName", "First Name", 18, 48],
               ["lastName", "Last Name", 12, 30],
-              ["smallGroup", "Small Group", 10, 24],
+              ["smallGroup", "Small Group / Role", 10, 24],
               ["largeGroup", "Large Group", 8, 20],
-              ["info", "Location/Cabin", 10, 22],
+              ["info", "Info Lines", 10, 22],
             ] as const).map(([key, label, min, max]) => (
               <div key={key}>
                 <label className="block text-xs font-medium text-slate-500">
@@ -229,7 +437,7 @@ function BadgesContent() {
           {/* Live Preview */}
           <div className="flex-shrink-0">
             <p className="text-xs text-slate-500 mb-1">Preview (actual size)</p>
-            <BadgePreview camper={previewCamper} logo={logo} sizes={sizes} />
+            {previewBadge()}
           </div>
         </div>
       </div>
@@ -252,20 +460,22 @@ function BadgesContent() {
             {CAMP_WEEKENDS.map(w => <option key={w} value={w}>{w}</option>)}
           </select>
 
-          <select
-            value={groupFilter}
-            onChange={e => { setGroupFilter(e.target.value); setSelected(new Set()); }}
-            className="text-sm border border-slate-300 rounded-lg px-3 py-1.5"
-          >
-            <option value="">All Groups</option>
-            {LARGE_GROUPS.map(g => <option key={g} value={g}>{g}</option>)}
-          </select>
+          {badgeType !== "staff" && (
+            <select
+              value={groupFilter}
+              onChange={e => { setGroupFilter(e.target.value); setSelected(new Set()); }}
+              className="text-sm border border-slate-300 rounded-lg px-3 py-1.5"
+            >
+              <option value="">All Groups</option>
+              {LARGE_GROUPS.map(g => <option key={g} value={g}>{g}</option>)}
+            </select>
+          )}
 
           <button
             onClick={toggleAll}
             className="text-sm px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50"
           >
-            {selected.size === filtered.length && filtered.length > 0 ? "Deselect All" : "Select All"}
+            {selected.size === items.length && items.length > 0 ? "Deselect All" : "Select All"}
           </button>
 
           <span className="text-sm text-slate-500 ml-auto">
@@ -274,36 +484,38 @@ function BadgesContent() {
         </div>
 
         {loading ? (
-          <div className="text-center py-8 text-slate-400">Loading campers...</div>
-        ) : filtered.length === 0 ? (
-          <div className="text-center py-8 text-slate-400">No campers found</div>
+          <div className="text-center py-8 text-slate-400">Loading...</div>
+        ) : items.length === 0 ? (
+          <div className="text-center py-8 text-slate-400">
+            {badgeType === "staff" ? "No staff found. Add staff in Admin > Staff." : "No results found."}
+          </div>
         ) : (
           <div className="max-h-80 overflow-y-auto border border-slate-100 rounded-lg">
-            {filtered.map(c => {
-              const colors = BIOME_COLORS[c.largeGroup || ""];
+            {items.map(item => {
+              const colors = item.biome ? BIOME_COLORS[item.biome] : null;
               return (
                 <label
-                  key={c.id}
+                  key={item.key}
                   className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0"
                 >
                   <input
                     type="checkbox"
-                    checked={selected.has(c.id)}
-                    onChange={() => toggleCamper(c.id)}
+                    checked={selected.has(item.key)}
+                    onChange={() => toggle(item.key)}
                     className="rounded"
                   />
                   <span className="flex-1 text-sm">
-                    <span className="font-medium">{c.lastName}, {c.firstName}</span>
+                    <span className="font-medium">{item.label}</span>
                   </span>
                   {colors && (
                     <span
                       className="text-xs px-2 py-0.5 rounded-full font-medium"
                       style={{ backgroundColor: colors.hexLight, color: colors.hex, border: `1px solid ${colors.hexBorder}` }}
                     >
-                      {c.largeGroup}
+                      {item.biome}
                     </span>
                   )}
-                  <span className="text-xs text-slate-400">{c.cabinName || "—"}</span>
+                  <span className="text-xs text-slate-400">{item.sub}</span>
                 </label>
               );
             })}
