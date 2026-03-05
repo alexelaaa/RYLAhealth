@@ -30,26 +30,44 @@ function isActive(timestamp: string): boolean {
   return diff < BUS_ACTIVE_THRESHOLD_MIN * 60 * 1000;
 }
 
+interface BusStat {
+  busNumber: string;
+  assigned: number;
+  checkedIn: number;
+  arrived: number;
+}
+
 function BusMapContent() {
-  useCamp();
+  const { campWeekend } = useCamp();
   const [buses, setBuses] = useState<BusLocation[]>([]);
+  const [busStats, setBusStats] = useState<Map<string, BusStat>>(new Map());
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
 
   const fetchBuses = useCallback(async () => {
+    const weekendParam = campWeekend ? `?weekend=${encodeURIComponent(campWeekend)}` : "";
     try {
-      const res = await fetch("/api/bus-waypoints/latest");
-      if (res.ok) {
-        const data = await res.json();
+      const [busRes, statsRes] = await Promise.all([
+        fetch("/api/bus-waypoints/latest"),
+        fetch(`/api/admin/bus-stats${weekendParam}`),
+      ]);
+      if (busRes.ok) {
+        const data = await busRes.json();
         setBuses(data);
         setLastRefresh(new Date().toLocaleTimeString());
+      }
+      if (statsRes.ok) {
+        const stats: BusStat[] = await statsRes.json();
+        const map = new Map<string, BusStat>();
+        for (const s of stats) map.set(s.busNumber, s);
+        setBusStats(map);
       }
     } catch {
       // Silently fail — will retry
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [campWeekend]);
 
   useEffect(() => {
     fetchBuses();
@@ -102,6 +120,8 @@ function BusMapContent() {
                     CAMP_LOCATION.latitude, CAMP_LOCATION.longitude
                   );
                   const eta = bus.speed != null ? estimateEtaMinutes(distMiles, bus.speed) : null;
+                  const busNum = bus.bus_id.replace("bus-", "");
+                  const stat = busStats.get(busNum);
                   return (
                     <div
                       key={bus.bus_id}
@@ -118,6 +138,13 @@ function BusMapContent() {
                           {new Date(bus.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
+                      {stat && (
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <span className="text-xs font-medium text-green-700">{stat.checkedIn} on bus</span>
+                          <span className="text-xs font-medium text-red-600">{stat.assigned - stat.checkedIn} absent</span>
+                          <span className="text-xs text-slate-400">{stat.assigned} assigned</span>
+                        </div>
+                      )}
                       <p className="text-xs text-slate-500 mt-1">
                         Tracked by {bus.tracked_by}
                         {bus.speed != null && ` · ${Math.round(msToMph(bus.speed))} mph`}
@@ -138,6 +165,8 @@ function BusMapContent() {
                     bus.latitude, bus.longitude,
                     CAMP_LOCATION.latitude, CAMP_LOCATION.longitude
                   );
+                  const busNum = bus.bus_id.replace("bus-", "");
+                  const stat = busStats.get(busNum);
                   return (
                     <div
                       key={bus.bus_id}
@@ -154,6 +183,13 @@ function BusMapContent() {
                           Last: {new Date(bus.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
+                      {stat && (
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-xs font-medium text-slate-600">{stat.checkedIn} on bus</span>
+                          <span className="text-xs font-medium text-red-500">{stat.assigned - stat.checkedIn} absent</span>
+                          <span className="text-xs text-slate-400">{stat.assigned} assigned</span>
+                        </div>
+                      )}
                       <p className="text-xs text-slate-400 mt-1">
                         Tracked by {bus.tracked_by} · Inactive · {distMiles.toFixed(1)} mi to camp
                       </p>
@@ -165,18 +201,29 @@ function BusMapContent() {
 
             {neverReportedBuses.length > 0 && (
               <div className="space-y-2">
-                {neverReportedBuses.map((bus) => (
-                  <div
-                    key={bus.id}
-                    className="bg-white rounded-xl p-3 border border-slate-300"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 bg-slate-200 rounded-full" />
-                      <span className="text-sm text-slate-400">{bus.label}</span>
-                      <span className="text-xs text-slate-300">No data</span>
+                {neverReportedBuses.map((bus) => {
+                  const busNum = bus.id.replace("bus-", "");
+                  const stat = busStats.get(busNum);
+                  return (
+                    <div
+                      key={bus.id}
+                      className="bg-white rounded-xl p-3 border border-slate-300"
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 bg-slate-200 rounded-full" />
+                        <span className="text-sm text-slate-400">{bus.label}</span>
+                        <span className="text-xs text-slate-300">No data</span>
+                      </div>
+                      {stat && (
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-xs font-medium text-slate-500">{stat.checkedIn} on bus</span>
+                          <span className="text-xs font-medium text-red-500">{stat.assigned - stat.checkedIn} absent</span>
+                          <span className="text-xs text-slate-400">{stat.assigned} assigned</span>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
