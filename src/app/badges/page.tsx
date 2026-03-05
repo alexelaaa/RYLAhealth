@@ -278,7 +278,7 @@ function BadgesContent() {
       const todayMidnight = new Date();
       todayMidnight.setHours(0, 0, 0, 0);
       const [camperRes, groupRes] = await Promise.all([
-        fetch(`/api/campers?${new URLSearchParams({ weekend, limit: "500", editedSince: todayMidnight.toISOString() })}`),
+        fetch(`/api/campers?${new URLSearchParams({ weekend, limit: "500", editedSince: todayMidnight.toISOString(), editedFields: "largeGroup,smallGroup,cabinName,cabinNumber,busNumber,campWeekend" })}`),
         fetch(`/api/groups?${new URLSearchParams({ weekend, type: "small" })}`),
       ]);
       const camperData = await camperRes.json();

@@ -54,12 +54,24 @@ export async function GET(request: Request) {
 
   // editedSince: only campers with actual edits in camper_edits table (not __created from seed)
   if (editedSince) {
-    conditions.push(
-      sql`${campers.id} IN (
-        SELECT DISTINCT camper_id FROM camper_edits
-        WHERE changed_at >= ${editedSince} AND field_name != '__created'
-      )`
-    );
+    const editedFields = searchParams.get("editedFields"); // comma-separated field names to filter by
+    if (editedFields) {
+      const fields = editedFields.split(",").map(f => f.trim());
+      const placeholders = fields.map(f => sql`${f}`);
+      conditions.push(
+        sql`${campers.id} IN (
+          SELECT DISTINCT camper_id FROM camper_edits
+          WHERE changed_at >= ${editedSince} AND field_name IN (${sql.join(placeholders, sql`,`)})
+        )`
+      );
+    } else {
+      conditions.push(
+        sql`${campers.id} IN (
+          SELECT DISTINCT camper_id FROM camper_edits
+          WHERE changed_at >= ${editedSince} AND field_name != '__created'
+        )`
+      );
+    }
   }
 
   if (unassigned === "group") {
@@ -104,7 +116,7 @@ export async function GET(request: Request) {
         latestEdit: sql<string>`MAX(changed_at)`,
       })
       .from(camperEdits)
-      .where(sql`camper_id IN (${sql.join(ids.map(id => sql`${id}`), sql`,`)}) AND field_name != '__created' AND changed_at >= ${editedSince}`)
+      .where(sql`camper_id IN (${sql.join(ids.map(id => sql`${id}`), sql`,`)}) AND field_name NOT IN ('__created', '__deleted') AND changed_at >= ${editedSince}`)
       .groupBy(camperEdits.camperId)
       .all();
 
@@ -138,12 +150,24 @@ export async function GET(request: Request) {
   if (busNumber) countConditions.push(eq(campers.busNumber, busNumber));
   if (modifiedSince) countConditions.push(gte(campers.updatedAt, modifiedSince));
   if (editedSince) {
-    countConditions.push(
-      sql`${campers.id} IN (
-        SELECT DISTINCT camper_id FROM camper_edits
-        WHERE changed_at >= ${editedSince} AND field_name != '__created'
-      )`
-    );
+    const editedFields = searchParams.get("editedFields");
+    if (editedFields) {
+      const fields = editedFields.split(",").map(f => f.trim());
+      const placeholders = fields.map(f => sql`${f}`);
+      countConditions.push(
+        sql`${campers.id} IN (
+          SELECT DISTINCT camper_id FROM camper_edits
+          WHERE changed_at >= ${editedSince} AND field_name IN (${sql.join(placeholders, sql`,`)})
+        )`
+      );
+    } else {
+      countConditions.push(
+        sql`${campers.id} IN (
+          SELECT DISTINCT camper_id FROM camper_edits
+          WHERE changed_at >= ${editedSince} AND field_name != '__created'
+        )`
+      );
+    }
   }
   if (unassigned === "group") {
     countConditions.push(sql`(${campers.largeGroup} IS NULL OR ${campers.largeGroup} = '')`);

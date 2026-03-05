@@ -286,12 +286,24 @@ export async function DELETE(
     return NextResponse.json({ error: "Camper not found" }, { status: 404 });
   }
 
-  // Delete related records first, then the camper
+  const now = new Date().toISOString();
+
+  // Record deletion audit entry (store camper name in old/newValue since camper row will be gone)
+  db.insert(camperEdits).values({
+    camperId: id,
+    fieldName: "__deleted",
+    oldValue: `${camper.firstName} ${camper.lastName}`,
+    newValue: camper.campWeekend || null,
+    changedBy: session.label || session.role,
+    changedAt: now,
+  }).run();
+
+  // Delete related records first, then the camper (keep __deleted audit entry)
   const { sqlite } = await import("@/db");
   sqlite.prepare("DELETE FROM check_ins WHERE camper_id = ?").run(id);
   sqlite.prepare("DELETE FROM medical_logs WHERE camper_id = ?").run(id);
   sqlite.prepare("DELETE FROM behavioral_incidents WHERE camper_id = ?").run(id);
-  sqlite.prepare("DELETE FROM camper_edits WHERE camper_id = ?").run(id);
+  sqlite.prepare("DELETE FROM camper_edits WHERE camper_id = ? AND field_name != '__deleted'").run(id);
   sqlite.prepare("DELETE FROM campers WHERE id = ?").run(id);
 
   return NextResponse.json({

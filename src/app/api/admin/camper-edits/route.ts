@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { camperEdits, campers } from "@/db/schema";
-import { eq, desc, inArray } from "drizzle-orm";
+import { eq, desc, inArray, sql } from "drizzle-orm";
 
-const MOVEMENT_FIELDS = ["cabinName", "cabinNumber", "cabinLocation", "smallGroup", "largeGroup", "noShow"];
+const MOVEMENT_FIELDS = [
+  "cabinName", "cabinNumber", "cabinLocation", "smallGroup", "largeGroup",
+  "busNumber", "campWeekend", "noShow", "__created", "__deleted",
+];
 
 export async function GET(request: NextRequest) {
   const camperId = request.nextUrl.searchParams.get("camperId");
@@ -18,14 +21,14 @@ export async function GET(request: NextRequest) {
     newValue: camperEdits.newValue,
     changedBy: camperEdits.changedBy,
     changedAt: camperEdits.changedAt,
-    camperFirstName: campers.firstName,
-    camperLastName: campers.lastName,
+    camperFirstName: sql<string>`COALESCE(${campers.firstName}, ${camperEdits.oldValue})`.as("camperFirstName"),
+    camperLastName: sql<string>`COALESCE(${campers.lastName}, '')`.as("camperLastName"),
   };
 
   let query = db
     .select(selectFields)
     .from(camperEdits)
-    .innerJoin(campers, eq(camperEdits.camperId, campers.id))
+    .leftJoin(campers, eq(camperEdits.camperId, campers.id))
     .$dynamic();
 
   const conditions = [];
@@ -36,6 +39,8 @@ export async function GET(request: NextRequest) {
 
   if (filter === "movements") {
     conditions.push(inArray(camperEdits.fieldName, MOVEMENT_FIELDS));
+  } else if (filter === "deleted") {
+    conditions.push(eq(camperEdits.fieldName, "__deleted"));
   }
 
   if (conditions.length === 1) {
@@ -50,5 +55,18 @@ export async function GET(request: NextRequest) {
     .limit(limit)
     .all();
 
-  return NextResponse.json(edits);
+  // For __deleted entries, the camper row is gone, so parse the name from oldValue
+  const enriched = edits.map((e) => {
+    if (e.fieldName === "__deleted" && !e.camperLastName) {
+      const nameParts = (e.oldValue || "").split(" ");
+      return {
+        ...e,
+        camperFirstName: nameParts[0] || "Unknown",
+        camperLastName: nameParts.slice(1).join(" ") || "",
+      };
+    }
+    return e;
+  });
+
+  return NextResponse.json(enriched);
 }

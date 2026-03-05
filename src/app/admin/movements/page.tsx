@@ -44,6 +44,12 @@ const FIELD_LABELS: Record<string, string> = {
 };
 
 function formatFieldChange(edit: EditEntry): string {
+  if (edit.fieldName === "__created") {
+    return "added to camp";
+  }
+  if (edit.fieldName === "__deleted") {
+    return "removed from camp";
+  }
   const label = FIELD_LABELS[edit.fieldName] || edit.fieldName;
   if (edit.fieldName === "noShow") {
     return edit.newValue === "1" ? "marked as No-Show" : "unmarked as No-Show";
@@ -89,8 +95,9 @@ function MovementsContent() {
 
 
   // Feed
-  const [tab, setTab] = useState<"changes" | "noshows">("changes");
+  const [tab, setTab] = useState<"changes" | "noshows" | "deleted">("changes");
   const [feed, setFeed] = useState<EditEntry[]>([]);
+  const [deletedCampers, setDeletedCampers] = useState<EditEntry[]>([]);
   const [noShowCampers, setNoShowCampers] = useState<Camper[]>([]);
   const [feedLoading, setFeedLoading] = useState(true);
 
@@ -154,6 +161,15 @@ function MovementsContent() {
 
   useEffect(() => { fetchNoShows(); }, [fetchNoShows]);
 
+  // Load deleted campers
+  const fetchDeleted = useCallback(() => {
+    fetch("/api/admin/camper-edits?filter=deleted&limit=200")
+      .then((r) => r.json())
+      .then((data) => setDeletedCampers(data))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => { fetchDeleted(); }, [fetchDeleted]);
 
   // Fetch check-in status for selected camper
   const fetchCheckInStatus = useCallback(async (camperId: number) => {
@@ -636,6 +652,16 @@ function MovementsContent() {
           >
             No-Shows{noShowCampers.length > 0 && ` (${noShowCampers.length})`}
           </button>
+          <button
+            onClick={() => setTab("deleted")}
+            className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+              tab === "deleted"
+                ? "text-slate-700 border-b-2 border-slate-600 bg-slate-50"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            Deleted{deletedCampers.length > 0 && ` (${deletedCampers.length})`}
+          </button>
         </div>
 
         {/* Recent Changes Tab */}
@@ -659,7 +685,11 @@ function MovementsContent() {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-slate-900">
-                          <span className="font-medium text-blue-600">
+                          <span className={`font-medium ${
+                            edit.fieldName === "__deleted" ? "text-red-600" :
+                            edit.fieldName === "__created" ? "text-green-600" :
+                            "text-blue-600"
+                          }`}>
                             {edit.camperFirstName} {edit.camperLastName}
                           </span>
                           {" \u2014 "}
@@ -700,7 +730,11 @@ function MovementsContent() {
                             <div key={h.id} className="text-xs text-slate-600">
                               <span className="font-medium">{FIELD_LABELS[h.fieldName] || h.fieldName}</span>
                               {": "}
-                              {h.fieldName === "noShow"
+                              {h.fieldName === "__created"
+                                ? "added to camp"
+                                : h.fieldName === "__deleted"
+                                ? "removed from camp"
+                                : h.fieldName === "noShow"
                                 ? (h.newValue === "1" ? "marked No-Show" : "unmarked No-Show")
                                 : `${h.oldValue || "(none)"} \u2192 ${h.newValue || "(none)"}`}
                               <span className="text-slate-400 ml-1">
@@ -751,6 +785,44 @@ function MovementsContent() {
                   >
                     Restore
                   </button>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Deleted Tab */}
+        {tab === "deleted" && (
+          <div className="divide-y divide-slate-100">
+            {deletedCampers.length === 0 ? (
+              <div className="p-6 text-center text-sm text-slate-400">
+                No deleted campers recorded.
+              </div>
+            ) : (
+              deletedCampers.map((d) => (
+                <div key={d.id} className="px-4 py-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-red-600">
+                        {d.camperFirstName} {d.camperLastName}
+                      </p>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        {d.newValue && (
+                          <span className="text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">
+                            {d.newValue}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-slate-400">
+                        {new Date(d.changedAt).toLocaleString()}
+                      </p>
+                      <p className="text-xs text-slate-400">
+                        by {d.changedBy}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ))
             )}
