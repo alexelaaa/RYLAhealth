@@ -111,3 +111,14 @@ export const CAMP_LOCATION = {
   longitude: -116.7131,
   name: "Idyllwild Pines Camp",
 } as const;
+
+export const BIOME_COLORS: Record<string, {
+  bg: string; text: string; border: string; headerBg: string;
+  hex: string; hexLight: string; hexBorder: string;
+}> = {
+  Arctic:     { bg: "bg-cyan-50",    text: "text-cyan-700",    border: "border-cyan-200",    headerBg: "bg-cyan-100",    hex: "#0e7490", hexLight: "#ecfeff", hexBorder: "#a5f3fc" },
+  Desert:     { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-200",   headerBg: "bg-amber-100",   hex: "#b45309", hexLight: "#fffbeb", hexBorder: "#fde68a" },
+  Grasslands: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", headerBg: "bg-emerald-100", hex: "#047857", hexLight: "#ecfdf5", hexBorder: "#a7f3d0" },
+  Jungle:     { bg: "bg-lime-50",    text: "text-lime-700",    border: "border-lime-200",    headerBg: "bg-lime-100",    hex: "#4d7c0f", hexLight: "#f7fee7", hexBorder: "#bef264" },
+  Marine:     { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200",    headerBg: "bg-blue-100",    hex: "#1d4ed8", hexLight: "#eff6ff", hexBorder: "#bfdbfe" },
+};

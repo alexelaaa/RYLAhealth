@@ -25,3 +25,27 @@ body {
 input[type="search"]::-webkit-search-cancel-button {
   -webkit-appearance: none;
 }
+
+/* Print styles for badge pages */
+@media print {
+  .no-print { display: none !important; }
+
+  @page {
+    size: letter;
+    margin: 0;
+  }
+
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .badge-page {
+    page-break-after: always;
+  }
+
+  .badge-cell {
+    page-break-inside: avoid;
+  }
+}
