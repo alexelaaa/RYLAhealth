@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import BottomNav from "./BottomNav";
 import OfflineBanner from "./OfflineBanner";
 import { CampContext } from "@/lib/camp-context";
@@ -55,6 +56,31 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
       </div>
+    );
+  }
+
+  // DGL gets a simplified shell — no bottom nav, just a back link
+  if (session?.role === "dgl") {
+    return (
+      <CampContext.Provider value={{ campWeekend, setCampWeekend, session }}>
+        <div className="min-h-screen bg-slate-200">
+          <header className="bg-blue-700 text-white sticky top-0 z-40">
+            <div className="flex items-center justify-between px-4 h-14">
+              <Link href="/cabin-checkin" className="flex items-center gap-1 text-blue-200 hover:text-white text-sm">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Check-In
+              </Link>
+              <h1 className="text-lg font-bold">RYLA Camp</h1>
+            </div>
+          </header>
+          <OfflineBanner />
+          <main className="pb-safe max-w-4xl mx-auto">
+            {children}
+          </main>
+        </div>
+      </CampContext.Provider>
     );
   }
 
