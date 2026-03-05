@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import { CAMP_WEEKENDS, LARGE_GROUPS, BIOME_COLORS } from "@/lib/constants";
 
-type BadgeType = "camper" | "dgl" | "staff";
+type BadgeType = "camper" | "dgl" | "staff" | "schedule";
 
 interface Camper {
   id: number;
@@ -37,7 +37,7 @@ interface StaffMember {
   staffRole: string | null;
 }
 
-interface Sizes { firstName: number; lastName: number; smallGroup: number; largeGroup: number; info: number; }
+interface Sizes { firstName: number; lastName: number; smallGroup: number; largeGroup: number; info: number; logoHeight: number; }
 
 function CamperBadgePreview({ camper, logo, sizes }: { camper: Camper | null; logo: string | null; sizes: Sizes }) {
   const c = camper || { firstName: "Jane", lastName: "Doe", largeGroup: "Arctic", smallGroup: "Polar Bears", cabinName: "Cabin 7", meetingLocation: "Lodge A", busNumber: "3" } as Camper;
@@ -47,7 +47,7 @@ function CamperBadgePreview({ camper, logo, sizes }: { camper: Camper | null; lo
     <div className="rounded-lg overflow-hidden bg-white border border-slate-200" style={{ width: "4in", height: "3in" }}>
       <div className="flex flex-col items-center justify-center h-full p-3 gap-1">
         {logo && (
-          <img src={logo} alt="Logo" className="object-contain" style={{ maxHeight: "0.55in", maxWidth: "1.5in" }} />
+          <img src={logo} alt="Logo" className="object-contain" style={{ maxHeight: `${sizes.logoHeight}px`, maxWidth: "2in" }} />
         )}
         <div className="font-extrabold text-center leading-tight" style={{ fontSize: `${sizes.firstName}px`, color: colors.hex, textShadow: "1px 1px 2px rgba(0,0,0,0.15)" }}>
           {c.firstName}
@@ -90,7 +90,7 @@ function DGLBadgePreview({ dgl, logo, sizes }: { dgl: DGL | null; logo: string |
     <div className="rounded-lg overflow-hidden bg-white border border-slate-200" style={{ width: "4in", height: "3in" }}>
       <div className="flex flex-col items-center justify-center h-full p-3 gap-1">
         {logo && (
-          <img src={logo} alt="Logo" className="object-contain" style={{ maxHeight: "0.55in", maxWidth: "1.5in" }} />
+          <img src={logo} alt="Logo" className="object-contain" style={{ maxHeight: `${sizes.logoHeight}px`, maxWidth: "2in" }} />
         )}
         <div className="text-center font-bold text-slate-500" style={{ fontSize: `${sizes.info}px`, letterSpacing: "0.1em" }}>
           DISCUSSION GROUP LEADER
@@ -124,28 +124,30 @@ function DGLBadgePreview({ dgl, logo, sizes }: { dgl: DGL | null; logo: string |
 
 function StaffBadgePreview({ staff, logo, sizes }: { staff: StaffMember | null; logo: string | null; sizes: Sizes }) {
   const s = staff || { firstName: "Alex", lastName: "Johnson", staffType: "alumni", staffRole: "Facilitator" } as StaffMember;
-  const roleLabel = s.staffType === "alumni" ? "ALUMNI STAFF" : "ADULT STAFF";
+  const barLabel = s.staffType === "alumni" ? "ALUMNI" : "STAFF";
 
   return (
     <div className="rounded-lg overflow-hidden bg-white border border-slate-200" style={{ width: "4in", height: "3in" }}>
-      <div className="flex flex-col items-center justify-center h-full p-3 gap-2">
-        {logo && (
-          <img src={logo} alt="Logo" className="object-contain" style={{ maxHeight: "0.55in", maxWidth: "1.5in" }} />
-        )}
-        <div className="text-center font-bold text-slate-500" style={{ fontSize: `${sizes.info}px`, letterSpacing: "0.1em" }}>
-          {roleLabel}
-        </div>
-        <div className="font-extrabold text-center leading-tight text-slate-900" style={{ fontSize: `${sizes.firstName}px`, textShadow: "1px 1px 2px rgba(0,0,0,0.10)" }}>
-          {s.firstName}
-        </div>
-        <div className="text-gray-800 text-center font-bold" style={{ fontSize: `${sizes.lastName}px` }}>
-          {s.lastName}
-        </div>
-        {s.staffRole && (
-          <div className="text-center font-semibold text-slate-600" style={{ fontSize: `${sizes.smallGroup}px` }}>
-            {s.staffRole}
+      <div className="flex flex-col items-center h-full">
+        <div className="flex-1 flex flex-col items-center justify-center gap-2 p-3">
+          {logo && (
+            <img src={logo} alt="Logo" className="object-contain" style={{ maxHeight: `${sizes.logoHeight}px`, maxWidth: "2in" }} />
+          )}
+          <div className="font-extrabold text-center leading-tight text-slate-900" style={{ fontSize: `${sizes.firstName}px`, textShadow: "1px 1px 2px rgba(0,0,0,0.10)" }}>
+            {s.firstName}
           </div>
-        )}
+          <div className="text-gray-800 text-center font-bold" style={{ fontSize: `${sizes.lastName}px` }}>
+            {s.lastName}
+          </div>
+          {s.staffRole && (
+            <div className="text-center font-semibold text-slate-600" style={{ fontSize: `${sizes.smallGroup}px` }}>
+              {s.staffRole}
+            </div>
+          )}
+        </div>
+        <div className="w-full bg-black text-white text-center font-extrabold py-1.5" style={{ fontSize: "18px", letterSpacing: "0.15em" }}>
+          {barLabel}
+        </div>
       </div>
     </div>
   );
@@ -162,8 +164,9 @@ function BadgesContent() {
   const [groupFilter, setGroupFilter] = useState("");
   const [search, setSearch] = useState("");
   const [logo, setLogo] = useState<string | null>(null);
-  const [sizes, setSizes] = useState({ firstName: 28, lastName: 20, smallGroup: 17, largeGroup: 14, info: 15 });
+  const [sizes, setSizes] = useState({ firstName: 28, lastName: 20, smallGroup: 17, largeGroup: 14, info: 15, logoHeight: 55 });
   const [loading, setLoading] = useState(true);
+  const [scheduleCount, setScheduleCount] = useState(6);
 
   useEffect(() => {
     const saved = localStorage.getItem("badge-logo");
@@ -342,6 +345,14 @@ function BadgesContent() {
   };
 
   const openPrint = () => {
+    if (badgeType === "schedule") {
+      sessionStorage.setItem("badge-campers", JSON.stringify([{ count: scheduleCount }]));
+      sessionStorage.setItem("badge-type", "schedule");
+      sessionStorage.setItem("badge-logo", "");
+      sessionStorage.setItem("badge-sizes", JSON.stringify(sizes));
+      window.open("/badges/print", "_blank");
+      return;
+    }
     if (badgeType === "camper") {
       const selectedCampers = campers.filter(c => selected.has(String(c.id)));
       sessionStorage.setItem("badge-campers", JSON.stringify(selectedCampers));
@@ -384,6 +395,7 @@ function BadgesContent() {
           ["camper", "Camper"],
           ["dgl", "DGL"],
           ["staff", "Staff / Alumni"],
+          ["schedule", "Schedule"],
         ] as const).map(([type, label]) => (
           <button
             key={type}
@@ -395,142 +407,180 @@ function BadgesContent() {
         ))}
       </div>
 
-      {/* Template Designer */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
-        <h2 className="font-semibold text-slate-700">Badge Designer</h2>
-
-        <div className="flex flex-col sm:flex-row gap-4">
-          {/* Controls */}
-          <div className="flex-1 space-y-3">
+      {badgeType === "schedule" ? (
+        <>
+          {/* Schedule Preview & Count */}
+          <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
+            <h2 className="font-semibold text-slate-700">Schedule Card</h2>
+            <p className="text-sm text-slate-500">
+              Prints a condensed weekend schedule with March activities. Use for the back of name badges.
+            </p>
             <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1">Logo</label>
-              {logo ? (
-                <div className="flex items-center gap-2">
-                  <img src={logo} alt="Logo" className="h-8 object-contain" />
-                  <button onClick={removeLogo} className="text-xs text-red-600 hover:underline">Remove</button>
+              <label className="block text-sm font-medium text-slate-600 mb-1">
+                Number of copies: {scheduleCount}
+              </label>
+              <input
+                type="range" min={1} max={120} value={scheduleCount}
+                onChange={e => setScheduleCount(Number(e.target.value))}
+                className="w-full h-1.5"
+              />
+              <div className="flex justify-between text-xs text-slate-400 mt-1">
+                <span>1</span>
+                <span>{Math.ceil(scheduleCount / 6)} page{Math.ceil(scheduleCount / 6) !== 1 ? "s" : ""} (6 per page)</span>
+                <span>120</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Print Button */}
+          <button
+            onClick={openPrint}
+            className="w-full py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+          >
+            Print {scheduleCount} Schedule Card{scheduleCount !== 1 ? "s" : ""}
+          </button>
+        </>
+      ) : (
+        <>
+          {/* Template Designer */}
+          <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
+            <h2 className="font-semibold text-slate-700">Badge Designer</h2>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              {/* Controls */}
+              <div className="flex-1 space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-1">Logo</label>
+                  {logo ? (
+                    <div className="flex items-center gap-2">
+                      <img src={logo} alt="Logo" className="h-8 object-contain" />
+                      <button onClick={removeLogo} className="text-xs text-red-600 hover:underline">Remove</button>
+                    </div>
+                  ) : (
+                    <input type="file" accept="image/*" onChange={handleLogoUpload} className="text-sm" />
+                  )}
                 </div>
-              ) : (
-                <input type="file" accept="image/*" onChange={handleLogoUpload} className="text-sm" />
+
+                {([
+                  ["logoHeight", "Logo Height", 20, 100],
+                  ["firstName", "First Name", 18, 48],
+                  ["lastName", "Last Name", 12, 30],
+                  ["smallGroup", "Small Group / Role", 10, 24],
+                  ["largeGroup", "Large Group", 8, 20],
+                  ["info", "Info Lines", 10, 22],
+                ] as const).map(([key, label, min, max]) => (
+                  <div key={key}>
+                    <label className="block text-xs font-medium text-slate-500">
+                      {label}: {sizes[key]}px
+                    </label>
+                    <input
+                      type="range" min={min} max={max} value={sizes[key]}
+                      onChange={e => updateSize(key, Number(e.target.value))}
+                      className="w-full h-1.5"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Live Preview */}
+              <div className="flex-shrink-0">
+                <p className="text-xs text-slate-500 mb-1">Preview (actual size)</p>
+                {previewBadge()}
+              </div>
+            </div>
+          </div>
+
+          {/* Filters & Selection */}
+          <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+            <input
+              type="search"
+              placeholder="Search by name..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={weekend}
+                onChange={e => { setWeekend(e.target.value); setSelected(new Set()); }}
+                className="text-sm border border-slate-300 rounded-lg px-3 py-1.5"
+              >
+                {CAMP_WEEKENDS.map(w => <option key={w} value={w}>{w}</option>)}
+              </select>
+
+              {badgeType !== "staff" && (
+                <select
+                  value={groupFilter}
+                  onChange={e => { setGroupFilter(e.target.value); setSelected(new Set()); }}
+                  className="text-sm border border-slate-300 rounded-lg px-3 py-1.5"
+                >
+                  <option value="">All Groups</option>
+                  {LARGE_GROUPS.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
               )}
+
+              <button
+                onClick={toggleAll}
+                className="text-sm px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50"
+              >
+                {selected.size === items.length && items.length > 0 ? "Deselect All" : "Select All"}
+              </button>
+
+              <span className="text-sm text-slate-500 ml-auto">
+                {selected.size} selected
+              </span>
             </div>
 
-            {([
-              ["firstName", "First Name", 18, 48],
-              ["lastName", "Last Name", 12, 30],
-              ["smallGroup", "Small Group / Role", 10, 24],
-              ["largeGroup", "Large Group", 8, 20],
-              ["info", "Info Lines", 10, 22],
-            ] as const).map(([key, label, min, max]) => (
-              <div key={key}>
-                <label className="block text-xs font-medium text-slate-500">
-                  {label}: {sizes[key]}px
-                </label>
-                <input
-                  type="range" min={min} max={max} value={sizes[key]}
-                  onChange={e => updateSize(key, Number(e.target.value))}
-                  className="w-full h-1.5"
-                />
+            {loading ? (
+              <div className="text-center py-8 text-slate-400">Loading...</div>
+            ) : items.length === 0 ? (
+              <div className="text-center py-8 text-slate-400">
+                {badgeType === "staff" ? "No staff found. Add staff in Admin > Staff." : "No results found."}
               </div>
-            ))}
-          </div>
-
-          {/* Live Preview */}
-          <div className="flex-shrink-0">
-            <p className="text-xs text-slate-500 mb-1">Preview (actual size)</p>
-            {previewBadge()}
-          </div>
-        </div>
-      </div>
-
-      {/* Filters & Selection */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
-        <input
-          type="search"
-          placeholder="Search by name..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
-        />
-        <div className="flex flex-wrap items-center gap-2">
-          <select
-            value={weekend}
-            onChange={e => { setWeekend(e.target.value); setSelected(new Set()); }}
-            className="text-sm border border-slate-300 rounded-lg px-3 py-1.5"
-          >
-            {CAMP_WEEKENDS.map(w => <option key={w} value={w}>{w}</option>)}
-          </select>
-
-          {badgeType !== "staff" && (
-            <select
-              value={groupFilter}
-              onChange={e => { setGroupFilter(e.target.value); setSelected(new Set()); }}
-              className="text-sm border border-slate-300 rounded-lg px-3 py-1.5"
-            >
-              <option value="">All Groups</option>
-              {LARGE_GROUPS.map(g => <option key={g} value={g}>{g}</option>)}
-            </select>
-          )}
-
-          <button
-            onClick={toggleAll}
-            className="text-sm px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50"
-          >
-            {selected.size === items.length && items.length > 0 ? "Deselect All" : "Select All"}
-          </button>
-
-          <span className="text-sm text-slate-500 ml-auto">
-            {selected.size} selected
-          </span>
-        </div>
-
-        {loading ? (
-          <div className="text-center py-8 text-slate-400">Loading...</div>
-        ) : items.length === 0 ? (
-          <div className="text-center py-8 text-slate-400">
-            {badgeType === "staff" ? "No staff found. Add staff in Admin > Staff." : "No results found."}
-          </div>
-        ) : (
-          <div className="max-h-80 overflow-y-auto border border-slate-100 rounded-lg">
-            {items.map(item => {
-              const colors = item.biome ? BIOME_COLORS[item.biome] : null;
-              return (
-                <label
-                  key={item.key}
-                  className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selected.has(item.key)}
-                    onChange={() => toggle(item.key)}
-                    className="rounded"
-                  />
-                  <span className="flex-1 text-sm">
-                    <span className="font-medium">{item.label}</span>
-                  </span>
-                  {colors && (
-                    <span
-                      className="text-xs px-2 py-0.5 rounded-full font-medium"
-                      style={{ backgroundColor: colors.hexLight, color: colors.hex, border: `1px solid ${colors.hexBorder}` }}
+            ) : (
+              <div className="max-h-80 overflow-y-auto border border-slate-100 rounded-lg">
+                {items.map(item => {
+                  const colors = item.biome ? BIOME_COLORS[item.biome] : null;
+                  return (
+                    <label
+                      key={item.key}
+                      className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0"
                     >
-                      {item.biome}
-                    </span>
-                  )}
-                  <span className="text-xs text-slate-400">{item.sub}</span>
-                </label>
-              );
-            })}
+                      <input
+                        type="checkbox"
+                        checked={selected.has(item.key)}
+                        onChange={() => toggle(item.key)}
+                        className="rounded"
+                      />
+                      <span className="flex-1 text-sm">
+                        <span className="font-medium">{item.label}</span>
+                      </span>
+                      {colors && (
+                        <span
+                          className="text-xs px-2 py-0.5 rounded-full font-medium"
+                          style={{ backgroundColor: colors.hexLight, color: colors.hex, border: `1px solid ${colors.hexBorder}` }}
+                        >
+                          {item.biome}
+                        </span>
+                      )}
+                      <span className="text-xs text-slate-400">{item.sub}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        )}
-      </div>
 
-      {/* Print Button */}
-      <button
-        onClick={openPrint}
-        disabled={selected.size === 0}
-        className="w-full py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
-      >
-        Print {selected.size} Badge{selected.size !== 1 ? "s" : ""}
-      </button>
+          {/* Print Button */}
+          <button
+            onClick={openPrint}
+            disabled={selected.size === 0}
+            className="w-full py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+          >
+            Print {selected.size} Badge{selected.size !== 1 ? "s" : ""}
+          </button>
+        </>
+      )}
     </div>
   );
 }
