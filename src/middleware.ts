@@ -51,9 +51,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // DGL role restriction: only cabin-checkin and API routes
+  // DGL role restriction: cabin-checkin, schedule, map, and API routes
   if (session.role === "dgl") {
-    if (!pathname.startsWith("/cabin-checkin") && !pathname.startsWith("/api/")) {
+    const dglAllowed =
+      pathname.startsWith("/cabin-checkin") ||
+      pathname.startsWith("/schedule") ||
+      pathname.startsWith("/map") ||
+      pathname.startsWith("/api/");
+    if (!dglAllowed) {
       return NextResponse.redirect(new URL("/cabin-checkin", request.url));
     }
   }

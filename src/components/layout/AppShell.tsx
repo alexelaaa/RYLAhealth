@@ -25,8 +25,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           router.push("/login");
         } else if (isBusRider(data.label)) {
           router.push("/bus-rider");
-        } else if (data.role === "dgl") {
-          router.push("/cabin-checkin");
         } else {
           setSession(data);
           setCampWeekendLocal(data.campWeekend || "");

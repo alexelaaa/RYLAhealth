@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface CamperCheckin {
   id: number;
@@ -121,6 +122,30 @@ export default function CabinCheckinPage() {
       </header>
 
       <div className="max-w-lg mx-auto p-4 space-y-4">
+        {/* Quick Links */}
+        <div className="flex gap-2">
+          <Link
+            href="/schedule"
+            className="flex-1 bg-green-50 text-green-700 rounded-xl py-3 text-center text-sm font-medium hover:bg-green-100 transition-colors"
+          >
+            Schedule
+          </Link>
+          <Link
+            href="/map"
+            className="flex-1 bg-emerald-50 text-emerald-700 rounded-xl py-3 text-center text-sm font-medium hover:bg-emerald-100 transition-colors"
+          >
+            Camp Map
+          </Link>
+          <a
+            href="http://ryla5330.org/wp-content/uploads/2026/03/RYLA-Packet-2026.docx.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 bg-violet-50 text-violet-700 rounded-xl py-3 text-center text-sm font-medium hover:bg-violet-100 transition-colors"
+          >
+            RYLA Packet
+          </a>
+        </div>
+
         {/* Night toggle */}
         <div className="flex rounded-xl overflow-hidden bg-white shadow-sm">
           {(["friday", "saturday"] as Night[]).map((n) => (
