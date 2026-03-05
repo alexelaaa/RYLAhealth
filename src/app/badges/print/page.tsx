@@ -44,8 +44,11 @@ function Badge({ camper, logo, firstNameSize }: { camper: Camper; logo: string |
         {camper.lastName}
       </div>
       <div style={{ marginTop: "4px", textAlign: "center", lineHeight: 1.7 }}>
-        <div style={{ fontSize: "15px" }}>
-          <span style={{ fontWeight: 700, color: colors.hex }}>{camper.largeGroup || "—"} / {camper.smallGroup || "—"}</span>
+        <div style={{ fontSize: "17px" }}>
+          <span style={{ fontWeight: 700, color: colors.hex }}>{camper.smallGroup || "—"}</span>
+        </div>
+        <div style={{ fontSize: "12px" }}>
+          <span style={{ fontWeight: 600, color: "#64748b" }}>{camper.largeGroup || "—"}</span>
         </div>
         <div style={{ fontSize: "15px" }}>
           <span style={{ color: "#94a3b8", fontWeight: 600 }}>Discussion Meeting Location: </span>
