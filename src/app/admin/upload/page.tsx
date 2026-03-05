@@ -48,6 +48,14 @@ export default function AdminUploadPage() {
   const [groupError, setGroupError] = useState("");
   const groupFileRef = useRef<HTMLInputElement>(null);
 
+  // Staff upload state
+  const [staffFile, setStaffFile] = useState<File | null>(null);
+  const [staffPreview, setStaffPreview] = useState<{ totalParsed: number; newCount: number; updateCount: number } | null>(null);
+  const [staffResult, setStaffResult] = useState<{ inserted: number; updated: number } | null>(null);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const [staffError, setStaffError] = useState("");
+  const staffFileRef = useRef<HTMLInputElement>(null);
+
   const handlePreview = async () => {
     if (!file) return;
     setLoading(true);
@@ -401,6 +409,144 @@ export default function AdminUploadPage() {
                 className="flex-1 py-3 bg-green-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40"
               >
                 {groupLoading ? "Importing..." : "Confirm Import"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Divider */}
+        <hr className="border-slate-200" />
+
+        {/* Staff & Alumni Upload */}
+        <h2 className="text-lg font-bold text-slate-900">Upload Staff & Alumni</h2>
+        <p className="text-sm text-slate-500">
+          Upload a CSV with columns: First Name, Last Name, Staff Type (alumni/adult), Staff Role.
+          Matches existing staff by name and updates their info.
+        </p>
+
+        {staffError && (
+          <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-sm">
+            {staffError}
+          </div>
+        )}
+
+        {staffResult && (
+          <div className="bg-green-50 border border-green-200 text-green-800 rounded-xl px-4 py-3 text-sm">
+            Staff import complete: {staffResult.inserted} new, {staffResult.updated} updated.
+          </div>
+        )}
+
+        <div className="bg-white rounded-xl p-4 border border-slate-300">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            Select Staff CSV (.csv)
+          </label>
+          <input
+            ref={staffFileRef}
+            type="file"
+            accept=".csv"
+            onChange={(e) => {
+              setStaffFile(e.target.files?.[0] || null);
+              setStaffPreview(null);
+              setStaffResult(null);
+              setStaffError("");
+            }}
+            className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+        </div>
+
+        {staffFile && !staffPreview && (
+          <button
+            onClick={async () => {
+              setStaffLoading(true);
+              setStaffError("");
+              setStaffResult(null);
+              try {
+                const formData = new FormData();
+                formData.append("file", staffFile);
+                const res = await fetch("/api/admin/upload-staff", {
+                  method: "POST",
+                  body: formData,
+                });
+                if (!res.ok) {
+                  const data = await res.json();
+                  setStaffError(data.error || "Preview failed");
+                } else {
+                  setStaffPreview(await res.json());
+                }
+              } catch {
+                setStaffError("Failed to preview file");
+              } finally {
+                setStaffLoading(false);
+              }
+            }}
+            disabled={staffLoading}
+            className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40"
+          >
+            {staffLoading ? "Analyzing..." : "Preview Staff"}
+          </button>
+        )}
+
+        {staffPreview && (
+          <div className="bg-white rounded-xl p-4 border border-slate-300 space-y-3">
+            <h3 className="font-semibold text-sm text-slate-700">Preview</h3>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-slate-900">{staffPreview.totalParsed}</p>
+                <p className="text-xs text-slate-500">Total Records</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-green-600">{staffPreview.newCount}</p>
+                <p className="text-xs text-green-600">New</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-blue-600">{staffPreview.updateCount}</p>
+                <p className="text-xs text-blue-600">Updated</p>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => {
+                  setStaffPreview(null);
+                  setStaffFile(null);
+                  if (staffFileRef.current) staffFileRef.current.value = "";
+                }}
+                className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  if (!staffFile) return;
+                  setStaffLoading(true);
+                  setStaffError("");
+                  try {
+                    const formData = new FormData();
+                    formData.append("file", staffFile);
+                    formData.append("confirm", "true");
+                    const res = await fetch("/api/admin/upload-staff", {
+                      method: "POST",
+                      body: formData,
+                    });
+                    if (!res.ok) {
+                      const data = await res.json();
+                      setStaffError(data.error || "Import failed");
+                    } else {
+                      setStaffResult(await res.json());
+                      setStaffPreview(null);
+                      setStaffFile(null);
+                      if (staffFileRef.current) staffFileRef.current.value = "";
+                    }
+                  } catch {
+                    setStaffError("Failed to import file");
+                  } finally {
+                    setStaffLoading(false);
+                  }
+                }}
+                disabled={staffLoading}
+                className="flex-1 py-3 bg-green-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40"
+              >
+                {staffLoading ? "Importing..." : "Confirm Import"}
               </button>
             </div>
           </div>
