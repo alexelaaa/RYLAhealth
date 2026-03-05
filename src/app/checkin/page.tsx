@@ -32,7 +32,7 @@ export default function CheckInPage() {
 }
 
 function CheckInContent() {
-  const { campWeekend, session } = useCamp();
+  const { campWeekend } = useCamp();
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<Camper[]>([]);
   const [checkedInMap, setCheckedInMap] = useState<Map<number, CheckedInCamper>>(new Map());
