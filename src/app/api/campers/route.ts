@@ -3,7 +3,7 @@ import { getIronSession } from "iron-session";
 import { sessionOptions } from "@/lib/session";
 import { db } from "@/db";
 import { campers, camperEdits } from "@/db/schema";
-import { like, eq, or, asc, desc, sql } from "drizzle-orm";
+import { like, eq, or, asc, desc, sql, gte } from "drizzle-orm";
 import type { SessionData } from "@/types";
 import { cookies } from "next/headers";
 
@@ -14,6 +14,8 @@ export async function GET(request: Request) {
   const role = searchParams.get("role");
   const busNumber = searchParams.get("busNumber");
   const unassigned = searchParams.get("unassigned"); // "group", "cabin", or "any"
+  const modifiedSince = searchParams.get("modifiedSince");
+  const editedSince = searchParams.get("editedSince");
   const sortBy = searchParams.get("sortBy") || "lastName";
   const sortOrder = searchParams.get("sortOrder") || "asc";
   const limit = parseInt(searchParams.get("limit") || "0");
@@ -44,6 +46,20 @@ export async function GET(request: Request) {
 
   if (busNumber) {
     conditions.push(eq(campers.busNumber, busNumber));
+  }
+
+  if (modifiedSince) {
+    conditions.push(gte(campers.updatedAt, modifiedSince));
+  }
+
+  // editedSince: only campers with actual edits in camper_edits table (not __created from seed)
+  if (editedSince) {
+    conditions.push(
+      sql`${campers.id} IN (
+        SELECT DISTINCT camper_id FROM camper_edits
+        WHERE changed_at >= ${editedSince} AND field_name != '__created'
+      )`
+    );
   }
 
   if (unassigned === "group") {
@@ -77,7 +93,33 @@ export async function GET(request: Request) {
     query = query.limit(limit).offset(offset) as typeof query;
   }
 
-  const results = query.all();
+  let results: Record<string, unknown>[] = query.all();
+
+  // If editedSince, enrich with latest edit timestamp and sort by recency
+  if (editedSince && results.length > 0) {
+    const ids = results.map((r) => r.id);
+    const editRows = db
+      .select({
+        camperId: camperEdits.camperId,
+        latestEdit: sql<string>`MAX(changed_at)`,
+      })
+      .from(camperEdits)
+      .where(sql`camper_id IN (${sql.join(ids.map(id => sql`${id}`), sql`,`)}) AND field_name != '__created' AND changed_at >= ${editedSince}`)
+      .groupBy(camperEdits.camperId)
+      .all();
+
+    const editMap = new Map(editRows.map((r) => [r.camperId, r.latestEdit]));
+    results = results.map((r) => ({
+      ...r,
+      latestEditAt: editMap.get(r.id as number) || null,
+    }));
+    // Sort by most recently edited first
+    results.sort((a, b) => {
+      const aTime = (a.latestEditAt as string) || "";
+      const bTime = (b.latestEditAt as string) || "";
+      return bTime.localeCompare(aTime);
+    });
+  }
 
   // Also get total count for pagination
   const countConditions = [];
@@ -94,6 +136,15 @@ export async function GET(request: Request) {
   if (weekend) countConditions.push(eq(campers.campWeekend, weekend));
   if (role) countConditions.push(eq(campers.role, role));
   if (busNumber) countConditions.push(eq(campers.busNumber, busNumber));
+  if (modifiedSince) countConditions.push(gte(campers.updatedAt, modifiedSince));
+  if (editedSince) {
+    countConditions.push(
+      sql`${campers.id} IN (
+        SELECT DISTINCT camper_id FROM camper_edits
+        WHERE changed_at >= ${editedSince} AND field_name != '__created'
+      )`
+    );
+  }
   if (unassigned === "group") {
     countConditions.push(sql`(${campers.largeGroup} IS NULL OR ${campers.largeGroup} = '')`);
   } else if (unassigned === "cabin") {

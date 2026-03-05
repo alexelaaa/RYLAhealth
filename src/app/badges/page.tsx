@@ -18,6 +18,7 @@ interface Camper {
   busNumber: string | null;
   meetingLocation?: string | null;
   updatedAt?: string | null;
+  latestEditAt?: string | null;
 }
 
 interface DGL {
@@ -277,7 +278,7 @@ function BadgesContent() {
       const todayMidnight = new Date();
       todayMidnight.setHours(0, 0, 0, 0);
       const [camperRes, groupRes] = await Promise.all([
-        fetch(`/api/campers?${new URLSearchParams({ weekend, limit: "500", sortBy: "lastName", sortOrder: "asc", modifiedSince: todayMidnight.toISOString() })}`),
+        fetch(`/api/campers?${new URLSearchParams({ weekend, limit: "500", editedSince: todayMidnight.toISOString() })}`),
         fetch(`/api/groups?${new URLSearchParams({ weekend, type: "small" })}`),
       ]);
       const camperData = await camperRes.json();
@@ -544,8 +545,9 @@ function BadgesContent() {
                 {recentlyChanged.map(c => {
                   const inQueue = reprintQueue.some(q => q.id === c.id);
                   const colors = c.largeGroup ? BIOME_COLORS[c.largeGroup] : null;
-                  const ago = c.updatedAt ? (() => {
-                    const mins = Math.round((Date.now() - new Date(c.updatedAt!).getTime()) / 60000);
+                  const editTime = c.latestEditAt || c.updatedAt;
+                  const ago = editTime ? (() => {
+                    const mins = Math.round((Date.now() - new Date(editTime).getTime()) / 60000);
                     if (mins < 1) return "just now";
                     if (mins < 60) return `${mins}m ago`;
                     return `${Math.round(mins / 60)}h ago`;
