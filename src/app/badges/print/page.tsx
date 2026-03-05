@@ -45,18 +45,17 @@ function Badge({ camper, logo, firstNameSize }: { camper: Camper; logo: string |
       <div style={{ fontSize: "16px", fontWeight: 500, color: "#374151", textAlign: "center" }}>
         {camper.lastName}
       </div>
-      <div style={{ marginTop: "4px", textAlign: "center", lineHeight: 1.6 }}>
-        <div style={{ fontSize: "11px" }}>
-          <span style={{ color: "#94a3b8" }}>Group: </span>
-          <span style={{ fontWeight: 600, color: colors.hex }}>{camper.smallGroup || "—"}</span>
+      <div style={{ marginTop: "4px", textAlign: "center", lineHeight: 1.7 }}>
+        <div style={{ fontSize: "13px" }}>
+          <span style={{ fontWeight: 700, color: colors.hex }}>{camper.largeGroup || "—"} / {camper.smallGroup || "—"}</span>
         </div>
-        <div style={{ fontSize: "11px" }}>
-          <span style={{ color: "#94a3b8" }}>Meeting Place: </span>
-          <span style={{ fontWeight: 500, color: "#334155" }}>{camper.meetingLocation || "—"}</span>
+        <div style={{ fontSize: "13px" }}>
+          <span style={{ color: "#94a3b8", fontWeight: 600 }}>Discussion Meeting Location: </span>
+          <span style={{ fontWeight: 700, color: "#1e293b" }}>{camper.meetingLocation || "—"}</span>
         </div>
-        <div style={{ fontSize: "11px" }}>
-          <span style={{ color: "#94a3b8" }}>Sleeping Cabin: </span>
-          <span style={{ fontWeight: 500, color: "#334155" }}>{camper.cabinName || "—"}</span>
+        <div style={{ fontSize: "13px" }}>
+          <span style={{ color: "#94a3b8", fontWeight: 600 }}>Sleeping Cabin: </span>
+          <span style={{ fontWeight: 700, color: "#1e293b" }}>{camper.cabinName || "—"}</span>
         </div>
       </div>
     </div>

@@ -35,18 +35,17 @@ function BadgePreview({ camper, logo, firstNameSize }: { camper: Camper | null; 
         <div className="text-gray-700 text-center font-medium" style={{ fontSize: "16px" }}>
           {c.lastName}
         </div>
-        <div className="w-full mt-1 space-y-0.5 text-center" style={{ fontSize: "11px" }}>
+        <div className="w-full mt-1 space-y-0.5 text-center" style={{ fontSize: "13px" }}>
           <div>
-            <span className="text-slate-400">Group: </span>
-            <span className="font-semibold" style={{ color: colors.hex }}>{c.smallGroup || "—"}</span>
+            <span className="font-bold" style={{ color: colors.hex }}>{c.largeGroup || "—"} / {c.smallGroup || "—"}</span>
           </div>
           <div>
-            <span className="text-slate-400">Meeting Place: </span>
-            <span className="font-medium text-slate-700">{c.meetingLocation || "—"}</span>
+            <span className="text-slate-400 font-semibold">Discussion Meeting Location: </span>
+            <span className="font-bold text-slate-800">{c.meetingLocation || "—"}</span>
           </div>
           <div>
-            <span className="text-slate-400">Sleeping Cabin: </span>
-            <span className="font-medium text-slate-700">{c.cabinName || "—"}</span>
+            <span className="text-slate-400 font-semibold">Sleeping Cabin: </span>
+            <span className="font-bold text-slate-800">{c.cabinName || "—"}</span>
           </div>
         </div>
       </div>
