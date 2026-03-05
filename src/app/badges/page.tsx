@@ -59,6 +59,7 @@ function BadgesContent() {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [weekend, setWeekend] = useState(searchParams.get("weekend") || CAMP_WEEKENDS[0]);
   const [groupFilter, setGroupFilter] = useState("");
+  const [search, setSearch] = useState("");
   const [logo, setLogo] = useState<string | null>(null);
   const [firstNameSize, setFirstNameSize] = useState(28);
   const [loading, setLoading] = useState(true);
@@ -127,9 +128,15 @@ function BadgesContent() {
     localStorage.setItem("badge-font-size", String(size));
   };
 
-  const filtered = groupFilter
-    ? campers.filter(c => c.largeGroup === groupFilter)
-    : campers;
+  const filtered = campers.filter(c => {
+    if (groupFilter && c.largeGroup !== groupFilter) return false;
+    if (search) {
+      const term = search.toLowerCase();
+      const name = `${c.firstName} ${c.lastName}`.toLowerCase();
+      if (!name.includes(term)) return false;
+    }
+    return true;
+  });
 
   const toggleAll = () => {
     const filteredIds = new Set(filtered.map(c => c.id));
@@ -213,6 +220,13 @@ function BadgesContent() {
 
       {/* Filters & Selection */}
       <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+        <input
+          type="search"
+          placeholder="Search by name..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
+        />
         <div className="flex flex-wrap items-center gap-2">
           <select
             value={weekend}
