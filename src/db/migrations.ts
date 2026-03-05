@@ -280,4 +280,13 @@ export function runMigrations(db: Database.Database) {
       created_at TEXT NOT NULL
     )
   `);
+
+  // Migration 19: Bus check-in status table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS bus_checkin_status (
+      bus_number TEXT PRIMARY KEY,
+      completed_at TEXT NOT NULL,
+      completed_by TEXT NOT NULL
+    )
+  `);
 }

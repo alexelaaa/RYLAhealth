@@ -41,15 +41,17 @@ function BusMapContent() {
   const { campWeekend } = useCamp();
   const [buses, setBuses] = useState<BusLocation[]>([]);
   const [busStats, setBusStats] = useState<Map<string, BusStat>>(new Map());
+  const [busComplete, setBusComplete] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
 
   const fetchBuses = useCallback(async () => {
     const weekendParam = campWeekend ? `?weekend=${encodeURIComponent(campWeekend)}` : "";
     try {
-      const [busRes, statsRes] = await Promise.all([
+      const [busRes, statsRes, ...completeResults] = await Promise.all([
         fetch("/api/bus-waypoints/latest"),
         fetch(`/api/admin/bus-stats${weekendParam}`),
+        ...["1","2","3","4","5","6"].map(n => fetch(`/api/bus-status?bus=${n}`)),
       ]);
       if (busRes.ok) {
         const data = await busRes.json();
@@ -62,6 +64,14 @@ function BusMapContent() {
         for (const s of stats) map.set(s.busNumber, s);
         setBusStats(map);
       }
+      const completeSet = new Set<string>();
+      for (let i = 0; i < completeResults.length; i++) {
+        try {
+          const data = await completeResults[i].json();
+          if (data.complete) completeSet.add(String(i + 1));
+        } catch { /* ignore */ }
+      }
+      setBusComplete(completeSet);
     } catch {
       // Silently fail — will retry
     } finally {
@@ -133,6 +143,9 @@ function BusMapContent() {
                           <span className="text-sm font-medium text-slate-900">
                             {bus.bus_label}
                           </span>
+                          {busComplete.has(busNum) && (
+                            <span className="text-xs bg-green-600 text-white px-1.5 py-0.5 rounded font-medium">Complete</span>
+                          )}
                         </div>
                         <span className="text-xs text-slate-500">
                           {new Date(bus.timestamp).toLocaleTimeString()}

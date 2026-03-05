@@ -111,6 +111,10 @@ function BusRiderContent({
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 150);
 
+  // Bus complete state
+  const [busComplete, setBusComplete] = useState(false);
+  const [completeLoading, setCompleteLoading] = useState(false);
+
   // GPS tracker state
   const [tracking, setTracking] = useState(false);
   const [waypointCount, setWaypointCount] = useState(0);
@@ -155,6 +159,40 @@ function BusRiderContent({
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Auto-poll every 30 seconds for new campers / check-in changes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchData();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  // Fetch bus complete status
+  useEffect(() => {
+    fetch(`/api/bus-status?bus=${busNumber}`)
+      .then((r) => r.json())
+      .then((data) => setBusComplete(!!data.complete))
+      .catch(() => {});
+  }, [busNumber]);
+
+  const toggleComplete = async () => {
+    setCompleteLoading(true);
+    try {
+      const res = await fetch("/api/bus-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ busNumber, complete: !busComplete }),
+      });
+      if (res.ok) {
+        setBusComplete(!busComplete);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setCompleteLoading(false);
+    }
+  };
 
   const handleCheckIn = async (camperId: number) => {
     setActionLoading(camperId);
@@ -412,6 +450,17 @@ function BusRiderContent({
         <p className="text-xs text-slate-500 mt-1 text-right">
           {progressPct}% checked in · {notCheckedIn.length} remaining
         </p>
+        <button
+          onClick={toggleComplete}
+          disabled={completeLoading}
+          className={`w-full mt-3 py-2.5 rounded-xl text-sm font-bold transition-colors disabled:opacity-40 ${
+            busComplete
+              ? "bg-green-600 text-white hover:bg-green-700"
+              : "bg-slate-200 text-slate-700 hover:bg-slate-300"
+          }`}
+        >
+          {completeLoading ? "..." : busComplete ? "Check-In Complete — Tap to Reopen" : "Mark Check-In Complete"}
+        </button>
       </div>
 
       {/* Search filter */}
