@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import { CAMP_WEEKENDS, LARGE_GROUPS, BIOME_COLORS } from "@/lib/constants";
 
-type BadgeType = "camper" | "dgl" | "staff" | "schedule";
+type BadgeType = "camper" | "dgl" | "staff" | "schedule" | "back";
 
 interface Camper {
   id: number;
@@ -167,6 +167,7 @@ function BadgesContent() {
   const [sizes, setSizes] = useState({ firstName: 28, lastName: 20, smallGroup: 17, largeGroup: 14, info: 15, logoHeight: 55 });
   const [loading, setLoading] = useState(true);
   const [scheduleCount, setScheduleCount] = useState(6);
+  const [backRole, setBackRole] = useState<"camper" | "dgl" | "staff">("camper");
 
   useEffect(() => {
     const saved = localStorage.getItem("badge-logo");
@@ -262,10 +263,11 @@ function BadgesContent() {
 
   useEffect(() => {
     setSelected(new Set());
-    if (badgeType === "camper") fetchCampers();
-    else if (badgeType === "dgl") fetchDGLs();
+    const activeType = badgeType === "back" ? backRole : badgeType;
+    if (activeType === "camper") fetchCampers();
+    else if (activeType === "dgl") fetchDGLs();
     else fetchStaff();
-  }, [badgeType, fetchCampers, fetchDGLs, fetchStaff]);
+  }, [badgeType, backRole, fetchCampers, fetchDGLs, fetchStaff]);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -295,8 +297,9 @@ function BadgesContent() {
   // Build generic item list for selection
   type ListItem = { key: string; label: string; sub: string; biome: string | null };
   let items: ListItem[] = [];
+  const activeListType = badgeType === "back" ? backRole : badgeType;
 
-  if (badgeType === "camper") {
+  if (activeListType === "camper") {
     items = campers
       .filter(c => {
         if (groupFilter && c.largeGroup !== groupFilter) return false;
@@ -307,7 +310,7 @@ function BadgesContent() {
         return true;
       })
       .map(c => ({ key: String(c.id), label: `${c.lastName}, ${c.firstName}`, sub: c.cabinName || "—", biome: c.largeGroup }));
-  } else if (badgeType === "dgl") {
+  } else if (activeListType === "dgl") {
     items = dgls
       .filter(d => {
         if (groupFilter && d.largeGroup !== groupFilter) return false;
@@ -353,7 +356,20 @@ function BadgesContent() {
       window.open("/badges/print", "_blank");
       return;
     }
-    if (badgeType === "camper") {
+    if (badgeType === "back") {
+      // Store selected items with their backRole for QR code determination
+      let selectedItems: unknown[] = [];
+      if (backRole === "camper") {
+        selectedItems = campers.filter(c => selected.has(String(c.id)));
+      } else if (backRole === "dgl") {
+        selectedItems = dgls.filter(d => selected.has(d.id));
+      } else {
+        selectedItems = staffList.filter(s => selected.has(String(s.id)));
+      }
+      sessionStorage.setItem("badge-campers", JSON.stringify(selectedItems));
+      sessionStorage.setItem("badge-type", "back");
+      sessionStorage.setItem("badge-back-role", backRole);
+    } else if (badgeType === "camper") {
       const selectedCampers = campers.filter(c => selected.has(String(c.id)));
       sessionStorage.setItem("badge-campers", JSON.stringify(selectedCampers));
       sessionStorage.setItem("badge-type", "camper");
@@ -373,6 +389,7 @@ function BadgesContent() {
 
   // Preview badge
   const previewBadge = () => {
+    if (badgeType === "back") return null;
     if (badgeType === "camper") {
       const c = campers.find(c => selected.has(String(c.id))) || campers[0] || null;
       return <CamperBadgePreview camper={c} logo={logo} sizes={sizes} />;
@@ -396,6 +413,7 @@ function BadgesContent() {
           ["dgl", "DGL"],
           ["staff", "Staff / Alumni"],
           ["schedule", "Schedule"],
+          ["back", "Badge Back"],
         ] as const).map(([type, label]) => (
           <button
             key={type}
@@ -407,7 +425,116 @@ function BadgesContent() {
         ))}
       </div>
 
-      {badgeType === "schedule" ? (
+      {badgeType === "back" ? (
+        <>
+          {/* Back Role Selector */}
+          <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+            <h2 className="font-semibold text-slate-700">Badge Back — QR Codes</h2>
+            <p className="text-sm text-slate-500">
+              Select a role, then pick people. Campers get the packet QR, DGLs get both, staff get the app QR.
+            </p>
+            <div className="flex rounded-lg border border-slate-300 overflow-hidden">
+              {([["camper", "Campers"], ["dgl", "DGLs"], ["staff", "Staff"]] as const).map(([role, label]) => (
+                <button
+                  key={role}
+                  onClick={() => { setBackRole(role); setSelected(new Set()); setSearch(""); setGroupFilter(""); }}
+                  className={`flex-1 py-2 text-sm font-medium transition-colors ${backRole === role ? "bg-purple-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Filters & Selection */}
+          <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+            <input
+              type="search"
+              placeholder="Search by name..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={weekend}
+                onChange={e => { setWeekend(e.target.value); setSelected(new Set()); }}
+                className="text-sm border border-slate-300 rounded-lg px-3 py-1.5"
+              >
+                {CAMP_WEEKENDS.map(w => <option key={w} value={w}>{w}</option>)}
+              </select>
+
+              {backRole !== "staff" && (
+                <select
+                  value={groupFilter}
+                  onChange={e => { setGroupFilter(e.target.value); setSelected(new Set()); }}
+                  className="text-sm border border-slate-300 rounded-lg px-3 py-1.5"
+                >
+                  <option value="">All Groups</option>
+                  {LARGE_GROUPS.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              )}
+
+              <button
+                onClick={toggleAll}
+                className="text-sm px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50"
+              >
+                {selected.size === items.length && items.length > 0 ? "Deselect All" : "Select All"}
+              </button>
+
+              <span className="text-sm text-slate-500 ml-auto">
+                {selected.size} selected
+              </span>
+            </div>
+
+            {loading ? (
+              <div className="text-center py-8 text-slate-400">Loading...</div>
+            ) : items.length === 0 ? (
+              <div className="text-center py-8 text-slate-400">No results found.</div>
+            ) : (
+              <div className="max-h-80 overflow-y-auto border border-slate-100 rounded-lg">
+                {items.map(item => {
+                  const colors = item.biome ? BIOME_COLORS[item.biome] : null;
+                  return (
+                    <label
+                      key={item.key}
+                      className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selected.has(item.key)}
+                        onChange={() => toggle(item.key)}
+                        className="rounded"
+                      />
+                      <span className="flex-1 text-sm">
+                        <span className="font-medium">{item.label}</span>
+                      </span>
+                      {colors && (
+                        <span
+                          className="text-xs px-2 py-0.5 rounded-full font-medium"
+                          style={{ backgroundColor: colors.hexLight, color: colors.hex, border: `1px solid ${colors.hexBorder}` }}
+                        >
+                          {item.biome}
+                        </span>
+                      )}
+                      <span className="text-xs text-slate-400">{item.sub}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Print Button */}
+          <button
+            onClick={openPrint}
+            disabled={selected.size === 0}
+            className="w-full py-3 rounded-xl font-semibold text-white bg-purple-600 hover:bg-purple-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+          >
+            Print {selected.size} Badge Back{selected.size !== 1 ? "s" : ""}
+          </button>
+        </>
+      ) : badgeType === "schedule" ? (
         <>
           {/* Schedule Preview & Count */}
           <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
@@ -508,7 +635,7 @@ function BadgesContent() {
                 {CAMP_WEEKENDS.map(w => <option key={w} value={w}>{w}</option>)}
               </select>
 
-              {badgeType !== "staff" && (
+              {activeListType !== "staff" && (
                 <select
                   value={groupFilter}
                   onChange={e => { setGroupFilter(e.target.value); setSelected(new Set()); }}

@@ -1,9 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
 import { BIOME_COLORS } from "@/lib/constants";
+import { FRIDAY, SATURDAY, SUNDAY, ACTIVITY_ROTATIONS } from "@/lib/schedule";
 
-type BadgeType = "camper" | "dgl" | "staff" | "schedule";
+const PACKET_QR_URL = "http://ryla5330.org/wp-content/uploads/2026/03/RYLA-Packet-2026.docx.pdf";
+const APP_QR_URL = "https://ryla.up.railway.app/";
+
+type BadgeType = "camper" | "dgl" | "staff" | "schedule" | "back";
 
 interface Camper {
   id: number;
@@ -160,63 +165,38 @@ function StaffBadge({ staff, logo, sizes }: { staff: StaffMember; logo: string |
   );
 }
 
-const FRIDAY = [
-  ["9:00a", "Buses Arrive"],
-  ["11:15a", "Ice Breakers"],
-  ["12:15p", "Camp Photo"],
-  ["12:25p", "Lunch"],
-  ["1:35p", "Welcome"],
-  ["2:15p", "Discussion 1"],
-  ["3:10p", "Activity 1"],
-  ["4:05p", "Speaker – Max"],
-  ["5:05p", "Discussion 2"],
-  ["6:00p", "Dinner"],
-  ["7:10p", "Cabin Time"],
-  ["7:40p", "Speaker – Jackie"],
-  ["8:25p", "Culture Walk"],
-  ["9:50p", "Discussion 3"],
-  ["10:30p", "Alumni Intros"],
-  ["12:00a", "Lights Out"],
-];
+function BadgeBack({ showPacketQR, showAppQR }: { showPacketQR: boolean; showAppQR: boolean }) {
+  const bothQRs = showPacketQR && showAppQR;
 
-const SATURDAY = [
-  ["6:30a", "Free Time"],
-  ["8:00a", "Breakfast"],
-  ["9:00a", "Speaker – Max"],
-  ["10:00a", "Discussion 4"],
-  ["10:55a", "Activity 2"],
-  ["11:50a", "Speaker – Jackie"],
-  ["12:50p", "Lunch"],
-  ["2:00p", "Speaker – Mike"],
-  ["3:00p", "Discussion 5"],
-  ["4:25p", "Activity 3"],
-  ["5:20p", "Dinner"],
-  ["6:30p", "Talent Show"],
-  ["8:00p", "Carnival"],
-  ["11:30p", "Lights Out"],
-];
-
-const SUNDAY = [
-  ["6:30a", "Free Time / Pack"],
-  ["8:00a", "Breakfast"],
-  ["9:00a", "Camp Activity"],
-  ["10:45a", "Activity 4"],
-  ["11:40a", "Discussion 6"],
-  ["12:35p", "Lunch"],
-  ["1:45p", "Activity 5"],
-  ["2:40p", "Discussion 7"],
-  ["3:35p", "Closing Session"],
-  ["5:15p", "Load Buses"],
-  ["6:00p", "Depart!"],
-];
-
-const MARCH_ACTIVITIES: Record<string, string[]> = {
-  Jungle:     ["XC Ski", "Spag Twr", "Boardwalk", "Egg Drop", "Capture"],
-  Marine:     ["Capture", "XC Ski", "Spag Twr", "Boardwalk", "Egg Drop"],
-  Arctic:     ["Egg Drop", "Capture", "XC Ski", "Spag Twr", "Boardwalk"],
-  Desert:     ["Boardwalk", "Egg Drop", "Capture", "XC Ski", "Spag Twr"],
-  Grasslands: ["Spag Twr", "Boardwalk", "Egg Drop", "Capture", "XC Ski"],
-};
+  return (
+    <div
+      className="badge-cell"
+      style={{
+        width: "4in", height: "3in", overflow: "hidden", backgroundColor: "white",
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+        padding: "0.2in", boxSizing: "border-box", pageBreakInside: "avoid", gap: "8px",
+      }}
+    >
+      <div style={{ fontWeight: 900, fontSize: "16px", letterSpacing: "0.1em", color: "#1e293b" }}>
+        RYLA 2026
+      </div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: bothQRs ? "24px" : "0" }}>
+        {showPacketQR && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+            <QRCodeSVG value={PACKET_QR_URL} size={bothQRs ? 120 : 160} level="M" />
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "#475569" }}>RYLA Packet</div>
+          </div>
+        )}
+        {showAppQR && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
+            <QRCodeSVG value={APP_QR_URL} size={bothQRs ? 120 : 160} level="M" />
+            <div style={{ fontSize: "10px", fontWeight: 700, color: "#475569" }}>Camp App</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function ScheduleBadge() {
   const colStyle: React.CSSProperties = { flex: 1, paddingRight: "3px" };
@@ -263,7 +243,7 @@ function ScheduleBadge() {
           {["Act 1", "Act 2", "Act 3", "Act 4", "Act 5"].map(h => (
             <div key={h} style={{ fontWeight: 700, textAlign: "center", color: "#334155" }}>{h}</div>
           ))}
-          {Object.entries(MARCH_ACTIVITIES).map(([group, acts]) => (
+          {Object.entries(ACTIVITY_ROTATIONS).map(([group, acts]) => (
             <React.Fragment key={group}>
               <div style={{ fontWeight: 700, color: "#334155" }}>{group}</div>
               {acts.map((a, i) => (
@@ -280,6 +260,7 @@ function ScheduleBadge() {
 export default function PrintBadgesPage() {
   const [data, setData] = useState<unknown[]>([]);
   const [badgeType, setBadgeType] = useState<BadgeType>("camper");
+  const [backRole, setBackRole] = useState<"camper" | "dgl" | "staff">("camper");
   const [logo, setLogo] = useState<string | null>(null);
   const [sizes, setSizes] = useState<Sizes>({ firstName: 28, lastName: 20, smallGroup: 17, largeGroup: 14, info: 15, logoHeight: 55 });
   const [ready, setReady] = useState(false);
@@ -289,11 +270,13 @@ export default function PrintBadgesPage() {
     const savedLogo = sessionStorage.getItem("badge-logo");
     const savedSizes = sessionStorage.getItem("badge-sizes");
     const savedType = sessionStorage.getItem("badge-type") as BadgeType | null;
+    const savedBackRole = sessionStorage.getItem("badge-back-role") as "camper" | "dgl" | "staff" | null;
 
     if (raw) setData(JSON.parse(raw));
     if (savedLogo) setLogo(savedLogo);
     if (savedSizes) setSizes(JSON.parse(savedSizes));
     if (savedType) setBadgeType(savedType);
+    if (savedBackRole) setBackRole(savedBackRole);
     setReady(true);
   }, []);
 
@@ -305,6 +288,49 @@ export default function PrintBadgesPage() {
   }, [ready, data]);
 
   if (!ready) return null;
+
+  if (badgeType === "back") {
+    const count = data.length || 0;
+    const showPacketQR = backRole === "camper" || backRole === "dgl";
+    const showAppQR = backRole === "dgl" || backRole === "staff";
+    const backItems = Array.from({ length: count }, (_, i) => i);
+    const pages: number[][] = [];
+    for (let i = 0; i < backItems.length; i += 6) {
+      pages.push(backItems.slice(i, i + 6));
+    }
+    const roleLabel = backRole === "camper" ? "camper" : backRole === "dgl" ? "DGL" : "staff";
+    return (
+      <div className="print-badges">
+        <div className="no-print" style={{ padding: "1rem", textAlign: "center", background: "#f1f5f9", borderBottom: "1px solid #e2e8f0" }}>
+          <p style={{ margin: 0, fontSize: "14px", color: "#64748b" }}>
+            {count} {roleLabel} badge back{count !== 1 ? "s" : ""} on {pages.length} page{pages.length !== 1 ? "s" : ""}.
+          </p>
+          <button
+            onClick={() => window.print()}
+            style={{ marginTop: "0.5rem", padding: "0.5rem 1.5rem", background: "#2563eb", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 600 }}
+          >
+            Print
+          </button>
+        </div>
+        {pages.map((page, pageIdx) => (
+          <div
+            key={pageIdx}
+            className="badge-page"
+            style={{
+              width: "8.5in", height: "11in", padding: "1in 0.25in",
+              display: "grid", gridTemplateColumns: "4in 4in", gridTemplateRows: "repeat(3, 3in)",
+              gap: "0in", justifyContent: "center", alignContent: "start",
+              pageBreakAfter: "always", boxSizing: "border-box", margin: "0 auto",
+            }}
+          >
+            {page.map((_, i) => (
+              <BadgeBack key={pageIdx * 6 + i} showPacketQR={showPacketQR} showAppQR={showAppQR} />
+            ))}
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   if (badgeType === "schedule") {
     const count = data.length > 0 ? (data[0] as { count?: number }).count || 6 : 6;
