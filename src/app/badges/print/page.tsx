@@ -124,32 +124,38 @@ function DGLBadge({ dgl, logo, sizes }: { dgl: DGL; logo: string | null; sizes: 
 }
 
 function StaffBadge({ staff, logo, sizes }: { staff: StaffMember; logo: string | null; sizes: Sizes }) {
-  const roleLabel = staff.staffType === "alumni" ? "ALUMNI STAFF" : "ADULT STAFF";
+  const barLabel = staff.staffType === "alumni" ? "ALUMNI" : "STAFF";
 
   return (
     <div
       className="badge-cell"
       style={{
         width: "4in", height: "3in", overflow: "hidden", backgroundColor: "white",
-        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-        padding: "0.15in", boxSizing: "border-box", pageBreakInside: "avoid", gap: "6px",
+        display: "flex", flexDirection: "column", alignItems: "center",
+        boxSizing: "border-box", pageBreakInside: "avoid", position: "relative",
       }}
     >
-      {logo && <img src={logo} alt="" style={{ maxHeight: "0.55in", maxWidth: "1.4in", objectFit: "contain" }} />}
-      <div style={{ fontSize: `${sizes.info}px`, fontWeight: 700, color: "#64748b", textAlign: "center", letterSpacing: "0.1em" }}>
-        {roleLabel}
-      </div>
-      <div style={{ fontSize: `${sizes.firstName}px`, fontWeight: 800, color: "#1e293b", lineHeight: 1.1, textAlign: "center", textShadow: "1px 1px 2px rgba(0,0,0,0.10)" }}>
-        {staff.firstName}
-      </div>
-      <div style={{ fontSize: `${sizes.lastName}px`, fontWeight: 700, color: "#1e293b", textAlign: "center" }}>
-        {staff.lastName}
-      </div>
-      {staff.staffRole && (
-        <div style={{ fontSize: `${sizes.smallGroup}px`, fontWeight: 600, color: "#475569", textAlign: "center" }}>
-          {staff.staffRole}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "6px", padding: "0.15in" }}>
+        {logo && <img src={logo} alt="" style={{ maxHeight: "0.55in", maxWidth: "1.4in", objectFit: "contain" }} />}
+        <div style={{ fontSize: `${sizes.firstName}px`, fontWeight: 800, color: "#1e293b", lineHeight: 1.1, textAlign: "center", textShadow: "1px 1px 2px rgba(0,0,0,0.10)" }}>
+          {staff.firstName}
         </div>
-      )}
+        <div style={{ fontSize: `${sizes.lastName}px`, fontWeight: 700, color: "#1e293b", textAlign: "center" }}>
+          {staff.lastName}
+        </div>
+        {staff.staffRole && (
+          <div style={{ fontSize: `${sizes.smallGroup}px`, fontWeight: 600, color: "#475569", textAlign: "center" }}>
+            {staff.staffRole}
+          </div>
+        )}
+      </div>
+      <div style={{
+        width: "100%", backgroundColor: "#000", color: "#fff",
+        textAlign: "center", fontWeight: 800, fontSize: "18px",
+        letterSpacing: "0.15em", padding: "6px 0",
+      }}>
+        {barLabel}
+      </div>
     </div>
   );
 }
