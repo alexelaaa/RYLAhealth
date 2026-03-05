@@ -10,6 +10,7 @@ interface Camper {
   largeGroup: string | null;
   smallGroup: string | null;
   cabinName: string | null;
+  meetingLocation?: string | null;
 }
 
 function Badge({ camper, logo, firstNameSize }: { camper: Camper; logo: string | null; firstNameSize: number }) {
@@ -19,8 +20,8 @@ function Badge({ camper, logo, firstNameSize }: { camper: Camper; logo: string |
     <div
       className="badge-cell"
       style={{
-        width: "3in",
-        height: "4in",
+        width: "4in",
+        height: "3in",
         border: `2px solid ${colors.hex}`,
         borderRadius: "6px",
         overflow: "hidden",
@@ -29,25 +30,34 @@ function Badge({ camper, logo, firstNameSize }: { camper: Camper; logo: string |
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "0.1in",
+        padding: "0.15in",
         boxSizing: "border-box",
         pageBreakInside: "avoid",
+        gap: "3px",
       }}
     >
-      <div style={{ fontSize: "7px", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: colors.hex }}>
-        {camper.largeGroup || ""}
-      </div>
       {logo && (
-        <img src={logo} alt="" style={{ maxHeight: "0.45in", maxWidth: "1.4in", objectFit: "contain" }} />
+        <img src={logo} alt="" style={{ maxHeight: "0.55in", maxWidth: "1.4in", objectFit: "contain" }} />
       )}
-      <div style={{ fontSize: `${firstNameSize}px`, fontWeight: 700, color: colors.hex, lineHeight: 1.1, textAlign: "center", marginTop: "2px" }}>
+      <div style={{ fontSize: `${firstNameSize}px`, fontWeight: 700, color: colors.hex, lineHeight: 1.1, textAlign: "center" }}>
         {camper.firstName}
       </div>
-      <div style={{ fontSize: "14px", fontWeight: 500, color: "#374151", textAlign: "center" }}>
+      <div style={{ fontSize: "16px", fontWeight: 500, color: "#374151", textAlign: "center" }}>
         {camper.lastName}
       </div>
-      <div style={{ fontSize: "10px", color: "#64748b", textAlign: "center", marginTop: "3px" }}>
-        {camper.smallGroup || ""} &bull; {camper.cabinName || ""}
+      <div style={{ marginTop: "4px", textAlign: "center", lineHeight: 1.6 }}>
+        <div style={{ fontSize: "11px" }}>
+          <span style={{ color: "#94a3b8" }}>Group: </span>
+          <span style={{ fontWeight: 600, color: colors.hex }}>{camper.smallGroup || "—"}</span>
+        </div>
+        <div style={{ fontSize: "11px" }}>
+          <span style={{ color: "#94a3b8" }}>Meeting Place: </span>
+          <span style={{ fontWeight: 500, color: "#334155" }}>{camper.meetingLocation || "—"}</span>
+        </div>
+        <div style={{ fontSize: "11px" }}>
+          <span style={{ color: "#94a3b8" }}>Sleeping Cabin: </span>
+          <span style={{ fontWeight: 500, color: "#334155" }}>{camper.cabinName || "—"}</span>
+        </div>
       </div>
     </div>
   );
@@ -112,10 +122,10 @@ export default function PrintBadgesPage() {
           style={{
             width: "8.5in",
             height: "11in",
-            padding: "0.5in 1.25in",
+            padding: "1in 0.25in",
             display: "grid",
-            gridTemplateColumns: "3in 3in",
-            gridTemplateRows: "repeat(3, 4in)",
+            gridTemplateColumns: "4in 4in",
+            gridTemplateRows: "repeat(3, 3in)",
             gap: "0in",
             justifyContent: "center",
             alignContent: "start",

@@ -13,32 +13,41 @@ interface Camper {
   smallGroup: string | null;
   cabinName: string | null;
   campWeekend: string | null;
+  meetingLocation?: string | null;
 }
 
 function BadgePreview({ camper, logo, firstNameSize }: { camper: Camper | null; logo: string | null; firstNameSize: number }) {
-  const c = camper || { firstName: "Jane", lastName: "Doe", largeGroup: "Arctic", smallGroup: "Polar Bears", cabinName: "Cabin 7" } as Camper;
+  const c = camper || { firstName: "Jane", lastName: "Doe", largeGroup: "Arctic", smallGroup: "Polar Bears", cabinName: "Cabin 7", meetingLocation: "Lodge A" } as Camper;
   const colors = BIOME_COLORS[c.largeGroup || ""] || BIOME_COLORS.Arctic;
 
   return (
     <div
       className="border-2 rounded-lg overflow-hidden bg-white"
-      style={{ width: "3in", height: "4in", borderColor: colors.hex }}
+      style={{ width: "4in", height: "3in", borderColor: colors.hex }}
     >
-      <div className="flex flex-col items-center justify-center h-full p-3">
-        <div className="h-6 flex items-center justify-center" style={{ color: colors.hex, fontSize: "0.5rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" as const }}>
-          {c.largeGroup || "Group"}
-        </div>
+      <div className="flex flex-col items-center justify-center h-full p-3 gap-1">
         {logo && (
-          <img src={logo} alt="Logo" className="object-contain" style={{ maxHeight: "0.5in", maxWidth: "1.5in" }} />
+          <img src={logo} alt="Logo" className="object-contain" style={{ maxHeight: "0.55in", maxWidth: "1.5in" }} />
         )}
-        <div className="font-bold text-center leading-tight mt-1" style={{ fontSize: `${firstNameSize}px`, color: colors.hex }}>
+        <div className="font-bold text-center leading-tight" style={{ fontSize: `${firstNameSize}px`, color: colors.hex }}>
           {c.firstName}
         </div>
-        <div className="text-gray-700 text-center font-medium" style={{ fontSize: "14px" }}>
+        <div className="text-gray-700 text-center font-medium" style={{ fontSize: "16px" }}>
           {c.lastName}
         </div>
-        <div className="text-center mt-1" style={{ fontSize: "11px", color: "#64748b" }}>
-          {c.smallGroup || "Small Group"} &bull; {c.cabinName || "Cabin"}
+        <div className="w-full mt-1 space-y-0.5 text-center" style={{ fontSize: "11px" }}>
+          <div>
+            <span className="text-slate-400">Group: </span>
+            <span className="font-semibold" style={{ color: colors.hex }}>{c.smallGroup || "—"}</span>
+          </div>
+          <div>
+            <span className="text-slate-400">Meeting Place: </span>
+            <span className="font-medium text-slate-700">{c.meetingLocation || "—"}</span>
+          </div>
+          <div>
+            <span className="text-slate-400">Sleeping Cabin: </span>
+            <span className="font-medium text-slate-700">{c.cabinName || "—"}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -65,10 +74,29 @@ function BadgesContent() {
   const fetchCampers = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ weekend, limit: "500", sortBy: "lastName", sortOrder: "asc" });
-      const res = await fetch(`/api/campers?${params}`);
-      const data = await res.json();
-      setCampers(data.campers || []);
+      const [camperRes, groupRes] = await Promise.all([
+        fetch(`/api/campers?${new URLSearchParams({ weekend, limit: "500", sortBy: "lastName", sortOrder: "asc" })}`),
+        fetch(`/api/groups?${new URLSearchParams({ weekend, type: "small" })}`),
+      ]);
+      const camperData = await camperRes.json();
+      const groupData = await groupRes.json();
+
+      // Build meeting location lookup from small groups
+      const meetingMap = new Map<string, string>();
+      if (groupData.groups) {
+        for (const g of groupData.groups) {
+          if (g.name && g.meetingLocation) {
+            meetingMap.set(g.name, g.meetingLocation);
+          }
+        }
+      }
+
+      // Merge meeting locations into campers
+      const enriched = (camperData.campers || []).map((c: Camper) => ({
+        ...c,
+        meetingLocation: c.smallGroup ? meetingMap.get(c.smallGroup) || null : null,
+      }));
+      setCampers(enriched);
     } catch {
       setCampers([]);
     } finally {
