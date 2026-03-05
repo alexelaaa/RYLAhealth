@@ -22,8 +22,6 @@ function Badge({ camper, logo, firstNameSize }: { camper: Camper; logo: string |
       style={{
         width: "4in",
         height: "3in",
-        border: `2px solid ${colors.hex}`,
-        borderRadius: "6px",
         overflow: "hidden",
         backgroundColor: "white",
         display: "flex",
@@ -33,27 +31,27 @@ function Badge({ camper, logo, firstNameSize }: { camper: Camper; logo: string |
         padding: "0.15in",
         boxSizing: "border-box",
         pageBreakInside: "avoid",
-        gap: "3px",
+        gap: "4px",
       }}
     >
       {logo && (
         <img src={logo} alt="" style={{ maxHeight: "0.55in", maxWidth: "1.4in", objectFit: "contain" }} />
       )}
-      <div style={{ fontSize: `${firstNameSize}px`, fontWeight: 700, color: colors.hex, lineHeight: 1.1, textAlign: "center" }}>
+      <div style={{ fontSize: `${firstNameSize}px`, fontWeight: 800, color: colors.hex, lineHeight: 1.1, textAlign: "center" }}>
         {camper.firstName}
       </div>
-      <div style={{ fontSize: "16px", fontWeight: 500, color: "#374151", textAlign: "center" }}>
+      <div style={{ fontSize: "20px", fontWeight: 700, color: "#1e293b", textAlign: "center" }}>
         {camper.lastName}
       </div>
       <div style={{ marginTop: "4px", textAlign: "center", lineHeight: 1.7 }}>
-        <div style={{ fontSize: "13px" }}>
+        <div style={{ fontSize: "15px" }}>
           <span style={{ fontWeight: 700, color: colors.hex }}>{camper.largeGroup || "—"} / {camper.smallGroup || "—"}</span>
         </div>
-        <div style={{ fontSize: "13px" }}>
+        <div style={{ fontSize: "15px" }}>
           <span style={{ color: "#94a3b8", fontWeight: 600 }}>Discussion Meeting Location: </span>
           <span style={{ fontWeight: 700, color: "#1e293b" }}>{camper.meetingLocation || "—"}</span>
         </div>
-        <div style={{ fontSize: "13px" }}>
+        <div style={{ fontSize: "15px" }}>
           <span style={{ color: "#94a3b8", fontWeight: 600 }}>Sleeping Cabin: </span>
           <span style={{ fontWeight: 700, color: "#1e293b" }}>{camper.cabinName || "—"}</span>
         </div>

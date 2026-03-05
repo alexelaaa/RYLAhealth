@@ -22,20 +22,20 @@ function BadgePreview({ camper, logo, firstNameSize }: { camper: Camper | null; 
 
   return (
     <div
-      className="border-2 rounded-lg overflow-hidden bg-white"
-      style={{ width: "4in", height: "3in", borderColor: colors.hex }}
+      className="rounded-lg overflow-hidden bg-white border border-slate-200"
+      style={{ width: "4in", height: "3in" }}
     >
       <div className="flex flex-col items-center justify-center h-full p-3 gap-1">
         {logo && (
           <img src={logo} alt="Logo" className="object-contain" style={{ maxHeight: "0.55in", maxWidth: "1.5in" }} />
         )}
-        <div className="font-bold text-center leading-tight" style={{ fontSize: `${firstNameSize}px`, color: colors.hex }}>
+        <div className="font-extrabold text-center leading-tight" style={{ fontSize: `${firstNameSize}px`, color: colors.hex }}>
           {c.firstName}
         </div>
-        <div className="text-gray-700 text-center font-medium" style={{ fontSize: "16px" }}>
+        <div className="text-gray-800 text-center font-bold" style={{ fontSize: "20px" }}>
           {c.lastName}
         </div>
-        <div className="w-full mt-1 space-y-0.5 text-center" style={{ fontSize: "13px" }}>
+        <div className="w-full mt-1 space-y-0.5 text-center" style={{ fontSize: "15px" }}>
           <div>
             <span className="font-bold" style={{ color: colors.hex }}>{c.largeGroup || "—"} / {c.smallGroup || "—"}</span>
           </div>
