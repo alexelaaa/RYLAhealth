@@ -289,7 +289,6 @@ function ActivityBadge() {
 }
 
 function GroupsBadge() {
-  // Build columns: each large group with its small groups
   const maxRows = Math.max(...LARGE_GROUPS.map(lg => (SMALL_GROUPS[lg] || []).length));
 
   return (
@@ -299,53 +298,47 @@ function GroupsBadge() {
         width: "4in", height: "3in", overflow: "hidden", backgroundColor: "white",
         boxSizing: "border-box", pageBreakInside: "avoid",
         display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "0.1in",
       }}
     >
-      <div style={{
-        width: "2.8in", height: "3.8in",
-        transform: "rotate(90deg)",
-        display: "flex", flexDirection: "column",
-        padding: "0.05in 0",
-      }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10px" }}>
-          <thead>
-            <tr>
+      <table style={{ width: "100%", height: "100%", borderCollapse: "collapse" }}>
+        <thead>
+          <tr>
+            {LARGE_GROUPS.map(lg => {
+              const colors = BIOME_COLORS[lg] || { hex: "#475569", hexLight: "#f1f5f9" };
+              return (
+                <th key={lg} style={{
+                  backgroundColor: colors.hexLight, color: colors.hex,
+                  fontWeight: 900, fontSize: "14px", padding: "6px 4px",
+                  border: "1.5px solid #94a3b8", textAlign: "center",
+                  textDecoration: "underline",
+                }}>
+                  {lg}
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody>
+          {Array.from({ length: maxRows }, (_, row) => (
+            <tr key={row}>
               {LARGE_GROUPS.map(lg => {
-                const colors = BIOME_COLORS[lg] || { hex: "#475569", hexLight: "#f1f5f9" };
+                const groups = SMALL_GROUPS[lg] || [];
+                const name = groups[row] || "";
                 return (
-                  <th key={lg} style={{
-                    backgroundColor: colors.hexLight, color: colors.hex,
-                    fontWeight: 900, fontSize: "11px", padding: "4px 2px",
-                    border: "1px solid #cbd5e1", textAlign: "center",
-                    textDecoration: "underline",
+                  <td key={lg} style={{
+                    border: "1.5px solid #94a3b8", textAlign: "center",
+                    padding: "6px 4px", fontWeight: 600, color: "#1e293b",
+                    fontSize: "13px",
                   }}>
-                    {lg}
-                  </th>
+                    {name}
+                  </td>
                 );
               })}
             </tr>
-          </thead>
-          <tbody>
-            {Array.from({ length: maxRows }, (_, row) => (
-              <tr key={row}>
-                {LARGE_GROUPS.map(lg => {
-                  const groups = SMALL_GROUPS[lg] || [];
-                  const name = groups[row] || "";
-                  return (
-                    <td key={lg} style={{
-                      border: "1px solid #cbd5e1", textAlign: "center",
-                      padding: "5px 2px", fontWeight: 600, color: "#1e293b",
-                      fontSize: "10px",
-                    }}>
-                      {name}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
