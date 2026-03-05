@@ -6,6 +6,7 @@ import AppShell from "@/components/layout/AppShell";
 import ScheduleNow from "@/components/ScheduleNow";
 import { useCamp } from "@/lib/camp-context";
 import { MEDICATION_SCHEDULES } from "@/lib/constants";
+import { cacheGet, cacheSet } from "@/lib/offline-cache";
 import type { MedicalAlertCamper } from "@/lib/medical-filters";
 
 const SCHEDULE_HOURS: Record<string, { start: number; end: number }> = {
@@ -103,6 +104,8 @@ function DashboardContent() {
   const fetchData = useCallback(async (showLoading = false) => {
     if (showLoading) setLoading(true);
     const weekendParam = campWeekend ? `?weekend=${encodeURIComponent(campWeekend)}` : "";
+    const cacheKeyStats = `dashboard-stats-${campWeekend || "all"}`;
+    const cacheKeyAlerts = `dashboard-alerts-${campWeekend || "all"}`;
     try {
       const [statsData, alerts] = await Promise.all([
         fetch(`/api/stats${weekendParam}`).then((r) => r.json()),
@@ -110,8 +113,17 @@ function DashboardContent() {
       ]);
       setStats(statsData);
       setAlertsData(alerts);
+      // Cache for offline
+      cacheSet(cacheKeyStats, statsData);
+      cacheSet(cacheKeyAlerts, alerts);
     } catch {
-      // ignore
+      // Offline — try cached data
+      const [cachedStats, cachedAlerts] = await Promise.all([
+        cacheGet<Stats>(cacheKeyStats),
+        cacheGet<AlertsData>(cacheKeyAlerts),
+      ]);
+      if (cachedStats) setStats(cachedStats);
+      if (cachedAlerts) setAlertsData(cachedAlerts);
     } finally {
       if (showLoading) setLoading(false);
     }

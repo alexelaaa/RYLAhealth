@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import AppShell from "@/components/layout/AppShell";
 import { useCamp } from "@/lib/camp-context";
 import { useDebounce } from "@/hooks/useDebounce";
+import { cacheGet, cacheSet } from "@/lib/offline-cache";
 import type { Camper } from "@/types";
 
 interface CheckedInCamper {
@@ -31,7 +32,7 @@ export default function CheckInPage() {
 }
 
 function CheckInContent() {
-  const { campWeekend } = useCamp();
+  const { campWeekend, session } = useCamp();
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<Camper[]>([]);
   const [checkedInMap, setCheckedInMap] = useState<Map<number, CheckedInCamper>>(new Map());
@@ -39,19 +40,25 @@ function CheckInContent() {
   const [totalCampers, setTotalCampers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [locked, setLocked] = useState(false);
+  const [lockLoading, setLockLoading] = useState(false);
+  const isAdmin = session?.role === "admin";
 
   const debouncedSearch = useDebounce(search, 200);
 
   const fetchCheckIns = useCallback(async () => {
     setLoading(true);
     const weekendParam = campWeekend ? `?weekend=${encodeURIComponent(campWeekend)}` : "";
+    const cacheKey = `checkin-data-${campWeekend || "all"}`;
     try {
-      const [checkInsRes, campersRes] = await Promise.all([
+      const [checkInsRes, campersRes, lockRes] = await Promise.all([
         fetch(`/api/check-ins${weekendParam}`),
         fetch(`/api/campers?${campWeekend ? `weekend=${encodeURIComponent(campWeekend)}&` : ""}limit=0`),
+        fetch("/api/check-ins/lock"),
       ]);
       const checkInsData: CheckedInCamper[] = await checkInsRes.json();
       const campersData = await campersRes.json();
+      const lockData = await lockRes.json();
 
       setCheckedInList(checkInsData);
       const map = new Map<number, CheckedInCamper>();
@@ -60,8 +67,20 @@ function CheckInContent() {
       }
       setCheckedInMap(map);
       setTotalCampers(campersData.total);
+      setLocked(lockData.locked);
+      // Cache for offline
+      cacheSet(cacheKey, { checkIns: checkInsData, total: campersData.total, locked: lockData.locked });
     } catch {
-      // ignore
+      // Offline — try cached data
+      const cached = await cacheGet<{ checkIns: CheckedInCamper[]; total: number; locked: boolean }>(cacheKey);
+      if (cached) {
+        setCheckedInList(cached.checkIns);
+        const map = new Map<number, CheckedInCamper>();
+        for (const ci of cached.checkIns) map.set(ci.camper_id, ci);
+        setCheckedInMap(map);
+        setTotalCampers(cached.total);
+        setLocked(cached.locked);
+      }
     } finally {
       setLoading(false);
     }
@@ -88,6 +107,23 @@ function CheckInContent() {
       setSearchResults([]);
     }
   }, [debouncedSearch, campWeekend]);
+
+  const handleToggleLock = async () => {
+    setLockLoading(true);
+    try {
+      const res = await fetch("/api/check-ins/lock", { method: "POST" });
+      if (res.ok) {
+        const data = await res.json();
+        setLocked(data.locked);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLockLoading(false);
+    }
+  };
+
+  const actionsDisabled = locked && !isAdmin;
 
   // Check in (create record — for walk-ins or bus riders not yet checked in)
   const handleCheckIn = async (camperId: number) => {
@@ -165,6 +201,43 @@ function CheckInContent() {
         <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3 text-sm">
           Select a weekend from the top bar to filter campers.
         </div>
+      )}
+
+      {/* Lock Banner */}
+      {locked && (
+        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span className="text-sm font-medium text-red-800">
+              Check-in is locked{!isAdmin ? " — contact admin to unlock" : ""}
+            </span>
+          </div>
+          {isAdmin && (
+            <button
+              onClick={handleToggleLock}
+              disabled={lockLoading}
+              className="px-3 py-1 bg-red-600 text-white rounded-lg text-xs font-medium hover:bg-red-700 transition-colors disabled:opacity-40"
+            >
+              {lockLoading ? "..." : "Unlock"}
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Admin lock toggle (when unlocked) */}
+      {isAdmin && !locked && (
+        <button
+          onClick={handleToggleLock}
+          disabled={lockLoading}
+          className="w-full py-2 bg-slate-100 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-200 transition-colors disabled:opacity-40 flex items-center justify-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+          </svg>
+          {lockLoading ? "..." : "Lock Check-In"}
+        </button>
       )}
 
       {/* Progress */}
@@ -278,7 +351,7 @@ function CheckInContent() {
                   {status === "arrived" ? (
                     <button
                       onClick={() => handleUndo(camper.id)}
-                      disabled={isLoading}
+                      disabled={isLoading || actionsDisabled}
                       className="px-4 py-2.5 bg-slate-200 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-300 transition-colors disabled:opacity-40"
                     >
                       {isLoading ? "..." : "Undo"}
@@ -286,7 +359,7 @@ function CheckInContent() {
                   ) : status === "on_bus" ? (
                     <button
                       onClick={() => handleConfirmArrival(camper.id)}
-                      disabled={isLoading}
+                      disabled={isLoading || actionsDisabled}
                       className="px-4 py-2.5 bg-yellow-500 text-white rounded-xl text-sm font-bold hover:bg-yellow-600 transition-colors disabled:opacity-40"
                     >
                       {isLoading ? "..." : "CONFIRM ARRIVAL"}
@@ -294,7 +367,7 @@ function CheckInContent() {
                   ) : (
                     <button
                       onClick={() => handleCheckIn(camper.id)}
-                      disabled={isLoading}
+                      disabled={isLoading || actionsDisabled}
                       className="px-4 py-2.5 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-colors disabled:opacity-40"
                     >
                       {isLoading ? "..." : "CHECK IN"}
@@ -359,7 +432,7 @@ function CheckInContent() {
                     </div>
                     <button
                       onClick={() => handleConfirmArrival(ci.camper_id)}
-                      disabled={actionLoading === ci.camper_id}
+                      disabled={actionLoading === ci.camper_id || actionsDisabled}
                       className="px-3 py-1.5 bg-yellow-500 text-white rounded-lg text-xs font-bold hover:bg-yellow-600 transition-colors disabled:opacity-40 shrink-0"
                     >
                       {actionLoading === ci.camper_id ? "..." : "ARRIVED"}
@@ -405,7 +478,7 @@ function CheckInContent() {
                     </div>
                     <button
                       onClick={() => handleUndo(ci.camper_id)}
-                      disabled={actionLoading === ci.camper_id}
+                      disabled={actionLoading === ci.camper_id || actionsDisabled}
                       className="text-xs text-slate-500 hover:text-red-600 transition-colors"
                     >
                       Undo

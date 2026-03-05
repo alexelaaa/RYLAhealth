@@ -12,6 +12,7 @@ import {
   type DetailedEvent,
 } from "@/lib/schedule";
 import { BIOME_COLORS, CAMP_WEEKENDS } from "@/lib/constants";
+import { cacheGet, cacheSet } from "@/lib/offline-cache";
 
 type DayTab = "friday" | "saturday" | "sunday" | "activities";
 
@@ -213,6 +214,7 @@ export default function SchedulePage() {
   const [weekend] = useState(CAMP_WEEKENDS[0]);
 
   const fetchGroups = useCallback(async () => {
+    const cacheKey = `schedule-groups-${weekend}`;
     try {
       const [smallRes, overviewRes] = await Promise.all([
         fetch(`/api/groups?${new URLSearchParams({ weekend, type: "small" })}`),
@@ -240,8 +242,11 @@ export default function SchedulePage() {
       }));
 
       setGroups(result);
+      cacheSet(cacheKey, result);
     } catch {
-      // Silent fail — groups just won't show
+      // Offline — try cached groups
+      const cached = await cacheGet<SmallGroupInfo[]>(cacheKey);
+      if (cached) setGroups(cached);
     }
   }, [weekend]);
 

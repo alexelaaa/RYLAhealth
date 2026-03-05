@@ -9,7 +9,7 @@ export default function OfflineBanner() {
 
   return (
     <div className="fixed top-14 left-0 right-0 bg-yellow-500 text-yellow-900 text-center py-1.5 text-xs font-medium z-50">
-      You are offline. Changes will sync when reconnected.
+      You are offline — showing cached data. Changes will sync when reconnected.
     </div>
   );
 }
