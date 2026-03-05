@@ -55,7 +55,9 @@ export default function LoginPage() {
           ? "/cabin-checkin"
           : data.role === "bussing"
             ? "/bus-tracker"
-            : "/dashboard";
+            : data.role === "alumni"
+              ? "/schedule"
+              : "/dashboard";
       setTimeout(() => router.push(dest), 800);
     } catch {
       setError("Connection error. Try again.");

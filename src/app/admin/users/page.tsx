@@ -161,6 +161,7 @@ function UsersContent() {
     nurse: "bg-green-100 text-green-700",
     staff: "bg-blue-100 text-blue-700",
     bussing: "bg-teal-100 text-teal-700",
+    alumni: "bg-violet-100 text-violet-700",
   };
 
   return (
@@ -199,6 +200,7 @@ function UsersContent() {
             <option value="staff">Staff</option>
             <option value="nurse">Nurse</option>
             <option value="bussing">Bussing</option>
+            <option value="alumni">Alumni</option>
             <option value="admin">Admin</option>
           </select>
           {newRole === "bussing" ? (
@@ -269,6 +271,7 @@ function UsersContent() {
                       <option value="staff">Staff</option>
                       <option value="nurse">Nurse</option>
                       <option value="bussing">Bussing</option>
+                      <option value="alumni">Alumni</option>
                       <option value="admin">Admin</option>
                     </select>
                     {editRole === "bussing" ? (

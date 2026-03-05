@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import BottomNav from "./BottomNav";
 import OfflineBanner from "./OfflineBanner";
@@ -16,6 +16,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [campWeekend, setCampWeekendLocal] = useState("");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const pathname = usePathname();
   const isOnline = useOnlineStatus();
 
   useEffect(() => {
@@ -56,6 +57,68 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
       </div>
+    );
+  }
+
+  // Alumni gets a simplified shell with their own nav
+  if (session?.role === "alumni") {
+    const alumniNav = [
+      { href: "/schedule", label: "Schedule" },
+      { href: "/groups", label: "Groups" },
+      { href: "/map", label: "Map" },
+    ];
+    return (
+      <CampContext.Provider value={{ campWeekend, setCampWeekend, session }}>
+        <div className="min-h-screen bg-slate-200">
+          <header className="bg-blue-700 text-white sticky top-0 z-40">
+            <div className="flex items-center justify-between px-4 h-14">
+              <h1 className="text-lg font-bold">RYLA Camp</h1>
+              <div className="flex items-center gap-2">
+                <span className="text-xs bg-blue-600 px-2 py-1 rounded-full capitalize">
+                  Alumni
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="text-xs text-blue-200 hover:text-white"
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
+          </header>
+          <OfflineBanner />
+          <main className="pb-safe max-w-4xl mx-auto">
+            {children}
+          </main>
+          <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-300 z-50 shadow-[0_-2px_8px_rgba(0,0,0,0.08)]">
+            <div className="flex justify-around items-center h-16 max-w-lg mx-auto px-2">
+              {alumniNav.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
+                      isActive ? "text-blue-600" : "text-slate-400 hover:text-slate-600"
+                    }`}
+                  >
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </Link>
+                );
+              })}
+              <a
+                href="http://ryla5330.org/wp-content/uploads/2026/03/RYLA-Packet-2026.docx.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center flex-1 py-1 transition-colors text-slate-400 hover:text-slate-600"
+              >
+                <span className="text-sm font-medium">Packet</span>
+              </a>
+            </div>
+            <div className="h-[env(safe-area-inset-bottom)]" />
+          </nav>
+        </div>
+      </CampContext.Provider>
     );
   }
 

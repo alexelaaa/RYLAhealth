@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Label, PIN, and role are required" }, { status: 400 });
   }
 
-  if (!["nurse", "staff", "admin", "bussing"].includes(role)) {
+  if (!["nurse", "staff", "admin", "bussing", "alumni"].includes(role)) {
     return NextResponse.json({ error: "Invalid role" }, { status: 400 });
   }
 
@@ -94,7 +94,7 @@ export async function PUT(request: NextRequest) {
     sets.push("label = ?");
     values.push(label.trim());
   }
-  if (role && ["nurse", "staff", "admin", "bussing"].includes(role)) {
+  if (role && ["nurse", "staff", "admin", "bussing", "alumni"].includes(role)) {
     sets.push("role = ?");
     values.push(role);
   }

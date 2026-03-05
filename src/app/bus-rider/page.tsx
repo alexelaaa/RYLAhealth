@@ -382,6 +382,21 @@ function BusRiderContent({
         {gpsError && <p className="text-xs text-red-600 mt-1">{gpsError}</p>}
       </div>
 
+      {/* Registrar contact banner */}
+      <div className="bg-amber-50 rounded-xl px-4 py-3 border border-amber-200">
+        <p className="text-sm text-amber-800">
+          <span className="font-semibold">Problem?</span> Student not on the list or other issues — contact the registrar, Jamie Webber:
+        </p>
+        <div className="flex gap-3 mt-2">
+          <a href="tel:9097090765" className="flex-1 text-center text-sm font-bold bg-amber-200 text-amber-900 rounded-lg py-2 hover:bg-amber-300 transition-colors">
+            Call (909) 709-0765
+          </a>
+          <a href="sms:9097090765" className="flex-1 text-center text-sm font-bold bg-amber-200 text-amber-900 rounded-lg py-2 hover:bg-amber-300 transition-colors">
+            Text (909) 709-0765
+          </a>
+        </div>
+      </div>
+
       {/* Progress */}
       <div className="bg-white rounded-xl p-4 border border-slate-300">
         <div className="flex items-center justify-between mb-2">

@@ -14,7 +14,8 @@ body {
 
 /* Hide scrollbar for mobile bottom nav padding */
 .pb-safe {
-  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: 5rem;
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
 }
 
 /* Smooth transitions */

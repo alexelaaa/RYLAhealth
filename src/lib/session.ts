@@ -7,7 +7,7 @@ export const sessionOptions: SessionOptions = {
     "this-is-a-secret-key-change-in-production-32chars",
   cookieName: "ryla-session",
   cookieOptions: {
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.NODE_ENV === "production" && process.env.INSECURE_COOKIES !== "true",
     httpOnly: true,
     sameSite: "lax" as const,
     maxAge: 60 * 60 * 24 * 7, // 7 days

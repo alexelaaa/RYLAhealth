@@ -134,7 +134,7 @@ export const staffPins = sqliteTable("staff_pins", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   label: text("label").notNull().unique(),
   pinHash: text("pin_hash").notNull(),
-  role: text("role", { enum: ["nurse", "staff", "admin", "bussing", "dgl"] }).notNull(),
+  role: text("role", { enum: ["nurse", "staff", "admin", "bussing", "dgl", "alumni"] }).notNull(),
 });
 
 export const camperEdits = sqliteTable("camper_edits", {

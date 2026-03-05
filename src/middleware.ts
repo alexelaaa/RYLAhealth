@@ -63,6 +63,18 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Alumni role restriction: schedule, map, groups, and API routes
+  if (session.role === "alumni") {
+    const alumniAllowed =
+      pathname.startsWith("/schedule") ||
+      pathname.startsWith("/map") ||
+      pathname.startsWith("/groups") ||
+      pathname.startsWith("/api/");
+    if (!alumniAllowed) {
+      return NextResponse.redirect(new URL("/schedule", request.url));
+    }
+  }
+
   // Admin-only routes
   if (pathname.startsWith("/admin") && session.role !== "admin") {
     return NextResponse.redirect(new URL("/dashboard", request.url));
@@ -72,5 +84,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icons|manifest.json|sw.js).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icons|manifest.json|sw.js|.*\\.png$|.*\\.jpg$|.*\\.svg$).*)"],
 };

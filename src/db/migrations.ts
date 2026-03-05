@@ -246,4 +246,26 @@ export function runMigrations(db: Database.Database) {
   } catch {
     // Already migrated
   }
+
+  // Migration 17: Rebuild staff_pins to allow 'alumni' role
+  try {
+    const pinTableDef2 = db.prepare(
+      `SELECT sql FROM sqlite_master WHERE type='table' AND name='staff_pins'`
+    ).get() as { sql: string } | undefined;
+    if (pinTableDef2?.sql && !pinTableDef2.sql.includes("'alumni'")) {
+      db.exec(`
+        CREATE TABLE staff_pins_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          label TEXT NOT NULL UNIQUE,
+          pin_hash TEXT NOT NULL,
+          role TEXT NOT NULL CHECK(role IN ('nurse', 'staff', 'admin', 'bussing', 'dgl', 'alumni'))
+        )
+      `);
+      db.exec(`INSERT INTO staff_pins_new SELECT * FROM staff_pins`);
+      db.exec(`DROP TABLE staff_pins`);
+      db.exec(`ALTER TABLE staff_pins_new RENAME TO staff_pins`);
+    }
+  } catch {
+    // Already migrated
+  }
 }

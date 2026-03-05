@@ -20,7 +20,7 @@ export type {
   NewCabinCheckin,
 } from "@/db/schema";
 
-export type UserRole = "nurse" | "staff" | "admin" | "bussing" | "dgl";
+export type UserRole = "nurse" | "staff" | "admin" | "bussing" | "dgl" | "alumni";
 
 export type SessionData = {
   isLoggedIn: boolean;
