@@ -54,14 +54,6 @@ function SchoolCleanupContent() {
     fetchSchools();
   }, [campWeekend]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (session && session.role !== "admin") {
-    return (
-      <div className="p-4 text-center py-20 text-slate-400">
-        Admin access required
-      </div>
-    );
-  }
-
   // Build a flat list of all unique school names with their suggested corrections
   const allSchools = useMemo(() => {
     const result: { original: string; suggested: string; count: number; groupCanonical: string; hasVariants: boolean }[] = [];
@@ -96,6 +88,14 @@ function SchoolCleanupContent() {
       return target !== s.original;
     });
   }, [allSchools, editedNames]);
+
+  if (session && session.role !== "admin") {
+    return (
+      <div className="p-4 text-center py-20 text-slate-400">
+        Admin access required
+      </div>
+    );
+  }
 
   const handleMergeGroup = async (group: SchoolGroup) => {
     const targetName = editedNames[group.variants[0]?.name] || group.canonical;
