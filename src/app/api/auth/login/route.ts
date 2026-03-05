@@ -5,6 +5,16 @@ import { verifyPin } from "@/lib/auth";
 import type { SessionData } from "@/types";
 import { cookies } from "next/headers";
 import { sqlite } from "@/db";
+import { CAMP_WEEKENDS } from "@/lib/constants";
+
+function getCurrentWeekend(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  // March 6-8 weekend: auto-select if before May 1
+  // May 15-17 weekend: auto-select if May 1 or later
+  const mayCutoff = new Date(year, 4, 1); // May 1
+  return now < mayCutoff ? CAMP_WEEKENDS[0] : CAMP_WEEKENDS[1];
+}
 
 interface SmallGroupRow {
   small_group: string;
@@ -59,6 +69,11 @@ export async function POST(request: Request) {
         // Table may not exist yet
       }
     }
+  }
+
+  // Auto-set weekend based on current date if not already set (e.g. for bussing role)
+  if (!session.campWeekend) {
+    session.campWeekend = getCurrentWeekend();
   }
 
   await session.save();
