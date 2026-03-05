@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import { CAMP_WEEKENDS, LARGE_GROUPS, BIOME_COLORS } from "@/lib/constants";
 
-type BadgeType = "camper" | "dgl" | "staff" | "schedule" | "back" | "groups";
+type BadgeType = "camper" | "dgl" | "staff" | "schedule" | "back" | "groups" | "reprint";
 
 interface Camper {
   id: number;
@@ -17,6 +17,7 @@ interface Camper {
   campWeekend: string | null;
   busNumber: string | null;
   meetingLocation?: string | null;
+  updatedAt?: string | null;
 }
 
 interface DGL {
@@ -169,6 +170,9 @@ function BadgesContent() {
   const [scheduleCount, setScheduleCount] = useState(6);
   const [scheduleDay, setScheduleDay] = useState<"all" | "friday" | "saturday" | "sunday" | "activities">("all");
   const [backRole, setBackRole] = useState<"camper" | "dgl" | "staff">("camper");
+  const [recentlyChanged, setRecentlyChanged] = useState<Camper[]>([]);
+  const [reprintQueue, setReprintQueue] = useState<Camper[]>([]);
+  const [reprintLoading, setReprintLoading] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("badge-logo");
@@ -178,6 +182,8 @@ function BadgesContent() {
       const parsed = JSON.parse(savedSizes);
       setSizes(prev => ({ ...prev, ...parsed, lineHeight: parsed.lineHeight ?? prev.lineHeight }));
     }
+    const savedQueue = localStorage.getItem("badge-reprint-queue");
+    if (savedQueue) setReprintQueue(JSON.parse(savedQueue));
   }, []);
 
   const fetchCampers = useCallback(async () => {
@@ -265,13 +271,78 @@ function BadgesContent() {
     }
   }, [weekend]);
 
+  const fetchRecentlyChanged = useCallback(async () => {
+    setReprintLoading(true);
+    try {
+      const todayMidnight = new Date();
+      todayMidnight.setHours(0, 0, 0, 0);
+      const [camperRes, groupRes] = await Promise.all([
+        fetch(`/api/campers?${new URLSearchParams({ weekend, limit: "500", sortBy: "lastName", sortOrder: "asc", modifiedSince: todayMidnight.toISOString() })}`),
+        fetch(`/api/groups?${new URLSearchParams({ weekend, type: "small" })}`),
+      ]);
+      const camperData = await camperRes.json();
+      const groupData = await groupRes.json();
+
+      const meetingMap = new Map<string, string>();
+      if (groupData.groups) {
+        for (const g of groupData.groups) {
+          if (g.name && g.meetingLocation) meetingMap.set(g.name, g.meetingLocation);
+        }
+      }
+
+      const enriched = (camperData.campers || []).map((c: Camper) => ({
+        ...c,
+        meetingLocation: c.smallGroup ? meetingMap.get(c.smallGroup) || null : null,
+      }));
+      setRecentlyChanged(enriched);
+    } catch {
+      setRecentlyChanged([]);
+    } finally {
+      setReprintLoading(false);
+    }
+  }, [weekend]);
+
+  const saveQueue = (queue: Camper[]) => {
+    setReprintQueue(queue);
+    localStorage.setItem("badge-reprint-queue", JSON.stringify(queue));
+  };
+
+  const addToQueue = (camper: Camper) => {
+    if (reprintQueue.some(c => c.id === camper.id)) return;
+    saveQueue([...reprintQueue, camper]);
+  };
+
+  const addAllToQueue = () => {
+    const existing = new Set(reprintQueue.map(c => c.id));
+    const newItems = recentlyChanged.filter(c => !existing.has(c.id));
+    if (newItems.length > 0) saveQueue([...reprintQueue, ...newItems]);
+  };
+
+  const removeFromQueue = (id: number) => {
+    saveQueue(reprintQueue.filter(c => c.id !== id));
+  };
+
+  const clearQueue = () => {
+    saveQueue([]);
+  };
+
+  const printQueue = () => {
+    if (reprintQueue.length === 0) return;
+    sessionStorage.setItem("badge-campers", JSON.stringify(reprintQueue));
+    sessionStorage.setItem("badge-type", "camper");
+    sessionStorage.setItem("badge-logo", logo || "");
+    sessionStorage.setItem("badge-sizes", JSON.stringify(sizes));
+    window.open("/badges/print", "_blank");
+  };
+
   useEffect(() => {
     setSelected(new Set());
     const activeType = badgeType === "back" ? backRole : badgeType;
     if (activeType === "camper") fetchCampers();
     else if (activeType === "dgl") fetchDGLs();
+    else if (activeType === "reprint") fetchRecentlyChanged();
     else fetchStaff();
-  }, [badgeType, backRole, fetchCampers, fetchDGLs, fetchStaff]);
+  }, [badgeType, backRole, fetchCampers, fetchDGLs, fetchStaff, fetchRecentlyChanged]);
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -301,7 +372,7 @@ function BadgesContent() {
   // Build generic item list for selection
   type ListItem = { key: string; label: string; sub: string; biome: string | null };
   let items: ListItem[] = [];
-  const activeListType = badgeType === "back" ? backRole : badgeType;
+  const activeListType = badgeType === "back" ? backRole : badgeType === "reprint" ? "reprint" : badgeType;
 
   if (activeListType === "camper") {
     items = campers
@@ -416,6 +487,7 @@ function BadgesContent() {
           ["camper", "Camper"],
           ["dgl", "DGL"],
           ["staff", "Staff / Alumni"],
+          ["reprint", "Reprint"],
           ["schedule", "Schedule"],
           ["groups", "Groups"],
           ["back", "Badge Back"],
@@ -430,7 +502,142 @@ function BadgesContent() {
         ))}
       </div>
 
-      {badgeType === "groups" ? (
+      {badgeType === "reprint" ? (
+        <>
+          {/* Weekend selector */}
+          <div className="flex items-center gap-2">
+            <select
+              value={weekend}
+              onChange={e => { setWeekend(e.target.value); }}
+              className="text-sm border border-slate-300 rounded-lg px-3 py-1.5"
+            >
+              {CAMP_WEEKENDS.map(w => <option key={w} value={w}>{w}</option>)}
+            </select>
+            <button
+              onClick={fetchRecentlyChanged}
+              className="text-sm px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50"
+            >
+              Refresh
+            </button>
+          </div>
+
+          {/* Recently Changed */}
+          <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-slate-700">Recently Changed Today</h2>
+              {recentlyChanged.length > 0 && (
+                <button
+                  onClick={addAllToQueue}
+                  className="text-sm px-3 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium"
+                >
+                  Add All ({recentlyChanged.length})
+                </button>
+              )}
+            </div>
+
+            {reprintLoading ? (
+              <div className="text-center py-6 text-slate-400">Loading...</div>
+            ) : recentlyChanged.length === 0 ? (
+              <div className="text-center py-6 text-slate-400">No campers modified today.</div>
+            ) : (
+              <div className="max-h-64 overflow-y-auto border border-slate-100 rounded-lg divide-y divide-slate-50">
+                {recentlyChanged.map(c => {
+                  const inQueue = reprintQueue.some(q => q.id === c.id);
+                  const colors = c.largeGroup ? BIOME_COLORS[c.largeGroup] : null;
+                  const ago = c.updatedAt ? (() => {
+                    const mins = Math.round((Date.now() - new Date(c.updatedAt!).getTime()) / 60000);
+                    if (mins < 1) return "just now";
+                    if (mins < 60) return `${mins}m ago`;
+                    return `${Math.round(mins / 60)}h ago`;
+                  })() : "";
+                  return (
+                    <div key={c.id} className="flex items-center gap-3 px-3 py-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">{c.lastName}, {c.firstName}</div>
+                        <div className="text-xs text-slate-400">
+                          {c.smallGroup || "No group"} · {c.cabinName || "No cabin"}
+                          {ago && <span className="ml-1">· {ago}</span>}
+                        </div>
+                      </div>
+                      {colors && (
+                        <span
+                          className="text-xs px-2 py-0.5 rounded-full font-medium shrink-0"
+                          style={{ backgroundColor: colors.hexLight, color: colors.hex, border: `1px solid ${colors.hexBorder}` }}
+                        >
+                          {c.largeGroup}
+                        </span>
+                      )}
+                      <button
+                        onClick={() => addToQueue(c)}
+                        disabled={inQueue}
+                        className={`text-xs px-2 py-1 rounded-lg font-medium shrink-0 ${inQueue ? "bg-slate-100 text-slate-400" : "bg-green-50 text-green-700 hover:bg-green-100"}`}
+                      >
+                        {inQueue ? "Queued" : "Add"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Print Queue */}
+          <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold text-slate-700">Print Queue ({reprintQueue.length})</h2>
+              {reprintQueue.length > 0 && (
+                <button
+                  onClick={clearQueue}
+                  className="text-sm px-3 py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 font-medium"
+                >
+                  Clear Queue
+                </button>
+              )}
+            </div>
+
+            {reprintQueue.length === 0 ? (
+              <div className="text-center py-6 text-slate-400">Queue is empty. Add campers from above.</div>
+            ) : (
+              <div className="max-h-48 overflow-y-auto border border-slate-100 rounded-lg divide-y divide-slate-50">
+                {reprintQueue.map(c => {
+                  const colors = c.largeGroup ? BIOME_COLORS[c.largeGroup] : null;
+                  return (
+                    <div key={c.id} className="flex items-center gap-3 px-3 py-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">{c.lastName}, {c.firstName}</div>
+                        <div className="text-xs text-slate-400">{c.smallGroup || "No group"} · {c.cabinName || "No cabin"}</div>
+                      </div>
+                      {colors && (
+                        <span
+                          className="text-xs px-2 py-0.5 rounded-full font-medium shrink-0"
+                          style={{ backgroundColor: colors.hexLight, color: colors.hex, border: `1px solid ${colors.hexBorder}` }}
+                        >
+                          {c.largeGroup}
+                        </span>
+                      )}
+                      <button
+                        onClick={() => removeFromQueue(c.id)}
+                        className="text-xs px-2 py-1 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 font-medium shrink-0"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Print Queue Button */}
+          <button
+            onClick={printQueue}
+            disabled={reprintQueue.length === 0}
+            className="w-full py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+          >
+            Print {reprintQueue.length} Badge{reprintQueue.length !== 1 ? "s" : ""}
+          </button>
+        </>
+      ) : badgeType === "groups" ? (
         <>
           <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
             <h2 className="font-semibold text-slate-700">Group Cards</h2>
