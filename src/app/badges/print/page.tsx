@@ -161,53 +161,53 @@ function StaffBadge({ staff, logo, sizes }: { staff: StaffMember; logo: string |
 }
 
 const FRIDAY = [
-  ["9:00", "Buses Arrive"],
-  ["11:15", "Ice Breakers"],
-  ["12:15", "Camp Photo"],
-  ["12:25", "Lunch"],
-  ["1:35", "Welcome"],
-  ["2:15", "Discussion 1"],
-  ["3:10", "Activity 1"],
-  ["4:05", "Speaker – Max"],
-  ["5:05", "Discussion 2"],
-  ["6:00", "Dinner"],
-  ["7:10", "Cabin Time"],
-  ["7:40", "Speaker – Jackie"],
-  ["8:25", "Culture Walk"],
-  ["9:50", "Discussion 3"],
-  ["10:30", "Alumni Intros"],
-  ["12:00", "Lights Out"],
+  ["9:00a", "Buses Arrive"],
+  ["11:15a", "Ice Breakers"],
+  ["12:15p", "Camp Photo"],
+  ["12:25p", "Lunch"],
+  ["1:35p", "Welcome"],
+  ["2:15p", "Discussion 1"],
+  ["3:10p", "Activity 1"],
+  ["4:05p", "Speaker – Max"],
+  ["5:05p", "Discussion 2"],
+  ["6:00p", "Dinner"],
+  ["7:10p", "Cabin Time"],
+  ["7:40p", "Speaker – Jackie"],
+  ["8:25p", "Culture Walk"],
+  ["9:50p", "Discussion 3"],
+  ["10:30p", "Alumni Intros"],
+  ["12:00a", "Lights Out"],
 ];
 
 const SATURDAY = [
-  ["6:30", "Free Time"],
-  ["8:00", "Breakfast"],
-  ["9:00", "Speaker – Max"],
-  ["10:00", "Discussion 4"],
-  ["10:55", "Activity 2"],
-  ["11:50", "Speaker – Jackie"],
-  ["12:50", "Lunch"],
-  ["2:00", "Speaker – Mike"],
-  ["3:00", "Discussion 5"],
-  ["4:25", "Activity 3"],
-  ["5:20", "Dinner"],
-  ["6:30", "Talent Show"],
-  ["8:00", "Carnival"],
-  ["11:30", "Lights Out"],
+  ["6:30a", "Free Time"],
+  ["8:00a", "Breakfast"],
+  ["9:00a", "Speaker – Max"],
+  ["10:00a", "Discussion 4"],
+  ["10:55a", "Activity 2"],
+  ["11:50a", "Speaker – Jackie"],
+  ["12:50p", "Lunch"],
+  ["2:00p", "Speaker – Mike"],
+  ["3:00p", "Discussion 5"],
+  ["4:25p", "Activity 3"],
+  ["5:20p", "Dinner"],
+  ["6:30p", "Talent Show"],
+  ["8:00p", "Carnival"],
+  ["11:30p", "Lights Out"],
 ];
 
 const SUNDAY = [
-  ["6:30", "Free Time / Pack"],
-  ["8:00", "Breakfast"],
-  ["9:00", "Camp Activity"],
-  ["10:45", "Activity 4"],
-  ["11:40", "Discussion 6"],
-  ["12:35", "Lunch"],
-  ["1:45", "Activity 5"],
-  ["2:40", "Discussion 7"],
-  ["3:35", "Closing Session"],
-  ["5:15", "Load Buses"],
-  ["6:00", "Depart!"],
+  ["6:30a", "Free Time / Pack"],
+  ["8:00a", "Breakfast"],
+  ["9:00a", "Camp Activity"],
+  ["10:45a", "Activity 4"],
+  ["11:40a", "Discussion 6"],
+  ["12:35p", "Lunch"],
+  ["1:45p", "Activity 5"],
+  ["2:40p", "Discussion 7"],
+  ["3:35p", "Closing Session"],
+  ["5:15p", "Load Buses"],
+  ["6:00p", "Depart!"],
 ];
 
 const MARCH_ACTIVITIES: Record<string, string[]> = {
@@ -219,10 +219,10 @@ const MARCH_ACTIVITIES: Record<string, string[]> = {
 };
 
 function ScheduleBadge() {
-  const colStyle: React.CSSProperties = { flex: 1, paddingRight: "2px" };
-  const headerStyle: React.CSSProperties = { fontWeight: 800, fontSize: "7px", marginBottom: "1px", letterSpacing: "0.05em" };
-  const rowStyle: React.CSSProperties = { display: "flex", fontSize: "5.5px", lineHeight: 1.35 };
-  const timeStyle: React.CSSProperties = { width: "26px", fontWeight: 700, flexShrink: 0, color: "#334155" };
+  const colStyle: React.CSSProperties = { flex: 1, paddingRight: "3px" };
+  const headerStyle: React.CSSProperties = { fontWeight: 800, fontSize: "8.5px", marginBottom: "2px", letterSpacing: "0.05em" };
+  const rowStyle: React.CSSProperties = { display: "flex", fontSize: "7px", lineHeight: 1.4 };
+  const timeStyle: React.CSSProperties = { width: "34px", fontWeight: 700, flexShrink: 0, color: "#334155" };
   const eventStyle: React.CSSProperties = { color: "#475569" };
 
   const renderDay = (title: string, events: string[][]) => (
@@ -243,22 +243,22 @@ function ScheduleBadge() {
       style={{
         width: "4in", height: "3in", overflow: "hidden", backgroundColor: "white",
         display: "flex", flexDirection: "column",
-        padding: "0.08in 0.12in", boxSizing: "border-box", pageBreakInside: "avoid",
+        padding: "0.1in 0.12in", boxSizing: "border-box", pageBreakInside: "avoid",
       }}
     >
-      <div style={{ textAlign: "center", fontWeight: 900, fontSize: "8px", letterSpacing: "0.1em", marginBottom: "2px" }}>
+      <div style={{ textAlign: "center", fontWeight: 900, fontSize: "10px", letterSpacing: "0.1em", marginBottom: "3px" }}>
         RYLA 2026 SCHEDULE
       </div>
-      <div style={{ display: "flex", gap: "4px", flex: 1 }}>
+      <div style={{ display: "flex", gap: "5px", flex: 1 }}>
         {renderDay("FRIDAY", FRIDAY)}
         <div style={{ width: "1px", backgroundColor: "#cbd5e1", flexShrink: 0 }} />
         {renderDay("SATURDAY", SATURDAY)}
         <div style={{ width: "1px", backgroundColor: "#cbd5e1", flexShrink: 0 }} />
         {renderDay("SUNDAY", SUNDAY)}
       </div>
-      <div style={{ borderTop: "1px solid #cbd5e1", marginTop: "2px", paddingTop: "2px" }}>
-        <div style={{ fontWeight: 800, fontSize: "6.5px", marginBottom: "1px", letterSpacing: "0.05em" }}>MARCH ACTIVITIES</div>
-        <div style={{ display: "grid", gridTemplateColumns: "52px repeat(5, 1fr)", fontSize: "5px", lineHeight: 1.4 }}>
+      <div style={{ borderTop: "1px solid #cbd5e1", marginTop: "3px", paddingTop: "2px" }}>
+        <div style={{ fontWeight: 800, fontSize: "7.5px", marginBottom: "1px", letterSpacing: "0.05em" }}>MARCH ACTIVITIES</div>
+        <div style={{ display: "grid", gridTemplateColumns: "52px repeat(5, 1fr)", fontSize: "6px", lineHeight: 1.4 }}>
           <div style={{ fontWeight: 700 }}></div>
           {["Act 1", "Act 2", "Act 3", "Act 4", "Act 5"].map(h => (
             <div key={h} style={{ fontWeight: 700, textAlign: "center", color: "#334155" }}>{h}</div>
