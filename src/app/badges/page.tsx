@@ -538,23 +538,23 @@ function BadgesContent() {
         <>
           {/* Schedule Preview & Count */}
           <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
-            <h2 className="font-semibold text-slate-700">Schedule Card</h2>
+            <h2 className="font-semibold text-slate-700">Schedule Cards</h2>
             <p className="text-sm text-slate-500">
-              Prints a condensed weekend schedule with March activities. Use for the back of name badges.
+              Each set prints 4 cards: Friday, Saturday, Sunday, and Activity Rotations (with locations).
             </p>
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1">
-                Number of copies: {scheduleCount}
+                Number of sets: {scheduleCount}
               </label>
               <input
-                type="range" min={1} max={120} value={scheduleCount}
+                type="range" min={1} max={30} value={scheduleCount}
                 onChange={e => setScheduleCount(Number(e.target.value))}
                 className="w-full h-1.5"
               />
               <div className="flex justify-between text-xs text-slate-400 mt-1">
                 <span>1</span>
-                <span>{Math.ceil(scheduleCount / 6)} page{Math.ceil(scheduleCount / 6) !== 1 ? "s" : ""} (6 per page)</span>
-                <span>120</span>
+                <span>{scheduleCount * 4} cards on {Math.ceil((scheduleCount * 4) / 6)} page{Math.ceil((scheduleCount * 4) / 6) !== 1 ? "s" : ""}</span>
+                <span>30</span>
               </div>
             </div>
           </div>
@@ -564,7 +564,7 @@ function BadgesContent() {
             onClick={openPrint}
             className="w-full py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
           >
-            Print {scheduleCount} Schedule Card{scheduleCount !== 1 ? "s" : ""}
+            Print {scheduleCount} Set{scheduleCount !== 1 ? "s" : ""} ({scheduleCount * 4} cards)
           </button>
         </>
       ) : (

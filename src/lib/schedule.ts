@@ -1,3 +1,5 @@
+// ── Compact schedule (used by dashboard ScheduleNow widget + badge cards) ──
+
 export const FRIDAY: [string, string][] = [
   ["9:00a", "Buses Arrive"],
   ["11:15a", "Ice Breakers"],
@@ -48,6 +50,70 @@ export const SUNDAY: [string, string][] = [
   ["6:00p", "Depart!"],
 ];
 
+// ── Detailed schedule (used by /schedule page + badge day cards) ──
+
+export interface DetailedEvent {
+  time: string;       // e.g. "8:00 – 9:00"
+  title: string;      // e.g. "Breakfast"
+  location?: string;  // e.g. "Dining Hall"
+  note?: string;      // extra info
+  bold?: boolean;     // highlight row
+}
+
+export const FRIDAY_DETAILED: DetailedEvent[] = [
+  { time: "8:00 – 9:00", title: "DGL/Staff Meeting & Breakfast", location: "Dining Hall" },
+  { time: "9:00 – 11:00", title: "Buses Arrive & Unpack", location: "Meadow Camp", note: "Music, fruit, drinks, light snacks" },
+  { time: "11:15 – 12:15", title: "Ice Breakers", location: "Meadow Camp Field", note: "Max Dutton & Jackie G." },
+  { time: "12:15 – 12:20", title: "Camp Photo", location: "Main Amphitheater" },
+  { time: "12:25 – 1:25", title: "Lunch", location: "Dining Hall", note: "Eat with your group" },
+  { time: "1:35 – 2:05", title: "Welcome, Rules, Introductions", location: "McNeil Hall" },
+  { time: "2:15 – 3:00", title: "Discussion Group 1", location: "Meeting Places", note: "Meet and Greet", bold: true },
+  { time: "3:10 – 3:55", title: "Activity 1", location: "Activity Areas", bold: true },
+  { time: "4:05 – 4:55", title: "Speaker – Max Dutton", location: "McNeil Hall" },
+  { time: "5:05 – 5:50", title: "Discussion Group 2", location: "Meeting Places", bold: true },
+  { time: "6:00 – 7:00", title: "Dinner", location: "Dining Hall" },
+  { time: "7:10 – 7:30", title: "Cabin Time", note: "Meet Cabin Monitor, go over rules" },
+  { time: "7:40 – 8:10", title: "Speaker – Jackie G.", location: "McNeil Hall", note: "Culture Walk Intro" },
+  { time: "8:25 – 9:45", title: "Culture Walk", location: "Culture Walk Areas" },
+  { time: "9:50 – 10:20", title: "Discussion Group 3", location: "Meeting Places", note: "Culture Walk Discussion", bold: true },
+  { time: "10:30 – 11:30", title: "Alumni Introductions", location: "McNeil Hall" },
+  { time: "12:00", title: "Lights Out" },
+];
+
+export const SATURDAY_DETAILED: DetailedEvent[] = [
+  { time: "6:30 – 8:00", title: "Free Time", note: "Must stay in Meadow Camp. Talent Show tryouts." },
+  { time: "8:00 – 8:50", title: "Breakfast", location: "Dining Hall" },
+  { time: "9:00 – 9:50", title: "Speaker – Max Dutton", location: "McNeil Hall" },
+  { time: "10:00 – 10:45", title: "Discussion Group 4", location: "Meeting Places", bold: true },
+  { time: "10:55 – 11:40", title: "Activity 2", location: "Activity Areas", bold: true },
+  { time: "11:50 – 12:40", title: "Speaker – Jackie G.", location: "McNeil Hall" },
+  { time: "12:50 – 1:50", title: "Lunch", location: "Dining Hall" },
+  { time: "2:00 – 2:50", title: "Speaker – Mike Norkin", location: "McNeil Hall", note: "Emotional First Aid & Who Are You?" },
+  { time: "3:00 – 4:15", title: "Discussion Group 5", location: "Meeting Places", note: "Who Are You? Activity", bold: true },
+  { time: "4:25 – 5:10", title: "Activity 3", location: "Activity Areas", bold: true },
+  { time: "5:20 – 6:20", title: "Dinner", location: "Dining Hall" },
+  { time: "6:30 – 8:00", title: "Talent/No Talent Show", location: "McNeil Hall" },
+  { time: "8:00 – 10:45", title: "Carnival", location: "Center of Camp", note: "Snacks at Malt Shop. Bonfire, s'mores, fire pits." },
+  { time: "11:00", title: "Report to Cabins" },
+  { time: "11:30", title: "Lights Out" },
+];
+
+export const SUNDAY_DETAILED: DetailedEvent[] = [
+  { time: "6:30 – 8:00", title: "Free Time & Pack", note: "Cabins must be cleaned & luggage packed before breakfast" },
+  { time: "8:00 – 8:50", title: "Breakfast", location: "Dining Hall" },
+  { time: "9:00 – 10:35", title: "Whole Camp Field Activity", location: "Emerson Field", note: "Max, Jackie & Mike" },
+  { time: "10:45 – 11:30", title: "Activity 4", location: "Activity Areas", bold: true },
+  { time: "11:40 – 12:25", title: "Discussion Group 6", location: "Meeting Places", note: "Letter Writing", bold: true },
+  { time: "12:35 – 1:35", title: "Lunch", location: "Dining Hall" },
+  { time: "1:45 – 2:30", title: "Activity 5", location: "Activity Areas", bold: true },
+  { time: "2:40 – 3:25", title: "Discussion Group 7", location: "Meeting Places", note: "Pictures & goodbyes", bold: true },
+  { time: "3:35 – 5:05", title: "Closing Session", location: "McNeil Hall" },
+  { time: "5:15", title: "Load Buses / Goodbye" },
+  { time: "6:00", title: "All Buses Depart!" },
+];
+
+// ── Activity rotations ──
+
 export const ACTIVITY_ROTATIONS: Record<string, string[]> = {
   Jungle:     ["XC Ski", "Spag Twr", "Boardwalk", "Egg Drop", "Capture"],
   Marine:     ["Capture", "XC Ski", "Spag Twr", "Boardwalk", "Egg Drop"],
@@ -55,6 +121,24 @@ export const ACTIVITY_ROTATIONS: Record<string, string[]> = {
   Desert:     ["Boardwalk", "Egg Drop", "Capture", "XC Ski", "Spag Twr"],
   Grasslands: ["Spag Twr", "Boardwalk", "Egg Drop", "Capture", "XC Ski"],
 };
+
+export const ACTIVITY_FULL_NAMES: Record<string, string> = {
+  "XC Ski": "Cross Country Skiing",
+  "Spag Twr": "Spaghetti Tower",
+  "Boardwalk": "Boardwalk",
+  "Egg Drop": "Egg Drop",
+  "Capture": "Capture the Flag",
+};
+
+export const ACTIVITY_LOCATIONS: Record<string, string> = {
+  "XC Ski": "Emerson Field",
+  "Spag Twr": "Gilboa Hall",
+  "Boardwalk": "Basketball Court",
+  "Egg Drop": "Schlenz Hall",
+  "Capture": "Emerson Field",
+};
+
+// ── Utility functions ──
 
 /** Parse "9:00a" or "12:25p" → minutes from midnight */
 export function parseScheduleTime(timeStr: string): number {
@@ -82,6 +166,12 @@ export function getDaySchedule(day: CampDay): [string, string][] {
   if (day === "friday") return FRIDAY;
   if (day === "saturday") return SATURDAY;
   return SUNDAY;
+}
+
+export function getDetailedSchedule(day: CampDay): DetailedEvent[] {
+  if (day === "friday") return FRIDAY_DETAILED;
+  if (day === "saturday") return SATURDAY_DETAILED;
+  return SUNDAY_DETAILED;
 }
 
 export interface ScheduleSlot {

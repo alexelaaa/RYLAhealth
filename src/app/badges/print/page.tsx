@@ -1,9 +1,15 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { BIOME_COLORS } from "@/lib/constants";
-import { FRIDAY, SATURDAY, SUNDAY, ACTIVITY_ROTATIONS } from "@/lib/schedule";
+import {
+  FRIDAY_DETAILED, SATURDAY_DETAILED, SUNDAY_DETAILED,
+  ACTIVITY_ROTATIONS, ACTIVITY_FULL_NAMES, ACTIVITY_LOCATIONS,
+  type DetailedEvent,
+} from "@/lib/schedule";
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const html2pdf = typeof window !== "undefined" ? require("html2pdf.js") : null;
 
 const PACKET_QR_URL = "http://ryla5330.org/wp-content/uploads/2026/03/RYLA-Packet-2026.docx.pdf";
 const APP_QR_URL = "https://ryla.up.railway.app/";
@@ -198,24 +204,11 @@ function BadgeBack({ showPacketQR, showAppQR }: { showPacketQR: boolean; showApp
   );
 }
 
-function ScheduleBadge() {
-  const colStyle: React.CSSProperties = { flex: 1, paddingRight: "3px" };
-  const headerStyle: React.CSSProperties = { fontWeight: 800, fontSize: "8.5px", marginBottom: "2px", letterSpacing: "0.05em" };
-  const rowStyle: React.CSSProperties = { display: "flex", fontSize: "7px", lineHeight: 1.4 };
-  const timeStyle: React.CSSProperties = { width: "34px", fontWeight: 700, flexShrink: 0, color: "#334155" };
-  const eventStyle: React.CSSProperties = { color: "#475569" };
-
-  const renderDay = (title: string, events: string[][]) => (
-    <div style={colStyle}>
-      <div style={headerStyle}>{title}</div>
-      {events.map(([time, event], i) => (
-        <div key={i} style={rowStyle}>
-          <span style={timeStyle}>{time}</span>
-          <span style={eventStyle}>{event}</span>
-        </div>
-      ))}
-    </div>
-  );
+function DayScheduleBadge({ title, events }: { title: string; events: DetailedEvent[] }) {
+  // Dynamically size font based on event count
+  const fontSize = events.length > 14 ? "7.5px" : events.length > 11 ? "8.5px" : "9.5px";
+  const lineHeight = events.length > 14 ? 1.35 : events.length > 11 ? 1.4 : 1.5;
+  const timeWidth = events.length > 14 ? "62px" : "70px";
 
   return (
     <div
@@ -226,32 +219,77 @@ function ScheduleBadge() {
         padding: "0.1in 0.12in", boxSizing: "border-box", pageBreakInside: "avoid",
       }}
     >
-      <div style={{ textAlign: "center", fontWeight: 900, fontSize: "10px", letterSpacing: "0.1em", marginBottom: "3px" }}>
-        RYLA 2026 SCHEDULE
+      <div style={{ textAlign: "center", fontWeight: 900, fontSize: "11px", letterSpacing: "0.1em", marginBottom: "3px", borderBottom: "1.5px solid #1e293b", paddingBottom: "2px" }}>
+        RYLA 2026 — {title}
       </div>
-      <div style={{ display: "flex", gap: "5px", flex: 1 }}>
-        {renderDay("FRIDAY", FRIDAY)}
-        <div style={{ width: "1px", backgroundColor: "#cbd5e1", flexShrink: 0 }} />
-        {renderDay("SATURDAY", SATURDAY)}
-        <div style={{ width: "1px", backgroundColor: "#cbd5e1", flexShrink: 0 }} />
-        {renderDay("SUNDAY", SUNDAY)}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+        {events.map((event, i) => (
+          <div key={i} style={{ display: "flex", fontSize, lineHeight, gap: "3px" }}>
+            <span style={{ width: timeWidth, fontWeight: 700, flexShrink: 0, color: "#334155" }}>{event.time}</span>
+            <span style={{ color: "#1e293b", fontWeight: event.bold ? 700 : 400, flex: 1 }}>
+              {event.title}
+              {event.location && <span style={{ color: "#64748b", fontWeight: 400 }}> — {event.location}</span>}
+            </span>
+          </div>
+        ))}
       </div>
-      <div style={{ borderTop: "1px solid #cbd5e1", marginTop: "3px", paddingTop: "2px" }}>
-        <div style={{ fontWeight: 800, fontSize: "7.5px", marginBottom: "1px", letterSpacing: "0.05em" }}>MARCH ACTIVITIES</div>
-        <div style={{ display: "grid", gridTemplateColumns: "52px repeat(5, 1fr)", fontSize: "6px", lineHeight: 1.4 }}>
-          <div style={{ fontWeight: 700 }}></div>
-          {["Act 1", "Act 2", "Act 3", "Act 4", "Act 5"].map(h => (
-            <div key={h} style={{ fontWeight: 700, textAlign: "center", color: "#334155" }}>{h}</div>
-          ))}
-          {Object.entries(ACTIVITY_ROTATIONS).map(([group, acts]) => (
-            <React.Fragment key={group}>
-              <div style={{ fontWeight: 700, color: "#334155" }}>{group}</div>
-              {acts.map((a, i) => (
-                <div key={i} style={{ textAlign: "center", color: "#475569" }}>{a}</div>
-              ))}
-            </React.Fragment>
+    </div>
+  );
+}
+
+function ActivityBadge() {
+  return (
+    <div
+      className="badge-cell"
+      style={{
+        width: "4in", height: "3in", overflow: "hidden", backgroundColor: "white",
+        display: "flex", flexDirection: "column",
+        padding: "0.1in 0.1in", boxSizing: "border-box", pageBreakInside: "avoid",
+      }}
+    >
+      <div style={{ textAlign: "center", fontWeight: 900, fontSize: "11px", letterSpacing: "0.08em", marginBottom: "4px", borderBottom: "1.5px solid #1e293b", paddingBottom: "2px" }}>
+        ACTIVITY ROTATIONS
+      </div>
+      {/* Header row */}
+      <div style={{ display: "grid", gridTemplateColumns: "62px repeat(5, 1fr)", fontSize: "7px", fontWeight: 800, color: "#334155", marginBottom: "2px", textAlign: "center" }}>
+        <div style={{ textAlign: "left" }}>Group</div>
+        {[1, 2, 3, 4, 5].map(n => (
+          <div key={n}>Act {n}</div>
+        ))}
+      </div>
+      {/* Group rows */}
+      {Object.entries(ACTIVITY_ROTATIONS).map(([group, acts]) => (
+        <div key={group} style={{ display: "grid", gridTemplateColumns: "62px repeat(5, 1fr)", fontSize: "6.5px", lineHeight: 1.3, borderTop: "0.5px solid #e2e8f0", paddingTop: "2px", paddingBottom: "2px" }}>
+          <div style={{ fontWeight: 800, color: "#1e293b", display: "flex", alignItems: "center" }}>{group}</div>
+          {acts.map((a, i) => (
+            <div key={i} style={{ textAlign: "center" }}>
+              <div style={{ fontWeight: 700, color: "#1e293b" }}>{ACTIVITY_FULL_NAMES[a] || a}</div>
+              <div style={{ color: "#64748b", fontSize: "5.5px" }}>({ACTIVITY_LOCATIONS[a] || ""})</div>
+            </div>
           ))}
         </div>
+      ))}
+    </div>
+  );
+}
+
+function ToolBar({ label, onDownloadPDF }: { label: string; onDownloadPDF: () => void }) {
+  return (
+    <div className="no-print" style={{ padding: "1rem", textAlign: "center", background: "#f1f5f9", borderBottom: "1px solid #e2e8f0" }}>
+      <p style={{ margin: 0, fontSize: "14px", color: "#64748b" }}>{label}</p>
+      <div style={{ display: "flex", gap: "0.5rem", justifyContent: "center", marginTop: "0.5rem" }}>
+        <button
+          onClick={() => window.print()}
+          style={{ padding: "0.5rem 1.5rem", background: "#2563eb", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 600 }}
+        >
+          Print
+        </button>
+        <button
+          onClick={onDownloadPDF}
+          style={{ padding: "0.5rem 1.5rem", background: "#059669", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 600 }}
+        >
+          Download PDF
+        </button>
       </div>
     </div>
   );
@@ -264,6 +302,23 @@ export default function PrintBadgesPage() {
   const [logo, setLogo] = useState<string | null>(null);
   const [sizes, setSizes] = useState<Sizes>({ firstName: 28, lastName: 20, smallGroup: 17, largeGroup: 14, info: 15, logoHeight: 55 });
   const [ready, setReady] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const downloadPDF = useCallback(() => {
+    if (!contentRef.current || !html2pdf) return;
+    const filename = `badges-${badgeType}${badgeType === "back" ? `-${backRole}` : ""}.pdf`;
+    html2pdf()
+      .set({
+        margin: 0,
+        filename,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+        pagebreak: { mode: ["css", "legacy"], before: ".badge-page" },
+      })
+      .from(contentRef.current)
+      .save();
+  }, [badgeType, backRole]);
 
   useEffect(() => {
     const raw = sessionStorage.getItem("badge-campers");
@@ -280,13 +335,6 @@ export default function PrintBadgesPage() {
     setReady(true);
   }, []);
 
-  useEffect(() => {
-    if (ready && data.length > 0) {
-      const timer = setTimeout(() => window.print(), 500);
-      return () => clearTimeout(timer);
-    }
-  }, [ready, data]);
-
   if (!ready) return null;
 
   if (badgeType === "back") {
@@ -301,17 +349,11 @@ export default function PrintBadgesPage() {
     const roleLabel = backRole === "camper" ? "camper" : backRole === "dgl" ? "DGL" : "staff";
     return (
       <div className="print-badges">
-        <div className="no-print" style={{ padding: "1rem", textAlign: "center", background: "#f1f5f9", borderBottom: "1px solid #e2e8f0" }}>
-          <p style={{ margin: 0, fontSize: "14px", color: "#64748b" }}>
-            {count} {roleLabel} badge back{count !== 1 ? "s" : ""} on {pages.length} page{pages.length !== 1 ? "s" : ""}.
-          </p>
-          <button
-            onClick={() => window.print()}
-            style={{ marginTop: "0.5rem", padding: "0.5rem 1.5rem", background: "#2563eb", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 600 }}
-          >
-            Print
-          </button>
-        </div>
+        <ToolBar
+          label={`${count} ${roleLabel} badge back${count !== 1 ? "s" : ""} on ${pages.length} page${pages.length !== 1 ? "s" : ""}.`}
+          onDownloadPDF={downloadPDF}
+        />
+        <div ref={contentRef}>
         {pages.map((page, pageIdx) => (
           <div
             key={pageIdx}
@@ -328,30 +370,34 @@ export default function PrintBadgesPage() {
             ))}
           </div>
         ))}
+        </div>
       </div>
     );
   }
 
   if (badgeType === "schedule") {
-    const count = data.length > 0 ? (data[0] as { count?: number }).count || 6 : 6;
-    const scheduleItems = Array.from({ length: count }, (_, i) => i);
-    const pages: number[][] = [];
-    for (let i = 0; i < scheduleItems.length; i += 6) {
-      pages.push(scheduleItems.slice(i, i + 6));
+    const sets = data.length > 0 ? (data[0] as { count?: number }).count || 1 : 1;
+    // Each set = 4 cards: Friday, Saturday, Sunday, Activities
+    // Build a flat list of card elements, then chunk into pages of 6
+    const allCards: React.ReactNode[] = [];
+    for (let s = 0; s < sets; s++) {
+      allCards.push(<DayScheduleBadge key={`fri-${s}`} title="FRIDAY" events={FRIDAY_DETAILED} />);
+      allCards.push(<DayScheduleBadge key={`sat-${s}`} title="SATURDAY" events={SATURDAY_DETAILED} />);
+      allCards.push(<DayScheduleBadge key={`sun-${s}`} title="SUNDAY" events={SUNDAY_DETAILED} />);
+      allCards.push(<ActivityBadge key={`act-${s}`} />);
+    }
+    const totalCards = allCards.length;
+    const pages: React.ReactNode[][] = [];
+    for (let i = 0; i < allCards.length; i += 6) {
+      pages.push(allCards.slice(i, i + 6));
     }
     return (
       <div className="print-badges">
-        <div className="no-print" style={{ padding: "1rem", textAlign: "center", background: "#f1f5f9", borderBottom: "1px solid #e2e8f0" }}>
-          <p style={{ margin: 0, fontSize: "14px", color: "#64748b" }}>
-            {count} schedule card{count !== 1 ? "s" : ""} on {pages.length} page{pages.length !== 1 ? "s" : ""}.
-          </p>
-          <button
-            onClick={() => window.print()}
-            style={{ marginTop: "0.5rem", padding: "0.5rem 1.5rem", background: "#2563eb", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 600 }}
-          >
-            Print
-          </button>
-        </div>
+        <ToolBar
+          label={`${sets} set${sets !== 1 ? "s" : ""} (${totalCards} cards) on ${pages.length} page${pages.length !== 1 ? "s" : ""}.`}
+          onDownloadPDF={downloadPDF}
+        />
+        <div ref={contentRef}>
         {pages.map((page, pageIdx) => (
           <div
             key={pageIdx}
@@ -363,9 +409,10 @@ export default function PrintBadgesPage() {
               pageBreakAfter: "always", boxSizing: "border-box", margin: "0 auto",
             }}
           >
-            {page.map((_, i) => <ScheduleBadge key={pageIdx * 6 + i} />)}
+            {page.map((card) => card)}
           </div>
         ))}
+        </div>
       </div>
     );
   }
@@ -388,19 +435,11 @@ export default function PrintBadgesPage() {
 
   return (
     <div className="print-badges">
-      <div className="no-print" style={{ padding: "1rem", textAlign: "center", background: "#f1f5f9", borderBottom: "1px solid #e2e8f0" }}>
-        <p style={{ margin: 0, fontSize: "14px", color: "#64748b" }}>
-          {data.length} {badgeType} badge{data.length !== 1 ? "s" : ""} on {pages.length} page{pages.length !== 1 ? "s" : ""} (6 per page).
-          Press Cmd+P / Ctrl+P to print. Set margins to &quot;None&quot; for best results.
-        </p>
-        <button
-          onClick={() => window.print()}
-          style={{ marginTop: "0.5rem", padding: "0.5rem 1.5rem", background: "#2563eb", color: "white", border: "none", borderRadius: "8px", cursor: "pointer", fontWeight: 600 }}
-        >
-          Print
-        </button>
-      </div>
-
+      <ToolBar
+        label={`${data.length} ${badgeType} badge${data.length !== 1 ? "s" : ""} on ${pages.length} page${pages.length !== 1 ? "s" : ""} (6 per page). Set margins to "None" for best results.`}
+        onDownloadPDF={downloadPDF}
+      />
+      <div ref={contentRef}>
       {pages.map((page, pageIdx) => (
         <div
           key={pageIdx}
@@ -415,6 +454,7 @@ export default function PrintBadgesPage() {
           {page.map((item, i) => renderBadge(item, pageIdx * 6 + i))}
         </div>
       ))}
+      </div>
     </div>
   );
 }
