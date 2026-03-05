@@ -16,7 +16,9 @@ interface Camper {
   meetingLocation?: string | null;
 }
 
-function BadgePreview({ camper, logo, firstNameSize }: { camper: Camper | null; logo: string | null; firstNameSize: number }) {
+interface Sizes { firstName: number; lastName: number; smallGroup: number; largeGroup: number; info: number; }
+
+function BadgePreview({ camper, logo, sizes }: { camper: Camper | null; logo: string | null; sizes: Sizes }) {
   const c = camper || { firstName: "Jane", lastName: "Doe", largeGroup: "Arctic", smallGroup: "Polar Bears", cabinName: "Cabin 7", meetingLocation: "Lodge A" } as Camper;
   const colors = BIOME_COLORS[c.largeGroup || ""] || BIOME_COLORS.Arctic;
 
@@ -29,24 +31,24 @@ function BadgePreview({ camper, logo, firstNameSize }: { camper: Camper | null; 
         {logo && (
           <img src={logo} alt="Logo" className="object-contain" style={{ maxHeight: "0.55in", maxWidth: "1.5in" }} />
         )}
-        <div className="font-extrabold text-center leading-tight" style={{ fontSize: `${firstNameSize}px`, color: colors.hex }}>
+        <div className="font-extrabold text-center leading-tight" style={{ fontSize: `${sizes.firstName}px`, color: colors.hex, textShadow: "1px 1px 2px rgba(0,0,0,0.15)" }}>
           {c.firstName}
         </div>
-        <div className="text-gray-800 text-center font-bold" style={{ fontSize: "20px" }}>
+        <div className="text-gray-800 text-center font-bold" style={{ fontSize: `${sizes.lastName}px` }}>
           {c.lastName}
         </div>
         <div className="w-full mt-1 space-y-0.5 text-center">
           <div>
-            <span className="font-bold" style={{ color: colors.hex, fontSize: "17px" }}>{c.smallGroup || "—"}</span>
+            <span className="font-bold" style={{ color: colors.hex, fontSize: `${sizes.smallGroup}px` }}>{c.smallGroup || "—"}</span>
           </div>
           <div>
-            <span className="font-semibold text-slate-500" style={{ fontSize: "12px" }}>{c.largeGroup || "—"}</span>
+            <span className="font-semibold text-slate-500" style={{ fontSize: `${sizes.largeGroup}px` }}>{c.largeGroup || "—"}</span>
           </div>
-          <div>
+          <div style={{ fontSize: `${sizes.info}px` }}>
             <span className="text-slate-400 font-semibold">Discussion Meeting Location: </span>
             <span className="font-bold text-slate-800">{c.meetingLocation || "—"}</span>
           </div>
-          <div>
+          <div style={{ fontSize: `${sizes.info}px` }}>
             <span className="text-slate-400 font-semibold">Sleeping Cabin: </span>
             <span className="font-bold text-slate-800">{c.cabinName || "—"}</span>
           </div>
@@ -64,14 +66,14 @@ function BadgesContent() {
   const [groupFilter, setGroupFilter] = useState("");
   const [search, setSearch] = useState("");
   const [logo, setLogo] = useState<string | null>(null);
-  const [firstNameSize, setFirstNameSize] = useState(28);
+  const [sizes, setSizes] = useState({ firstName: 28, lastName: 20, smallGroup: 17, largeGroup: 14, info: 15 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const saved = localStorage.getItem("badge-logo");
     if (saved) setLogo(saved);
-    const savedSize = localStorage.getItem("badge-font-size");
-    if (savedSize) setFirstNameSize(Number(savedSize));
+    const savedSizes = localStorage.getItem("badge-sizes");
+    if (savedSizes) setSizes(JSON.parse(savedSizes));
   }, []);
 
   const fetchCampers = useCallback(async () => {
@@ -126,9 +128,12 @@ function BadgesContent() {
     localStorage.removeItem("badge-logo");
   };
 
-  const handleFontSizeChange = (size: number) => {
-    setFirstNameSize(size);
-    localStorage.setItem("badge-font-size", String(size));
+  const updateSize = (key: keyof typeof sizes, val: number) => {
+    setSizes(prev => {
+      const next = { ...prev, [key]: val };
+      localStorage.setItem("badge-sizes", JSON.stringify(next));
+      return next;
+    });
   };
 
   const filtered = campers.filter(c => {
@@ -172,7 +177,7 @@ function BadgesContent() {
     const selectedCampers = campers.filter(c => selected.has(c.id));
     sessionStorage.setItem("badge-campers", JSON.stringify(selectedCampers));
     sessionStorage.setItem("badge-logo", logo || "");
-    sessionStorage.setItem("badge-font-size", String(firstNameSize));
+    sessionStorage.setItem("badge-sizes", JSON.stringify(sizes));
     window.open("/badges/print", "_blank");
   };
 
@@ -201,22 +206,30 @@ function BadgesContent() {
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1">
-                First Name Size: {firstNameSize}px
-              </label>
-              <input
-                type="range" min={18} max={42} value={firstNameSize}
-                onChange={e => handleFontSizeChange(Number(e.target.value))}
-                className="w-full"
-              />
-            </div>
+            {([
+              ["firstName", "First Name", 18, 48],
+              ["lastName", "Last Name", 12, 30],
+              ["smallGroup", "Small Group", 10, 24],
+              ["largeGroup", "Large Group", 8, 20],
+              ["info", "Location/Cabin", 10, 22],
+            ] as const).map(([key, label, min, max]) => (
+              <div key={key}>
+                <label className="block text-xs font-medium text-slate-500">
+                  {label}: {sizes[key]}px
+                </label>
+                <input
+                  type="range" min={min} max={max} value={sizes[key]}
+                  onChange={e => updateSize(key, Number(e.target.value))}
+                  className="w-full h-1.5"
+                />
+              </div>
+            ))}
           </div>
 
           {/* Live Preview */}
           <div className="flex-shrink-0">
             <p className="text-xs text-slate-500 mb-1">Preview (actual size)</p>
-            <BadgePreview camper={previewCamper} logo={logo} firstNameSize={firstNameSize} />
+            <BadgePreview camper={previewCamper} logo={logo} sizes={sizes} />
           </div>
         </div>
       </div>

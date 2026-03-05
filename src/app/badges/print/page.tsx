@@ -13,7 +13,9 @@ interface Camper {
   meetingLocation?: string | null;
 }
 
-function Badge({ camper, logo, firstNameSize }: { camper: Camper; logo: string | null; firstNameSize: number }) {
+interface Sizes { firstName: number; lastName: number; smallGroup: number; largeGroup: number; info: number; }
+
+function Badge({ camper, logo, sizes }: { camper: Camper; logo: string | null; sizes: Sizes }) {
   const colors = BIOME_COLORS[camper.largeGroup || ""] || BIOME_COLORS.Arctic;
 
   return (
@@ -37,24 +39,24 @@ function Badge({ camper, logo, firstNameSize }: { camper: Camper; logo: string |
       {logo && (
         <img src={logo} alt="" style={{ maxHeight: "0.55in", maxWidth: "1.4in", objectFit: "contain" }} />
       )}
-      <div style={{ fontSize: `${firstNameSize}px`, fontWeight: 800, color: colors.hex, lineHeight: 1.1, textAlign: "center" }}>
+      <div style={{ fontSize: `${sizes.firstName}px`, fontWeight: 800, color: colors.hex, lineHeight: 1.1, textAlign: "center", textShadow: "1px 1px 2px rgba(0,0,0,0.15)" }}>
         {camper.firstName}
       </div>
-      <div style={{ fontSize: "20px", fontWeight: 700, color: "#1e293b", textAlign: "center" }}>
+      <div style={{ fontSize: `${sizes.lastName}px`, fontWeight: 700, color: "#1e293b", textAlign: "center" }}>
         {camper.lastName}
       </div>
       <div style={{ marginTop: "4px", textAlign: "center", lineHeight: 1.7 }}>
-        <div style={{ fontSize: "17px" }}>
+        <div style={{ fontSize: `${sizes.smallGroup}px` }}>
           <span style={{ fontWeight: 700, color: colors.hex }}>{camper.smallGroup || "—"}</span>
         </div>
-        <div style={{ fontSize: "12px" }}>
+        <div style={{ fontSize: `${sizes.largeGroup}px` }}>
           <span style={{ fontWeight: 600, color: "#64748b" }}>{camper.largeGroup || "—"}</span>
         </div>
-        <div style={{ fontSize: "15px" }}>
+        <div style={{ fontSize: `${sizes.info}px` }}>
           <span style={{ color: "#94a3b8", fontWeight: 600 }}>Discussion Meeting Location: </span>
           <span style={{ fontWeight: 700, color: "#1e293b" }}>{camper.meetingLocation || "—"}</span>
         </div>
-        <div style={{ fontSize: "15px" }}>
+        <div style={{ fontSize: `${sizes.info}px` }}>
           <span style={{ color: "#94a3b8", fontWeight: 600 }}>Sleeping Cabin: </span>
           <span style={{ fontWeight: 700, color: "#1e293b" }}>{camper.cabinName || "—"}</span>
         </div>
@@ -66,17 +68,17 @@ function Badge({ camper, logo, firstNameSize }: { camper: Camper; logo: string |
 export default function PrintBadgesPage() {
   const [campers, setCampers] = useState<Camper[]>([]);
   const [logo, setLogo] = useState<string | null>(null);
-  const [firstNameSize, setFirstNameSize] = useState(28);
+  const [sizes, setSizes] = useState<Sizes>({ firstName: 28, lastName: 20, smallGroup: 17, largeGroup: 14, info: 15 });
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const data = sessionStorage.getItem("badge-campers");
     const savedLogo = sessionStorage.getItem("badge-logo");
-    const savedSize = sessionStorage.getItem("badge-font-size");
+    const savedSizes = sessionStorage.getItem("badge-sizes");
 
     if (data) setCampers(JSON.parse(data));
     if (savedLogo) setLogo(savedLogo);
-    if (savedSize) setFirstNameSize(Number(savedSize));
+    if (savedSizes) setSizes(JSON.parse(savedSizes));
     setReady(true);
   }, []);
 
@@ -135,7 +137,7 @@ export default function PrintBadgesPage() {
           }}
         >
           {page.map((camper) => (
-            <Badge key={camper.id} camper={camper} logo={logo} firstNameSize={firstNameSize} />
+            <Badge key={camper.id} camper={camper} logo={logo} sizes={sizes} />
           ))}
         </div>
       ))}
