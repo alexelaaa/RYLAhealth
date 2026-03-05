@@ -28,6 +28,7 @@
     "react-dom": "^18",
     "react-leaflet": "^4.2.1",
     "uuid": "^13.0.0",
+    "web-push": "^3.6.7",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
@@ -38,6 +39,7 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/uuid": "^10.0.0",
+    "@types/web-push": "^3.6.4",
     "drizzle-kit": "^0.31.9",
     "eslint": "^8",
     "eslint-config-next": "14.2.35",

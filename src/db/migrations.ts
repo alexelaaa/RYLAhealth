@@ -268,4 +268,16 @@ export function runMigrations(db: Database.Database) {
   } catch {
     // Already migrated
   }
+
+  // Migration 18: Push subscriptions table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      endpoint TEXT NOT NULL UNIQUE,
+      subscription_json TEXT NOT NULL,
+      user_label TEXT NOT NULL,
+      role TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    )
+  `);
 }
