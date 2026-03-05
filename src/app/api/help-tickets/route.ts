@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
         `INSERT INTO help_tickets (cabin, dgl_name, category, description, urgency, status, created_at)
          VALUES (?, ?, ?, ?, ?, 'open', ?)`
       )
-      .run(cabin || "", category, description.trim(), urgency || "normal", now);
+      .run(cabin || "", dglName, category, description.trim(), urgency || "normal", now);
 
     const ticketId = Number(result.lastInsertRowid);
 
