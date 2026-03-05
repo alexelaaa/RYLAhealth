@@ -167,6 +167,7 @@ function BadgesContent() {
   const [sizes, setSizes] = useState({ firstName: 28, lastName: 20, smallGroup: 17, largeGroup: 14, info: 15, logoHeight: 55 });
   const [loading, setLoading] = useState(true);
   const [scheduleCount, setScheduleCount] = useState(6);
+  const [scheduleDay, setScheduleDay] = useState<"all" | "friday" | "saturday" | "sunday" | "activities">("all");
   const [backRole, setBackRole] = useState<"camper" | "dgl" | "staff">("camper");
 
   useEffect(() => {
@@ -349,7 +350,7 @@ function BadgesContent() {
 
   const openPrint = () => {
     if (badgeType === "schedule") {
-      sessionStorage.setItem("badge-campers", JSON.stringify([{ count: scheduleCount }]));
+      sessionStorage.setItem("badge-campers", JSON.stringify([{ count: scheduleCount, day: scheduleDay }]));
       sessionStorage.setItem("badge-type", "schedule");
       sessionStorage.setItem("badge-logo", "");
       sessionStorage.setItem("badge-sizes", JSON.stringify(sizes));
@@ -540,22 +541,51 @@ function BadgesContent() {
           <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-4">
             <h2 className="font-semibold text-slate-700">Schedule Cards</h2>
             <p className="text-sm text-slate-500">
-              Each set prints 4 cards: Friday, Saturday, Sunday, and Activity Rotations (with locations).
+              Print one day at a time for double-sided printing, or all days at once. Cards are sideways for maximum detail.
             </p>
+
+            {/* Day Picker */}
+            <div>
+              <label className="block text-sm font-medium text-slate-600 mb-1">Which cards to print</label>
+              <div className="flex rounded-lg border border-slate-300 overflow-hidden">
+                {([
+                  ["all", "All"],
+                  ["friday", "Fri"],
+                  ["saturday", "Sat"],
+                  ["sunday", "Sun"],
+                  ["activities", "Activities"],
+                ] as const).map(([key, label]) => (
+                  <button
+                    key={key}
+                    onClick={() => setScheduleDay(key)}
+                    className={`flex-1 py-1.5 text-xs font-medium transition-colors ${scheduleDay === key ? "bg-blue-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1">
-                Number of sets: {scheduleCount}
+                Number of copies: {scheduleCount}
               </label>
               <input
-                type="range" min={1} max={30} value={scheduleCount}
+                type="range" min={1} max={60} value={scheduleCount}
                 onChange={e => setScheduleCount(Number(e.target.value))}
                 className="w-full h-1.5"
               />
-              <div className="flex justify-between text-xs text-slate-400 mt-1">
-                <span>1</span>
-                <span>{scheduleCount * 4} cards on {Math.ceil((scheduleCount * 4) / 6)} page{Math.ceil((scheduleCount * 4) / 6) !== 1 ? "s" : ""}</span>
-                <span>30</span>
-              </div>
+              {(() => {
+                const cardsPerCopy = scheduleDay === "all" ? 4 : 1;
+                const totalCards = scheduleCount * cardsPerCopy;
+                return (
+                  <div className="flex justify-between text-xs text-slate-400 mt-1">
+                    <span>1</span>
+                    <span>{totalCards} cards on {Math.ceil(totalCards / 6)} page{Math.ceil(totalCards / 6) !== 1 ? "s" : ""}</span>
+                    <span>60</span>
+                  </div>
+                );
+              })()}
             </div>
           </div>
 
@@ -564,7 +594,7 @@ function BadgesContent() {
             onClick={openPrint}
             className="w-full py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
           >
-            Print {scheduleCount} Set{scheduleCount !== 1 ? "s" : ""} ({scheduleCount * 4} cards)
+            Print {scheduleCount} {scheduleDay === "all" ? `Set${scheduleCount !== 1 ? "s" : ""}` : `${scheduleDay.charAt(0).toUpperCase() + scheduleDay.slice(1)} Card${scheduleCount !== 1 ? "s" : ""}`}
           </button>
         </>
       ) : (

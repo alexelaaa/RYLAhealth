@@ -180,23 +180,23 @@ function BadgeBack({ showPacketQR, showAppQR }: { showPacketQR: boolean; showApp
       style={{
         width: "4in", height: "3in", overflow: "hidden", backgroundColor: "white",
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-        padding: "0.2in", boxSizing: "border-box", pageBreakInside: "avoid", gap: "8px",
+        boxSizing: "border-box", pageBreakInside: "avoid",
       }}
     >
-      <div style={{ fontWeight: 900, fontSize: "16px", letterSpacing: "0.1em", color: "#1e293b" }}>
+      <div style={{ fontWeight: 900, fontSize: "20px", letterSpacing: "0.12em", color: "#1e293b", marginBottom: bothQRs ? "6px" : "10px" }}>
         RYLA 2026
       </div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: bothQRs ? "24px" : "0" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: bothQRs ? "32px" : "0" }}>
         {showPacketQR && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-            <QRCodeSVG value={PACKET_QR_URL} size={bothQRs ? 120 : 160} level="M" />
-            <div style={{ fontSize: "10px", fontWeight: 700, color: "#475569" }}>RYLA Packet</div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+            <QRCodeSVG value={PACKET_QR_URL} size={bothQRs ? 160 : 200} level="M" />
+            <div style={{ fontSize: "13px", fontWeight: 700, color: "#475569" }}>RYLA Packet</div>
           </div>
         )}
         {showAppQR && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
-            <QRCodeSVG value={APP_QR_URL} size={bothQRs ? 120 : 160} level="M" />
-            <div style={{ fontSize: "10px", fontWeight: 700, color: "#475569" }}>Camp App</div>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "6px" }}>
+            <QRCodeSVG value={APP_QR_URL} size={bothQRs ? 160 : 200} level="M" />
+            <div style={{ fontSize: "13px", fontWeight: 700, color: "#475569" }}>Camp App</div>
           </div>
         )}
       </div>
@@ -205,33 +205,40 @@ function BadgeBack({ showPacketQR, showAppQR }: { showPacketQR: boolean; showApp
 }
 
 function DayScheduleBadge({ title, events }: { title: string; events: DetailedEvent[] }) {
-  // Dynamically size font based on event count
-  const fontSize = events.length > 14 ? "7.5px" : events.length > 11 ? "8.5px" : "9.5px";
-  const lineHeight = events.length > 14 ? 1.35 : events.length > 11 ? 1.4 : 1.5;
-  const timeWidth = events.length > 14 ? "62px" : "70px";
+  // Rotate content 90° so the 4in side becomes height — more room for rows
+  const fontSize = events.length > 14 ? "8.5px" : events.length > 11 ? "9.5px" : "10.5px";
+  const lineHeight = events.length > 14 ? 1.45 : events.length > 11 ? 1.55 : 1.65;
 
   return (
     <div
       className="badge-cell"
       style={{
         width: "4in", height: "3in", overflow: "hidden", backgroundColor: "white",
-        display: "flex", flexDirection: "column",
-        padding: "0.1in 0.12in", boxSizing: "border-box", pageBreakInside: "avoid",
+        boxSizing: "border-box", pageBreakInside: "avoid",
+        display: "flex", alignItems: "center", justifyContent: "center",
       }}
     >
-      <div style={{ textAlign: "center", fontWeight: 900, fontSize: "11px", letterSpacing: "0.1em", marginBottom: "3px", borderBottom: "1.5px solid #1e293b", paddingBottom: "2px" }}>
-        RYLA 2026 — {title}
-      </div>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-        {events.map((event, i) => (
-          <div key={i} style={{ display: "flex", fontSize, lineHeight, gap: "3px" }}>
-            <span style={{ width: timeWidth, fontWeight: 700, flexShrink: 0, color: "#334155" }}>{event.time}</span>
-            <span style={{ color: "#1e293b", fontWeight: event.bold ? 700 : 400, flex: 1 }}>
-              {event.title}
-              {event.location && <span style={{ color: "#64748b", fontWeight: 400 }}> — {event.location}</span>}
-            </span>
-          </div>
-        ))}
+      {/* Rotated inner container: 3in wide becomes the width, 4in tall becomes the height */}
+      <div style={{
+        width: "2.8in", height: "3.8in",
+        transform: "rotate(90deg)",
+        display: "flex", flexDirection: "column",
+        padding: "0.05in 0",
+      }}>
+        <div style={{ textAlign: "center", fontWeight: 900, fontSize: "12px", letterSpacing: "0.1em", marginBottom: "3px", borderBottom: "1.5px solid #1e293b", paddingBottom: "2px" }}>
+          RYLA 2026 — {title}
+        </div>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          {events.map((event, i) => (
+            <div key={i} style={{ display: "flex", fontSize, lineHeight, gap: "3px" }}>
+              <span style={{ width: "72px", fontWeight: 700, flexShrink: 0, color: "#334155" }}>{event.time}</span>
+              <span style={{ color: "#1e293b", fontWeight: event.bold ? 700 : 400, flex: 1 }}>
+                {event.title}
+                {event.location && <span style={{ color: "#64748b", fontWeight: 400 }}> — {event.location}</span>}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -243,32 +250,40 @@ function ActivityBadge() {
       className="badge-cell"
       style={{
         width: "4in", height: "3in", overflow: "hidden", backgroundColor: "white",
-        display: "flex", flexDirection: "column",
-        padding: "0.1in 0.1in", boxSizing: "border-box", pageBreakInside: "avoid",
+        boxSizing: "border-box", pageBreakInside: "avoid",
+        display: "flex", alignItems: "center", justifyContent: "center",
       }}
     >
-      <div style={{ textAlign: "center", fontWeight: 900, fontSize: "11px", letterSpacing: "0.08em", marginBottom: "4px", borderBottom: "1.5px solid #1e293b", paddingBottom: "2px" }}>
-        ACTIVITY ROTATIONS
-      </div>
-      {/* Header row */}
-      <div style={{ display: "grid", gridTemplateColumns: "62px repeat(5, 1fr)", fontSize: "7px", fontWeight: 800, color: "#334155", marginBottom: "2px", textAlign: "center" }}>
-        <div style={{ textAlign: "left" }}>Group</div>
-        {[1, 2, 3, 4, 5].map(n => (
-          <div key={n}>Act {n}</div>
-        ))}
-      </div>
-      {/* Group rows */}
-      {Object.entries(ACTIVITY_ROTATIONS).map(([group, acts]) => (
-        <div key={group} style={{ display: "grid", gridTemplateColumns: "62px repeat(5, 1fr)", fontSize: "6.5px", lineHeight: 1.3, borderTop: "0.5px solid #e2e8f0", paddingTop: "2px", paddingBottom: "2px" }}>
-          <div style={{ fontWeight: 800, color: "#1e293b", display: "flex", alignItems: "center" }}>{group}</div>
-          {acts.map((a, i) => (
-            <div key={i} style={{ textAlign: "center" }}>
-              <div style={{ fontWeight: 700, color: "#1e293b" }}>{ACTIVITY_FULL_NAMES[a] || a}</div>
-              <div style={{ color: "#64748b", fontSize: "5.5px" }}>({ACTIVITY_LOCATIONS[a] || ""})</div>
-            </div>
+      {/* Rotated inner container */}
+      <div style={{
+        width: "2.8in", height: "3.8in",
+        transform: "rotate(90deg)",
+        display: "flex", flexDirection: "column",
+        padding: "0.05in 0",
+      }}>
+        <div style={{ textAlign: "center", fontWeight: 900, fontSize: "12px", letterSpacing: "0.08em", marginBottom: "6px", borderBottom: "1.5px solid #1e293b", paddingBottom: "3px" }}>
+          ACTIVITY ROTATIONS
+        </div>
+        {/* Header row */}
+        <div style={{ display: "grid", gridTemplateColumns: "68px repeat(5, 1fr)", fontSize: "8px", fontWeight: 800, color: "#334155", marginBottom: "3px", textAlign: "center" }}>
+          <div style={{ textAlign: "left" }}>Group</div>
+          {[1, 2, 3, 4, 5].map(n => (
+            <div key={n}>Act {n}</div>
           ))}
         </div>
-      ))}
+        {/* Group rows */}
+        {Object.entries(ACTIVITY_ROTATIONS).map(([group, acts]) => (
+          <div key={group} style={{ display: "grid", gridTemplateColumns: "68px repeat(5, 1fr)", fontSize: "7.5px", lineHeight: 1.3, borderTop: "0.5px solid #e2e8f0", paddingTop: "4px", paddingBottom: "4px" }}>
+            <div style={{ fontWeight: 800, color: "#1e293b", display: "flex", alignItems: "center" }}>{group}</div>
+            {acts.map((a, i) => (
+              <div key={i} style={{ textAlign: "center" }}>
+                <div style={{ fontWeight: 700, color: "#1e293b" }}>{ACTIVITY_FULL_NAMES[a] || a}</div>
+                <div style={{ color: "#64748b", fontSize: "6.5px" }}>({ACTIVITY_LOCATIONS[a] || ""})</div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -376,25 +391,31 @@ export default function PrintBadgesPage() {
   }
 
   if (badgeType === "schedule") {
-    const sets = data.length > 0 ? (data[0] as { count?: number }).count || 1 : 1;
-    // Each set = 4 cards: Friday, Saturday, Sunday, Activities
-    // Build a flat list of card elements, then chunk into pages of 6
+    const count = data.length > 0 ? (data[0] as { count?: number }).count || 1 : 1;
+    const scheduleDay = (data.length > 0 ? (data[0] as { day?: string }).day : null) || "all";
+
+    // Build cards based on selected day
     const allCards: React.ReactNode[] = [];
-    for (let s = 0; s < sets; s++) {
-      allCards.push(<DayScheduleBadge key={`fri-${s}`} title="FRIDAY" events={FRIDAY_DETAILED} />);
-      allCards.push(<DayScheduleBadge key={`sat-${s}`} title="SATURDAY" events={SATURDAY_DETAILED} />);
-      allCards.push(<DayScheduleBadge key={`sun-${s}`} title="SUNDAY" events={SUNDAY_DETAILED} />);
-      allCards.push(<ActivityBadge key={`act-${s}`} />);
+    for (let s = 0; s < count; s++) {
+      if (scheduleDay === "all" || scheduleDay === "friday")
+        allCards.push(<DayScheduleBadge key={`fri-${s}`} title="FRIDAY" events={FRIDAY_DETAILED} />);
+      if (scheduleDay === "all" || scheduleDay === "saturday")
+        allCards.push(<DayScheduleBadge key={`sat-${s}`} title="SATURDAY" events={SATURDAY_DETAILED} />);
+      if (scheduleDay === "all" || scheduleDay === "sunday")
+        allCards.push(<DayScheduleBadge key={`sun-${s}`} title="SUNDAY" events={SUNDAY_DETAILED} />);
+      if (scheduleDay === "all" || scheduleDay === "activities")
+        allCards.push(<ActivityBadge key={`act-${s}`} />);
     }
     const totalCards = allCards.length;
     const pages: React.ReactNode[][] = [];
     for (let i = 0; i < allCards.length; i += 6) {
       pages.push(allCards.slice(i, i + 6));
     }
+    const dayLabel = scheduleDay === "all" ? "all days" : scheduleDay;
     return (
       <div className="print-badges">
         <ToolBar
-          label={`${sets} set${sets !== 1 ? "s" : ""} (${totalCards} cards) on ${pages.length} page${pages.length !== 1 ? "s" : ""}.`}
+          label={`${totalCards} ${dayLabel} card${totalCards !== 1 ? "s" : ""} on ${pages.length} page${pages.length !== 1 ? "s" : ""}.`}
           onDownloadPDF={downloadPDF}
         />
         <div ref={contentRef}>
