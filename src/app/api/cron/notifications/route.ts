@@ -120,10 +120,11 @@ export async function GET(request: NextRequest) {
 }
 
 async function handleCron(request: NextRequest) {
-  // Protect cron endpoint
+  // Protect cron endpoint (supports header or query param)
   if (CRON_SECRET) {
     const auth = request.headers.get("authorization");
-    if (auth !== `Bearer ${CRON_SECRET}`) {
+    const queryKey = request.nextUrl.searchParams.get("key");
+    if (auth !== `Bearer ${CRON_SECRET}` && queryKey !== CRON_SECRET) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
   }
