@@ -102,6 +102,7 @@ function DashboardContent() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [alertsData, setAlertsData] = useState<AlertsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [openTickets, setOpenTickets] = useState(0);
 
   const fetchData = useCallback(async (showLoading = false) => {
     if (showLoading) setLoading(true);
@@ -131,11 +132,23 @@ function DashboardContent() {
     }
   }, [campWeekend]);
 
+  const fetchTicketCount = useCallback(async () => {
+    if (session?.role !== "admin") return;
+    try {
+      const res = await fetch("/api/help-tickets?status=open");
+      if (res.ok) {
+        const data = await res.json();
+        setOpenTickets(Array.isArray(data) ? data.length : 0);
+      }
+    } catch { /* ignore */ }
+  }, [session?.role]);
+
   useEffect(() => {
     fetchData(true);
-    const interval = setInterval(() => fetchData(false), 30000);
+    fetchTicketCount();
+    const interval = setInterval(() => { fetchData(false); fetchTicketCount(); }, 30000);
     return () => clearInterval(interval);
-  }, [fetchData]);
+  }, [fetchData, fetchTicketCount]);
 
   return (
     <div className="p-4 space-y-6 pb-24">
@@ -146,6 +159,24 @@ function DashboardContent() {
       <NotificationToggle />
 
       <ScheduleNow />
+
+      {session?.role === "admin" && openTickets > 0 && (
+        <Link href="/admin/tickets" className="block">
+          <div className="bg-red-50 rounded-xl px-4 py-3 border border-red-200 flex items-center justify-between hover:bg-red-100 transition-colors">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span className="text-sm font-semibold text-red-700">
+                {openTickets} open help {openTickets === 1 ? "ticket" : "tickets"}
+              </span>
+            </div>
+            <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </Link>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
