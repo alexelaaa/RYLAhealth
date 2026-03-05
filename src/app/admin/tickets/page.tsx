@@ -92,8 +92,6 @@ function TicketsContent() {
     } catch { /* ignore */ }
   };
 
-  const openCount = tab === "open" ? tickets.length : 0;
-
   return (
     <div className="p-4 space-y-4 pb-24">
       <div className="flex items-center justify-between">
