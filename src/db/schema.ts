@@ -134,7 +134,7 @@ export const staffPins = sqliteTable("staff_pins", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   label: text("label").notNull().unique(),
   pinHash: text("pin_hash").notNull(),
-  role: text("role", { enum: ["nurse", "staff", "admin", "bussing"] }).notNull(),
+  role: text("role", { enum: ["nurse", "staff", "admin", "bussing", "dgl"] }).notNull(),
 });
 
 export const camperEdits = sqliteTable("camper_edits", {
@@ -188,6 +188,27 @@ export const busWaypoints = sqliteTable(
     index("idx_waypoints_camp_weekend").on(table.campWeekend),
     index("idx_waypoints_client_id").on(table.clientId),
     index("idx_waypoints_timestamp").on(table.timestamp),
+  ]
+);
+
+export const cabinCheckins = sqliteTable(
+  "cabin_checkins",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    camperId: integer("camper_id")
+      .notNull()
+      .references(() => campers.id),
+    night: text("night", { enum: ["friday", "saturday"] }).notNull(),
+    present: integer("present").notNull().default(0),
+    checkedBy: text("checked_by").notNull(),
+    campWeekend: text("camp_weekend").notNull(),
+    checkedAt: text("checked_at")
+      .notNull()
+      .$defaultFn(() => new Date().toISOString()),
+  },
+  (table) => [
+    index("idx_cabin_checkins_camper").on(table.camperId),
+    index("idx_cabin_checkins_weekend").on(table.campWeekend),
   ]
 );
 
@@ -253,3 +274,5 @@ export type BusWaypoint = typeof busWaypoints.$inferSelect;
 export type NewBusWaypoint = typeof busWaypoints.$inferInsert;
 export type CampStaff = typeof campStaff.$inferSelect;
 export type NewCampStaff = typeof campStaff.$inferInsert;
+export type CabinCheckin = typeof cabinCheckins.$inferSelect;
+export type NewCabinCheckin = typeof cabinCheckins.$inferInsert;

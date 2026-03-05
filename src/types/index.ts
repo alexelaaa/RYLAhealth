@@ -16,15 +16,19 @@ export type {
   NewCampStaff,
   SmallGroupInfo,
   NewSmallGroupInfo,
+  CabinCheckin,
+  NewCabinCheckin,
 } from "@/db/schema";
 
-export type UserRole = "nurse" | "staff" | "admin" | "bussing";
+export type UserRole = "nurse" | "staff" | "admin" | "bussing" | "dgl";
 
 export type SessionData = {
   isLoggedIn: boolean;
   role: UserRole;
   label: string;
   campWeekend?: string;
+  dglCabin?: string;
+  dglSmallGroup?: string;
 };
 
 export type MedicalLogType =

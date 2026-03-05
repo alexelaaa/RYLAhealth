@@ -150,7 +150,17 @@ export function runMigrations(db: Database.Database) {
     // Already migrated
   }
 
-  // Migration 12: Create small_group_info table
+  // Migration 12: Create app_settings key-value table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_by TEXT,
+      updated_at TEXT
+    )
+  `);
+
+  // Migration 13: Create small_group_info table
   db.exec(`
     CREATE TABLE IF NOT EXISTS small_group_info (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -169,4 +179,71 @@ export function runMigrations(db: Database.Database) {
       created_at TEXT NOT NULL
     )
   `);
+
+  // Migration 14: Create cabin_checkins table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS cabin_checkins (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      camper_id INTEGER NOT NULL REFERENCES campers(id),
+      night TEXT NOT NULL CHECK(night IN ('friday', 'saturday')),
+      present INTEGER NOT NULL DEFAULT 0,
+      checked_by TEXT NOT NULL,
+      camp_weekend TEXT NOT NULL,
+      checked_at TEXT NOT NULL
+    )
+  `);
+  db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_cabin_checkins_unique ON cabin_checkins(camper_id, night, camp_weekend)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_cabin_checkins_camper ON cabin_checkins(camper_id)`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_cabin_checkins_weekend ON cabin_checkins(camp_weekend)`);
+
+  // Migration 15: Normalize spacing in small_group_info (add space between number and letter)
+  try {
+    // Fix dgl_cabin: "Cabin 17C" → "Cabin 17 C"
+    const cabinRows = db.prepare(
+      `SELECT id, dgl_cabin FROM small_group_info WHERE dgl_cabin IS NOT NULL`
+    ).all() as { id: number; dgl_cabin: string }[];
+    const updateCabin = db.prepare(`UPDATE small_group_info SET dgl_cabin = ? WHERE id = ?`);
+    for (const row of cabinRows) {
+      const fixed = row.dgl_cabin.replace(/(\d)([A-Za-z])/g, "$1 $2");
+      if (fixed !== row.dgl_cabin) {
+        updateCabin.run(fixed, row.id);
+      }
+    }
+    // Fix meeting_location: remove trailing periods, normalize spacing
+    const locRows = db.prepare(
+      `SELECT id, meeting_location FROM small_group_info WHERE meeting_location IS NOT NULL`
+    ).all() as { id: number; meeting_location: string }[];
+    const updateLoc = db.prepare(`UPDATE small_group_info SET meeting_location = ? WHERE id = ?`);
+    for (const row of locRows) {
+      let fixed = row.meeting_location.replace(/\.\s*$/, "");
+      fixed = fixed.replace(/(\d)([A-Za-z])/g, "$1 $2");
+      if (fixed !== row.meeting_location) {
+        updateLoc.run(fixed, row.id);
+      }
+    }
+  } catch {
+    // Table may not exist yet
+  }
+
+  // Migration 16: Rebuild staff_pins to allow 'dgl' role
+  try {
+    const pinTableDef = db.prepare(
+      `SELECT sql FROM sqlite_master WHERE type='table' AND name='staff_pins'`
+    ).get() as { sql: string } | undefined;
+    if (pinTableDef?.sql && !pinTableDef.sql.includes("'dgl'")) {
+      db.exec(`
+        CREATE TABLE staff_pins_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          label TEXT NOT NULL UNIQUE,
+          pin_hash TEXT NOT NULL,
+          role TEXT NOT NULL CHECK(role IN ('nurse', 'staff', 'admin', 'bussing', 'dgl'))
+        )
+      `);
+      db.exec(`INSERT INTO staff_pins_new SELECT * FROM staff_pins`);
+      db.exec(`DROP TABLE staff_pins`);
+      db.exec(`ALTER TABLE staff_pins_new RENAME TO staff_pins`);
+    }
+  } catch {
+    // Already migrated
+  }
 }

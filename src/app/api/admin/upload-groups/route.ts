@@ -11,6 +11,20 @@ function str(val: string | undefined): string {
   return String(val).trim();
 }
 
+/** Add space between number and letter in cabin/location names: "82A" → "82 A", "Cabin 17C" → "Cabin 17 C" */
+function normalizeSpacing(val: string): string {
+  return val.replace(/(\d)([A-Za-z])/g, "$1 $2");
+}
+
+/** Clean up meeting location names */
+function cleanMeetingLocation(val: string): string {
+  // Remove trailing period from names like "Schlenz Hall."
+  let cleaned = val.replace(/\.\s*$/, "");
+  // Normalize number-letter spacing
+  cleaned = normalizeSpacing(cleaned);
+  return cleaned;
+}
+
 export async function POST(request: Request) {
   const session = await getIronSession<SessionData>(cookies(), sessionOptions);
 
@@ -74,10 +88,10 @@ export async function POST(request: Request) {
         groupNumber,
         str(row["Small Group"]),
         str(row["Large Group"]) || null,
-        str(row["Meeting Location"]) || null,
+        str(row["Meeting Location"]) ? cleanMeetingLocation(str(row["Meeting Location"])) : null,
         str(row["First"]) || null,
         str(row["Last"]) || null,
-        str(row["DGL Sleeping"]) || null,
+        str(row["DGL Sleeping"]) ? normalizeSpacing(str(row["DGL Sleeping"])) : null,
         str(row["DGL Gender"]) || null,
         parseInt(str(row["Count"])) || null,
         parseInt(str(row["Male"])) || null,

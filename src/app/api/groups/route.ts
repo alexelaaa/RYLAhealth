@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, sqlite } from "@/db";
 import { campers } from "@/db/schema";
 import { eq, and, isNotNull, sql } from "drizzle-orm";
+import { normalizeCabinPrefix, camperMatchesCabin } from "@/lib/cabin-utils";
 
 interface SmallGroupInfoRow {
   small_group: string;
@@ -202,14 +203,7 @@ function handleOverview(
   return NextResponse.json({ largeGroups });
 }
 
-/**
- * Normalize a DGL cabin name so it can be prefix-matched against student cabins.
- * e.g. "Cabin 16C" → "Cabin 16 C", "Cabin 18A" → "Cabin 18 A"
- */
-function normalizeCabinPrefix(dglCabin: string): string {
-  // Insert space before a trailing letter if missing: "Cabin 16C" → "Cabin 16 C"
-  return dglCabin.replace(/(\d)([A-Za-z])$/, "$1 $2");
-}
+// normalizeCabinPrefix and camperMatchesCabin imported from @/lib/cabin-utils
 
 function handleDGLCabins(weekend: string | null) {
   // Load all DGL info
@@ -248,20 +242,9 @@ function handleDGLCabins(weekend: string | null) {
       ? `${dgl.dgl_first_name} ${dgl.dgl_last_name}`
       : null;
 
-    const normalizedPrefix = normalizeCabinPrefix(dgl.dgl_cabin!);
-
-    // Match students: exact match OR cabin starts with normalized prefix + digit
+    // Match students using shared cabin matching utility
     const students = allCampers
-      .filter((c) => {
-        const cn = c.cabinName!;
-        if (cn === dgl.dgl_cabin || cn === normalizedPrefix) return true;
-        // Sub-cabin match: "Cabin 16 A" matches "Cabin 16 A1", "Cabin 16 A2"
-        if (cn.startsWith(normalizedPrefix) && cn.length === normalizedPrefix.length + 1) {
-          const suffix = cn[cn.length - 1];
-          return suffix >= "0" && suffix <= "9";
-        }
-        return false;
-      })
+      .filter((c) => camperMatchesCabin(c.cabinName!, dgl.dgl_cabin!))
       .map((c) => ({
         id: c.id,
         firstName: c.firstName,

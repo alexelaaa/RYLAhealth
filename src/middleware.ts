@@ -51,6 +51,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // DGL role restriction: only cabin-checkin and API routes
+  if (session.role === "dgl") {
+    if (!pathname.startsWith("/cabin-checkin") && !pathname.startsWith("/api/")) {
+      return NextResponse.redirect(new URL("/cabin-checkin", request.url));
+    }
+  }
+
   // Admin-only routes
   if (pathname.startsWith("/admin") && session.role !== "admin") {
     return NextResponse.redirect(new URL("/dashboard", request.url));

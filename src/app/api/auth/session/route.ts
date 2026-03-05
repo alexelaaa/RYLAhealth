@@ -19,5 +19,7 @@ export async function GET() {
     role: session.role,
     label: session.label,
     campWeekend: session.campWeekend || "",
+    dglCabin: session.dglCabin || "",
+    dglSmallGroup: session.dglSmallGroup || "",
   });
 }

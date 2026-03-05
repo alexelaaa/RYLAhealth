@@ -101,6 +101,30 @@ const adminTools = [
     ),
   },
   {
+    href: "/admin/cabin-checkins",
+    title: "Cabin Check-Ins",
+    description: "DGL nightly attendance dashboard",
+    color: "bg-emerald-50 text-emerald-700 border-emerald-100 hover:border-emerald-300",
+    iconColor: "text-emerald-500",
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1m-2 0h2" />
+      </svg>
+    ),
+  },
+  {
+    href: "/admin/dgl-pins",
+    title: "DGL PINs",
+    description: "Generate and manage DGL login PINs",
+    color: "bg-orange-50 text-orange-700 border-orange-100 hover:border-orange-300",
+    iconColor: "text-orange-500",
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+      </svg>
+    ),
+  },
+  {
     href: "/campers/new",
     title: "Add Camper",
     description: "Manually add a new camper",

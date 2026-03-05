@@ -51,9 +51,11 @@ export default function LoginPage() {
       setSuccess({ role: data.role, label: data.label });
       const dest = isBusRider(data.label)
         ? "/bus-rider"
-        : data.role === "bussing"
-          ? "/bus-tracker"
-          : "/dashboard";
+        : data.role === "dgl"
+          ? "/cabin-checkin"
+          : data.role === "bussing"
+            ? "/bus-tracker"
+            : "/dashboard";
       setTimeout(() => router.push(dest), 800);
     } catch {
       setError("Connection error. Try again.");
