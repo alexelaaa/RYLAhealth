@@ -116,6 +116,8 @@ function CamperDetailContent() {
   const [loading, setLoading] = useState(true);
   const [togglingOverride, setTogglingOverride] = useState(false);
   const [savingSchedule, setSavingSchedule] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetch(`/api/campers/${id}`)
@@ -248,14 +250,57 @@ function CamperDetailContent() {
           </div>
         </div>
         {isAdmin && (
-          <Link
-            href={`/campers/${id}/edit`}
-            className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg font-medium hover:bg-blue-700 transition-colors"
-          >
-            Edit
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href={`/campers/${id}/edit`}
+              className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            >
+              Edit
+            </Link>
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="px-3 py-1.5 bg-red-100 text-red-700 text-xs rounded-lg font-medium hover:bg-red-200 transition-colors"
+            >
+              Delete
+            </button>
+          </div>
         )}
       </div>
+
+      {/* Delete confirmation */}
+      {showDeleteConfirm && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
+          <p className="text-sm font-medium text-red-800">
+            Delete {camper.firstName} {camper.lastName}? This will also remove all their medical logs, incidents, check-ins, and edit history.
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowDeleteConfirm(false)}
+              className="flex-1 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={async () => {
+                setDeleting(true);
+                try {
+                  const res = await fetch(`/api/campers/${id}`, { method: "DELETE" });
+                  if (res.ok) {
+                    router.push("/campers");
+                  }
+                } catch {
+                  setDeleting(false);
+                  setShowDeleteConfirm(false);
+                }
+              }}
+              disabled={deleting}
+              className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold disabled:opacity-40"
+            >
+              {deleting ? "Deleting..." : "Yes, Delete"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Quick actions */}
       <div className="flex gap-2">

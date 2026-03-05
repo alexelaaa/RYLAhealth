@@ -24,6 +24,7 @@ function CampersContent() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [role, setRole] = useState("");
+  const [unassigned, setUnassigned] = useState("");
 
   const debouncedSearch = useDebounce(search, 300);
 
@@ -33,6 +34,7 @@ function CampersContent() {
     if (debouncedSearch) params.set("search", debouncedSearch);
     if (campWeekend) params.set("weekend", campWeekend);
     if (role) params.set("role", role);
+    if (unassigned) params.set("unassigned", unassigned);
 
     try {
       const res = await fetch(`/api/campers?${params}`);
@@ -44,7 +46,7 @@ function CampersContent() {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, campWeekend, role]);
+  }, [debouncedSearch, campWeekend, role, unassigned]);
 
   useEffect(() => {
     fetchCampers();
@@ -60,6 +62,28 @@ function CampersContent() {
       />
 
       <div className="px-4 pb-4">
+        {/* Unassigned filter chips */}
+        <div className="flex gap-2 mb-3 overflow-x-auto">
+          {[
+            { value: "", label: "All" },
+            { value: "group", label: "No Group" },
+            { value: "cabin", label: "No Cabin" },
+            { value: "any", label: "Any Unassigned" },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setUnassigned(opt.value)}
+              className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
+                unassigned === opt.value
+                  ? "bg-blue-600 text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm text-slate-500">
             {loading ? "Loading..." : `${total} camper${total !== 1 ? "s" : ""}`}

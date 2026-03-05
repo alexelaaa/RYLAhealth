@@ -257,3 +257,45 @@ export async function PATCH(
 
   return NextResponse.json({ camper: updated });
 }
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: { id: string } }
+) {
+  const session = await getIronSession<SessionData>(
+    cookies(),
+    sessionOptions
+  );
+
+  if (!session.isLoggedIn || session.role !== "admin") {
+    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  }
+
+  const id = parseInt(params.id);
+  if (isNaN(id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
+
+  const camper = db
+    .select()
+    .from(campers)
+    .where(eq(campers.id, id))
+    .get();
+
+  if (!camper) {
+    return NextResponse.json({ error: "Camper not found" }, { status: 404 });
+  }
+
+  // Delete related records first, then the camper
+  const { sqlite } = await import("@/db");
+  sqlite.prepare("DELETE FROM check_ins WHERE camper_id = ?").run(id);
+  sqlite.prepare("DELETE FROM medical_logs WHERE camper_id = ?").run(id);
+  sqlite.prepare("DELETE FROM behavioral_incidents WHERE camper_id = ?").run(id);
+  sqlite.prepare("DELETE FROM camper_edits WHERE camper_id = ?").run(id);
+  sqlite.prepare("DELETE FROM campers WHERE id = ?").run(id);
+
+  return NextResponse.json({
+    success: true,
+    deleted: `${camper.firstName} ${camper.lastName}`,
+  });
+}
