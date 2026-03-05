@@ -135,29 +135,37 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Admin access required" }, { status: 403 });
   }
 
-  const { id, status, note, assignedTo } = await request.json();
-  if (!id) {
-    return NextResponse.json({ error: "Ticket ID required" }, { status: 400 });
+  try {
+    const { id, status, note, assignedTo } = await request.json();
+    if (!id) {
+      return NextResponse.json({ error: "Ticket ID required" }, { status: 400 });
+    }
+
+    // Ensure assigned_to column exists
+    try { sqlite.exec("ALTER TABLE help_tickets ADD COLUMN assigned_to TEXT"); } catch { /* already exists */ }
+
+    const now = new Date().toISOString();
+    const resolvedBy = session.label || session.role;
+
+    if (assignedTo !== undefined) {
+      sqlite
+        .prepare("UPDATE help_tickets SET assigned_to = ? WHERE id = ?")
+        .run(assignedTo || null, id);
+    }
+
+    if (status === "resolved") {
+      sqlite
+        .prepare("UPDATE help_tickets SET status = 'resolved', resolved_by = ?, resolved_note = ?, resolved_at = ? WHERE id = ?")
+        .run(resolvedBy, note || null, now, id);
+    } else if (status === "open") {
+      sqlite
+        .prepare("UPDATE help_tickets SET status = 'open', resolved_by = NULL, resolved_note = NULL, resolved_at = NULL WHERE id = ?")
+        .run(id);
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const now = new Date().toISOString();
-  const resolvedBy = session.label || session.role;
-
-  if (assignedTo !== undefined) {
-    sqlite
-      .prepare("UPDATE help_tickets SET assigned_to = ? WHERE id = ?")
-      .run(assignedTo || null, id);
-  }
-
-  if (status === "resolved") {
-    sqlite
-      .prepare("UPDATE help_tickets SET status = 'resolved', resolved_by = ?, resolved_note = ?, resolved_at = ? WHERE id = ?")
-      .run(resolvedBy, note || null, now, id);
-  } else if (status === "open") {
-    sqlite
-      .prepare("UPDATE help_tickets SET status = 'open', resolved_by = NULL, resolved_note = NULL, resolved_at = NULL WHERE id = ?")
-      .run(id);
-  }
-
-  return NextResponse.json({ success: true });
 }
