@@ -23,16 +23,6 @@ export async function DELETE(
     return NextResponse.json({ error: "Invalid camper ID" }, { status: 400 });
   }
 
-  // Check if check-in is locked (non-admin users blocked)
-  if (session.role !== "admin") {
-    const lock = sqlite
-      .prepare("SELECT value FROM app_settings WHERE key = 'checkin_locked'")
-      .get() as { value: string } | undefined;
-    if (lock?.value === "true") {
-      return NextResponse.json({ error: "Check-in is locked" }, { status: 403 });
-    }
-  }
-
   // Get check-in record before deleting for audit trail
   const existing = sqlite
     .prepare("SELECT checked_in_at, checked_in_by, camp_arrived_at, camp_arrived_by FROM check_ins WHERE camper_id = ?")

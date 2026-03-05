@@ -45,15 +45,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Not logged in" }, { status: 401 });
   }
 
-  // Check if check-in is locked (non-admin users blocked)
-  if (session.role !== "admin") {
-    const lock = sqlite
-      .prepare("SELECT value FROM app_settings WHERE key = 'checkin_locked'")
-      .get() as { value: string } | undefined;
-    if (lock?.value === "true") {
-      return NextResponse.json({ error: "Check-in is locked" }, { status: 403 });
-    }
-  }
 
   const body = await request.json();
   const { camperId, notes } = body;
@@ -90,15 +81,6 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Not logged in" }, { status: 401 });
   }
 
-  // Check if check-in is locked (non-admin users blocked)
-  if (session.role !== "admin") {
-    const lock = sqlite
-      .prepare("SELECT value FROM app_settings WHERE key = 'checkin_locked'")
-      .get() as { value: string } | undefined;
-    if (lock?.value === "true") {
-      return NextResponse.json({ error: "Check-in is locked" }, { status: 403 });
-    }
-  }
 
   const body = await request.json();
   const { camperId } = body;
