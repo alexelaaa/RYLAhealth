@@ -110,6 +110,16 @@ function getBusEtas(): { busLabel: string; etaMin: number }[] {
 }
 
 export async function GET(request: NextRequest) {
+  try {
+    return await handleCron(request);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    const stack = err instanceof Error ? err.stack : undefined;
+    return NextResponse.json({ error: message, stack }, { status: 500 });
+  }
+}
+
+async function handleCron(request: NextRequest) {
   // Protect cron endpoint
   if (CRON_SECRET) {
     const auth = request.headers.get("authorization");
