@@ -7,6 +7,7 @@ import OfflineBanner from "./OfflineBanner";
 import { CampContext } from "@/lib/camp-context";
 import { CAMP_WEEKENDS } from "@/lib/constants";
 import { isBusRider } from "@/lib/bus-utils";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import type { SessionData } from "@/types";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -14,6 +15,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [campWeekend, setCampWeekendLocal] = useState("");
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const isOnline = useOnlineStatus();
 
   useEffect(() => {
     fetch("/api/auth/session")
@@ -78,6 +80,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   </option>
                 ))}
               </select>
+              <span className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${isOnline ? "bg-green-500/20 text-green-200" : "bg-yellow-500/20 text-yellow-200"}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isOnline ? "bg-green-400" : "bg-yellow-400 animate-pulse"}`} />
+                {isOnline ? "Live" : "Offline"}
+              </span>
               {session && (
                 <span className="text-xs bg-blue-600 px-2 py-1 rounded-full capitalize">
                   {session.role}
