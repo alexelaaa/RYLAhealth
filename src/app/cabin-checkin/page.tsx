@@ -674,6 +674,23 @@ function parseDetailedTime(timeStr: string): number | null {
   return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
 }
 
+function detailedTo24h(schedule: DetailedEvent[]): number[] {
+  const result: number[] = [];
+  let pmOffset = 0;
+  for (let i = 0; i < schedule.length; i++) {
+    const raw = parseDetailedTime(schedule[i].time);
+    if (raw === null) { result.push(0); continue; }
+    const adjusted = raw + pmOffset;
+    if (i > 0 && adjusted < result[i - 1]) {
+      pmOffset += 12 * 60;
+      result.push(raw + pmOffset);
+    } else {
+      result.push(adjusted);
+    }
+  }
+  return result;
+}
+
 function DGLScheduleNow({ groupInfo }: { groupInfo: GroupInfo | null }) {
   const [now, setNow] = useState(new Date());
 
@@ -688,16 +705,17 @@ function DGLScheduleNow({ groupInfo }: { groupInfo: GroupInfo | null }) {
   if (!schedule) return null;
 
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const times24h = detailedTo24h(schedule);
 
   // Find current and next event
   let currentEvent: DetailedEvent | null = null;
   let nextEvent: DetailedEvent | null = null;
 
   for (let i = 0; i < schedule.length; i++) {
-    const eventMin = parseDetailedTime(schedule[i].time);
-    if (eventMin === null) continue;
-    const nextMin = i + 1 < schedule.length ? parseDetailedTime(schedule[i + 1].time) : Infinity;
-    if (nowMinutes >= eventMin && nowMinutes < (nextMin ?? Infinity)) {
+    const eventMin = times24h[i];
+    if (!eventMin) continue;
+    const nextMin = i + 1 < schedule.length ? times24h[i + 1] : Infinity;
+    if (nowMinutes >= eventMin && nowMinutes < (nextMin || Infinity)) {
       currentEvent = schedule[i];
       nextEvent = i + 1 < schedule.length ? schedule[i + 1] : null;
       break;
