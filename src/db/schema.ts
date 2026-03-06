@@ -256,6 +256,20 @@ export const smallGroupInfo = sqliteTable("small_group_info", {
     .$defaultFn(() => new Date().toISOString()),
 });
 
+export const medicationCheckins = sqliteTable("medication_checkins", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  camperId: integer("camper_id")
+    .notNull()
+    .unique()
+    .references(() => campers.id),
+  checkedInAt: text("checked_in_at"),
+  checkedInBy: text("checked_in_by"),
+  notes: text("notes"),
+  checkedOutAt: text("checked_out_at"),
+  checkedOutBy: text("checked_out_by"),
+  checkoutNotes: text("checkout_notes"),
+});
+
 // Type exports
 export type SmallGroupInfo = typeof smallGroupInfo.$inferSelect;
 export type NewSmallGroupInfo = typeof smallGroupInfo.$inferInsert;
@@ -276,3 +290,5 @@ export type CampStaff = typeof campStaff.$inferSelect;
 export type NewCampStaff = typeof campStaff.$inferInsert;
 export type CabinCheckin = typeof cabinCheckins.$inferSelect;
 export type NewCabinCheckin = typeof cabinCheckins.$inferInsert;
+export type MedicationCheckin = typeof medicationCheckins.$inferSelect;
+export type NewMedicationCheckin = typeof medicationCheckins.$inferInsert;

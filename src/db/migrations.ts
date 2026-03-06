@@ -335,7 +335,21 @@ export function runMigrations(db: Database.Database) {
     // Already migrated
   }
 
-  // Migration 22: Announcements table
+  // Migration 22: Medication checkins table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS medication_checkins (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      camper_id INTEGER NOT NULL UNIQUE REFERENCES campers(id),
+      checked_in_at TEXT,
+      checked_in_by TEXT,
+      notes TEXT,
+      checked_out_at TEXT,
+      checked_out_by TEXT,
+      checkout_notes TEXT
+    )
+  `);
+
+  // Migration 23: Announcements table
   db.exec(`
     CREATE TABLE IF NOT EXISTS announcements (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

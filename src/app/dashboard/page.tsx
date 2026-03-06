@@ -428,6 +428,17 @@ function DashboardContent() {
                   Med Schedules
                 </Link>
               )}
+              {(session?.role === "nurse" || session?.role === "admin") && (
+                <Link
+                  href="/medication-checkin"
+                  className="bg-orange-50 text-orange-700 rounded-xl py-4 text-center text-sm font-medium hover:bg-orange-100 transition-colors"
+                >
+                  <svg className="w-6 h-6 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                  Med Check-In
+                </Link>
+              )}
               {session?.role === "admin" && (
                 <Link
                   href="/admin"
