@@ -38,6 +38,15 @@ interface HelpTicket {
   resolved_at: string | null;
 }
 
+interface TicketMessage {
+  id: number;
+  ticket_id: number;
+  sender_name: string;
+  sender_role: string;
+  message: string;
+  created_at: string;
+}
+
 interface GroupCamper {
   id: number;
   firstName: string;
@@ -73,6 +82,10 @@ export default function CabinCheckinPage() {
   const [ticketSubmitting, setTicketSubmitting] = useState(false);
   const [ticketMsg, setTicketMsg] = useState("");
   const [myTickets, setMyTickets] = useState<HelpTicket[]>([]);
+  const [expandedTicketId, setExpandedTicketId] = useState<number | null>(null);
+  const [ticketMessages, setTicketMessages] = useState<Record<number, TicketMessage[]>>({});
+  const [replyText, setReplyText] = useState<Record<number, string>>({});
+  const [sendingReply, setSendingReply] = useState<number | null>(null);
 
   // Group state
   const [groupInfo, setGroupInfo] = useState<GroupInfo | null>(null);
@@ -122,6 +135,53 @@ export default function CabinCheckinPage() {
   useEffect(() => {
     fetchTickets();
   }, [fetchTickets]);
+
+  // Auto-refresh tickets every 15s so DGL sees status updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchTickets();
+      // Also refresh messages for expanded ticket
+      if (expandedTicketId) fetchTicketMessages(expandedTicketId);
+    }, 15000);
+    return () => clearInterval(interval);
+  }, [fetchTickets, expandedTicketId]);
+
+  const fetchTicketMessages = async (ticketId: number) => {
+    try {
+      const res = await fetch(`/api/help-tickets/messages?ticketId=${ticketId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setTicketMessages((prev) => ({ ...prev, [ticketId]: data }));
+      }
+    } catch { /* ignore */ }
+  };
+
+  const toggleTicketThread = (ticketId: number) => {
+    if (expandedTicketId === ticketId) {
+      setExpandedTicketId(null);
+    } else {
+      setExpandedTicketId(ticketId);
+      fetchTicketMessages(ticketId);
+    }
+  };
+
+  const sendTicketReply = async (ticketId: number) => {
+    const text = replyText[ticketId]?.trim();
+    if (!text) return;
+    setSendingReply(ticketId);
+    try {
+      const res = await fetch("/api/help-tickets/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ticketId, message: text }),
+      });
+      if (res.ok) {
+        setReplyText((prev) => ({ ...prev, [ticketId]: "" }));
+        fetchTicketMessages(ticketId);
+      }
+    } catch { /* ignore */ }
+    setSendingReply(null);
+  };
 
   // Fetch group info when group tab is selected
   const fetchGroupInfo = useCallback(async () => {
@@ -391,7 +451,7 @@ export default function CabinCheckinPage() {
               <div className="pt-2 border-t border-slate-200">
                 <p className="text-xs font-semibold text-slate-500 mb-2">My Requests</p>
                 <div className="space-y-2">
-                  {myTickets.slice(0, 5).map((t) => (
+                  {myTickets.slice(0, 10).map((t) => (
                     <div
                       key={t.id}
                       className={`rounded-lg px-3 py-2 text-xs ${
@@ -404,19 +464,77 @@ export default function CabinCheckinPage() {
                           : "bg-slate-50 border border-slate-200"
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-slate-700">{t.category}</span>
-                        <span className={`font-medium ${
-                          t.status === "resolved" ? "text-green-600" :
-                          t.status === "acknowledged" ? "text-blue-600" :
-                          "text-amber-600"
-                        }`}>
-                          {t.status === "resolved" ? "Resolved" : t.status === "acknowledged" ? "Being Handled" : "Open"}
-                        </span>
+                      <div
+                        className="cursor-pointer"
+                        onClick={() => toggleTicketThread(t.id)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-slate-700">{t.category}</span>
+                          <span className={`font-medium ${
+                            t.status === "resolved" ? "text-green-600" :
+                            t.status === "acknowledged" ? "text-blue-600" :
+                            "text-amber-600"
+                          }`}>
+                            {t.status === "resolved" ? "Resolved" : t.status === "acknowledged" ? "Being Handled" : "Open"}
+                          </span>
+                        </div>
+                        <p className="text-slate-500 mt-0.5">{t.description}</p>
+                        {t.status === "acknowledged" && t.assigned_to && (
+                          <p className="text-blue-600 mt-0.5 font-medium">Assigned to {t.assigned_to}</p>
+                        )}
+                        <p className="text-blue-500 mt-1 font-medium">
+                          {expandedTicketId === t.id ? "Hide messages" : "View messages"}
+                        </p>
                       </div>
-                      <p className="text-slate-500 mt-0.5">{t.description}</p>
-                      {t.status === "acknowledged" && t.assigned_to && (
-                        <p className="text-blue-600 mt-0.5 font-medium">Assigned to {t.assigned_to}</p>
+
+                      {/* Message thread */}
+                      {expandedTicketId === t.id && (
+                        <div className="mt-2 pt-2 border-t border-slate-200 space-y-2">
+                          {(ticketMessages[t.id] || []).length === 0 && (
+                            <p className="text-slate-400 italic">No messages yet</p>
+                          )}
+                          {(ticketMessages[t.id] || []).map((msg) => (
+                            <div
+                              key={msg.id}
+                              className={`rounded-lg px-2.5 py-1.5 ${
+                                msg.sender_role === "dgl"
+                                  ? "bg-white border border-slate-200 mr-6"
+                                  : "bg-blue-100 border border-blue-200 ml-6"
+                              }`}
+                            >
+                              <div className="flex items-center justify-between mb-0.5">
+                                <span className="font-semibold text-slate-700">
+                                  {msg.sender_role === "dgl" ? "You" : msg.sender_name}
+                                </span>
+                                <span className="text-slate-400">
+                                  {new Date(msg.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                                </span>
+                              </div>
+                              <p className="text-slate-600">{msg.message}</p>
+                            </div>
+                          ))}
+
+                          {/* Reply input (only for non-resolved tickets) */}
+                          {t.status !== "resolved" && (
+                            <div className="flex gap-1.5">
+                              <input
+                                type="text"
+                                value={replyText[t.id] || ""}
+                                onChange={(e) => setReplyText((prev) => ({ ...prev, [t.id]: e.target.value }))}
+                                onKeyDown={(e) => { if (e.key === "Enter") sendTicketReply(t.id); }}
+                                placeholder="Reply..."
+                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                              <button
+                                onClick={() => sendTicketReply(t.id)}
+                                disabled={sendingReply === t.id || !replyText[t.id]?.trim()}
+                                className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors disabled:opacity-40"
+                              >
+                                Send
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                   ))}

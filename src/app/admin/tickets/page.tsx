@@ -18,6 +18,15 @@ interface Ticket {
   created_at: string;
 }
 
+interface TicketMessage {
+  id: number;
+  ticket_id: number;
+  sender_name: string;
+  sender_role: string;
+  message: string;
+  created_at: string;
+}
+
 const STAFF_NAMES = [
   "Mike Norkin",
   "Jennifer Smith",
@@ -47,6 +56,10 @@ function TicketsContent() {
   const [resolveNote, setResolveNote] = useState("");
   const [liveMode, setLiveMode] = useState(false);
   const prevCountRef = useRef(0);
+  const [expandedTicket, setExpandedTicket] = useState<number | null>(null);
+  const [messages, setMessages] = useState<Record<number, TicketMessage[]>>({});
+  const [replyText, setReplyText] = useState<Record<number, string>>({});
+  const [sendingReply, setSendingReply] = useState<number | null>(null);
 
   const fetchTickets = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
@@ -126,6 +139,44 @@ function TicketsContent() {
       });
       if (res.ok) fetchTickets(true);
     } catch { /* ignore */ }
+  };
+
+  const fetchMessages = async (ticketId: number) => {
+    try {
+      const res = await fetch(`/api/help-tickets/messages?ticketId=${ticketId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setMessages((prev) => ({ ...prev, [ticketId]: data }));
+      }
+    } catch { /* ignore */ }
+  };
+
+  const toggleMessages = (ticketId: number) => {
+    if (expandedTicket === ticketId) {
+      setExpandedTicket(null);
+    } else {
+      setExpandedTicket(ticketId);
+      fetchMessages(ticketId);
+    }
+  };
+
+  const sendReply = async (ticketId: number) => {
+    const text = replyText[ticketId]?.trim();
+    if (!text) return;
+    setSendingReply(ticketId);
+    try {
+      const res = await fetch("/api/help-tickets/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ticketId, message: text }),
+      });
+      if (res.ok) {
+        setReplyText((prev) => ({ ...prev, [ticketId]: "" }));
+        fetchMessages(ticketId);
+        fetchTickets(true);
+      }
+    } catch { /* ignore */ }
+    setSendingReply(null);
   };
 
   return (
@@ -225,6 +276,62 @@ function TicketsContent() {
                       <span>{new Date(ticket.created_at).toLocaleTimeString()}</span>
                     </div>
                   </div>
+                </div>
+
+                {/* Messages thread */}
+                <div className="mt-2">
+                  <button
+                    onClick={() => toggleMessages(ticket.id)}
+                    className="text-xs text-blue-600 font-medium hover:text-blue-700"
+                  >
+                    {expandedTicket === ticket.id ? "Hide Messages" : "Messages"}
+                    {messages[ticket.id]?.length ? ` (${messages[ticket.id].length})` : ""}
+                  </button>
+
+                  {expandedTicket === ticket.id && (
+                    <div className="mt-2 space-y-2">
+                      {(messages[ticket.id] || []).length === 0 && (
+                        <p className="text-xs text-slate-400 italic">No messages yet</p>
+                      )}
+                      {(messages[ticket.id] || []).map((msg) => (
+                        <div
+                          key={msg.id}
+                          className={`rounded-lg px-3 py-2 text-xs ${
+                            msg.sender_role === "dgl"
+                              ? "bg-slate-50 border border-slate-200 ml-0 mr-8"
+                              : "bg-blue-50 border border-blue-200 ml-8 mr-0"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-0.5">
+                            <span className="font-semibold text-slate-700">{msg.sender_name}</span>
+                            <span className="text-slate-400">
+                              {new Date(msg.created_at).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                            </span>
+                          </div>
+                          <p className="text-slate-600">{msg.message}</p>
+                        </div>
+                      ))}
+
+                      {/* Reply input */}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={replyText[ticket.id] || ""}
+                          onChange={(e) => setReplyText((prev) => ({ ...prev, [ticket.id]: e.target.value }))}
+                          onKeyDown={(e) => { if (e.key === "Enter") sendReply(ticket.id); }}
+                          placeholder="Reply to DGL..."
+                          className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <button
+                          onClick={() => sendReply(ticket.id)}
+                          disabled={sendingReply === ticket.id || !replyText[ticket.id]?.trim()}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-40"
+                        >
+                          Send
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Acknowledge button for new/unacknowledged tickets */}

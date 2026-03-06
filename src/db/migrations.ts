@@ -349,7 +349,20 @@ export function runMigrations(db: Database.Database) {
     )
   `);
 
-  // Migration 23: Announcements table
+  // Migration 23: Ticket messages table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS ticket_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ticket_id INTEGER NOT NULL REFERENCES help_tickets(id),
+      sender_name TEXT NOT NULL,
+      sender_role TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    )
+  `);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_ticket_messages_ticket ON ticket_messages(ticket_id)`);
+
+  // Migration 24: Announcements table
   db.exec(`
     CREATE TABLE IF NOT EXISTS announcements (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

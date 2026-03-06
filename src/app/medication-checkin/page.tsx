@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import AppShell from "@/components/layout/AppShell";
 import { useCamp } from "@/lib/camp-context";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -451,13 +450,9 @@ function CamperRow({
       >
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <Link
-              href={`/campers/${camper.id}`}
-              onClick={(e) => e.stopPropagation()}
-              className="text-sm font-medium text-slate-900 hover:text-blue-600 transition-colors"
-            >
+            <span className="text-sm font-medium text-slate-900">
               {camper.lastName}, {camper.firstName}
-            </Link>
+            </span>
             {statusBadge}
           </div>
           <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">
