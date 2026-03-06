@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import AppShell from "@/components/layout/AppShell";
+import ScheduleNow from "@/components/ScheduleNow";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 
 const adminTools = [
   {
@@ -191,6 +193,10 @@ export default function AdminPage() {
     <AppShell>
       <div className="p-4 space-y-4 pb-24">
         <h1 className="text-xl font-bold text-slate-900">Admin Tools</h1>
+
+        <ScheduleNow />
+
+        <AnnouncementBanner />
 
         <div className="grid grid-cols-2 gap-3">
           {adminTools.map((tool) => (

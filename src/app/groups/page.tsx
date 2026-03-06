@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
@@ -172,26 +172,26 @@ function GroupsContent() {
   }, [campWeekend, tab]);
 
   // Bus stats data (with auto-refresh)
-  useEffect(() => {
-    if (tab !== "buses") return;
+  const fetchBusData = useCallback((showLoading = false) => {
     const params = new URLSearchParams({ detail: "campers" });
     if (campWeekend) params.set("weekend", campWeekend);
-    let first = true;
-    const fetchBusStats = () => {
-      if (first) setLoading(true);
-      fetch(`/api/admin/bus-stats?${params}`)
-        .then((r) => r.json())
-        .then((data) => {
-          setBusStats(data.stats || []);
-          setBusCampers(data.campersByBus || {});
-          if (first) { setLoading(false); first = false; }
-        })
-        .catch(() => { if (first) { setLoading(false); first = false; } });
-    };
-    fetchBusStats();
-    const interval = setInterval(fetchBusStats, 30000);
+    if (showLoading) setLoading(true);
+    fetch(`/api/admin/bus-stats?${params}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setBusStats(data.stats || []);
+        setBusCampers(data.campersByBus || {});
+        if (showLoading) setLoading(false);
+      })
+      .catch(() => { if (showLoading) setLoading(false); });
+  }, [campWeekend]);
+
+  useEffect(() => {
+    if (tab !== "buses") return;
+    fetchBusData(true);
+    const interval = setInterval(() => fetchBusData(), 30000);
     return () => clearInterval(interval);
-  }, [campWeekend, tab]);
+  }, [fetchBusData, tab]);
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "overview", label: "Overview" },
@@ -232,7 +232,7 @@ function GroupsContent() {
       ) : tab === "dgls" ? (
         <DGLCabinsTab entries={dglCabins} />
       ) : (
-        <BusesTab busStats={busStats} campersByBus={busCampers} />
+        <BusesTab busStats={busStats} campersByBus={busCampers} onRefresh={() => fetchBusData()} />
       )}
     </div>
   );
@@ -558,9 +558,23 @@ function DGLCabinsTab({ entries }: { entries: DGLCabinEntry[] }) {
 
 type BusFilter = "not_on_bus" | "on_bus" | "arrived" | "all";
 
-function BusesTab({ busStats, campersByBus }: { busStats: BusStat[]; campersByBus: Record<string, BusCamper[]> }) {
+function BusesTab({ busStats, campersByBus, onRefresh }: { busStats: BusStat[]; campersByBus: Record<string, BusCamper[]>; onRefresh: () => void }) {
   const [expandedBus, setExpandedBus] = useState<string | null>(null);
   const [filter, setFilter] = useState<BusFilter>("not_on_bus");
+  const [actionLoading, setActionLoading] = useState<number | null>(null);
+
+  const toggleNoShow = async (camperId: number, currentlyNoShow: boolean) => {
+    setActionLoading(camperId);
+    try {
+      await fetch(`/api/campers/${camperId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ noShow: currentlyNoShow ? 0 : 1 }),
+      });
+      onRefresh();
+    } catch { /* ignore */ }
+    setActionLoading(null);
+  };
 
   if (busStats.length === 0) {
     return (
@@ -690,16 +704,15 @@ function BusesTab({ busStats, campersByBus }: { busStats: BusStat[]; campersByBu
                   ) : (
                     <div className="divide-y divide-slate-100">
                       {filtered.map((c) => (
-                        <Link
+                        <div
                           key={c.id}
-                          href={`/campers/${c.id}`}
-                          className={`flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 transition-colors ${
-                            c.noShow ? "opacity-50" : ""
+                          className={`flex items-center justify-between px-4 py-2.5 ${
+                            c.noShow ? "bg-slate-50 opacity-60" : ""
                           }`}
                         >
-                          <div className="flex-1 min-w-0">
+                          <Link href={`/campers/${c.id}`} className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-slate-900">
+                              <span className={`text-sm font-medium ${c.noShow ? "line-through text-slate-500" : "text-slate-900"}`}>
                                 {c.lastName}, {c.firstName}
                               </span>
                               {c.role === "Alternate" && (
@@ -741,8 +754,8 @@ function BusesTab({ busStats, campersByBus }: { busStats: BusStat[]; campersByBu
                                 )}
                               </div>
                             )}
-                          </div>
-                          <div className="flex-shrink-0 ml-2">
+                          </Link>
+                          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                             {c.arrived ? (
                               <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
                                 Arrived
@@ -751,13 +764,25 @@ function BusesTab({ busStats, campersByBus }: { busStats: BusStat[]; campersByBu
                               <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-medium">
                                 On Bus
                               </span>
+                            ) : !c.noShow ? (
+                              <button
+                                onClick={() => toggleNoShow(c.id, false)}
+                                disabled={actionLoading === c.id}
+                                className="text-xs bg-red-600 text-white px-2.5 py-1 rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-40"
+                              >
+                                {actionLoading === c.id ? "..." : "No Show"}
+                              </button>
                             ) : (
-                              <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
-                                Missing
-                              </span>
+                              <button
+                                onClick={() => toggleNoShow(c.id, true)}
+                                disabled={actionLoading === c.id}
+                                className="text-xs bg-slate-200 text-slate-600 px-2.5 py-1 rounded-lg font-medium hover:bg-slate-300 transition-colors disabled:opacity-40"
+                              >
+                                {actionLoading === c.id ? "..." : "Undo"}
+                              </button>
                             )}
                           </div>
-                        </Link>
+                        </div>
                       ))}
                     </div>
                   )}
