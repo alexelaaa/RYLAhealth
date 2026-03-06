@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
 
   const groupCol = type === "small" ? campers.smallGroup : campers.largeGroup;
 
-  const conditions = [isNotNull(groupCol), sql`${groupCol} != ''`];
+  const conditions = [isNotNull(groupCol), sql`${groupCol} != ''`, eq(campers.noShow, 0)];
   if (weekend) {
     conditions.push(eq(campers.campWeekend, weekend));
   }
@@ -125,7 +125,7 @@ function handleOverview(
     dglGender: string | null;
   }>
 ) {
-  const conditions = [isNotNull(campers.smallGroup), sql`${campers.smallGroup} != ''`];
+  const conditions = [isNotNull(campers.smallGroup), sql`${campers.smallGroup} != ''`, eq(campers.noShow, 0)];
   if (weekend) {
     conditions.push(eq(campers.campWeekend, weekend));
   }
@@ -217,8 +217,8 @@ function handleDGLCabins(weekend: string | null) {
     return NextResponse.json({ dglCabins: [] });
   }
 
-  // Load all campers with cabin assignments
-  const conditions = [isNotNull(campers.cabinName), sql`${campers.cabinName} != ''`];
+  // Load all campers with cabin assignments (exclude no-shows)
+  const conditions = [isNotNull(campers.cabinName), sql`${campers.cabinName} != ''`, eq(campers.noShow, 0)];
   if (weekend) {
     conditions.push(eq(campers.campWeekend, weekend));
   }
