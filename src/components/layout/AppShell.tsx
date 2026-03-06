@@ -10,6 +10,7 @@ import { CAMP_WEEKENDS } from "@/lib/constants";
 import { isBusRider } from "@/lib/bus-utils";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import type { SessionData } from "@/types";
+import PullToRefresh from "@/components/PullToRefresh";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<SessionData | null>(null);
@@ -88,7 +89,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </header>
           <OfflineBanner />
           <main className="pb-safe max-w-4xl mx-auto">
-            {children}
+            <PullToRefresh>{children}</PullToRefresh>
           </main>
           <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-300 z-50 shadow-[0_-2px_8px_rgba(0,0,0,0.08)]">
             <div className="flex justify-around items-center h-16 max-w-lg mx-auto px-2">
@@ -140,7 +141,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </header>
           <OfflineBanner />
           <main className="pb-safe max-w-4xl mx-auto">
-            {children}
+            <PullToRefresh>{children}</PullToRefresh>
           </main>
         </div>
       </CampContext.Provider>
@@ -190,7 +191,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Main content */}
         <main className="pb-safe max-w-4xl mx-auto">
-          {children}
+          <PullToRefresh>{children}</PullToRefresh>
         </main>
 
         {session?.role !== "bussing" && <BottomNav />}

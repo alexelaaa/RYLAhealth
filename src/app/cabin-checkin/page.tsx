@@ -6,6 +6,7 @@ import Link from "next/link";
 import InstallPrompt from "@/components/InstallPrompt";
 import NotificationToggle from "@/components/NotificationToggle";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
+import PullToRefresh from "@/components/PullToRefresh";
 import {
   getCampDay,
   getDetailedSchedule,
@@ -276,6 +277,7 @@ export default function CabinCheckinPage() {
         </div>
       </header>
 
+      <PullToRefresh>
       <div className="max-w-lg mx-auto p-4 space-y-4">
         <InstallPrompt />
         <NotificationToggle />
@@ -518,6 +520,7 @@ export default function CabinCheckinPage() {
           />
         )}
       </div>
+      </PullToRefresh>
     </div>
   );
 }
