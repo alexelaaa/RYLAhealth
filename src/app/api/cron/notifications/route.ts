@@ -99,6 +99,30 @@ function parseEventTime(timeStr: string): number | null {
   return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
 }
 
+/**
+ * Convert an ordered schedule array to 24-hour minute values.
+ * Schedule uses 12-hour times without AM/PM. Events are chronological,
+ * so when the raw time drops (e.g. 12:50 → 1:50), we know we crossed noon
+ * and add 12 hours to all subsequent times.
+ */
+function scheduleTo24h(schedule: DetailedEvent[]): number[] {
+  const result: number[] = [];
+  let pmOffset = 0;
+  for (let i = 0; i < schedule.length; i++) {
+    const raw = parseEventTime(schedule[i].time);
+    if (raw === null) { result.push(0); continue; }
+    const adjusted = raw + pmOffset;
+    // If this time is earlier than the previous, we crossed noon — add 12 hours
+    if (i > 0 && adjusted < result[i - 1]) {
+      pmOffset += 12 * 60;
+      result.push(raw + pmOffset);
+    } else {
+      result.push(adjusted);
+    }
+  }
+  return result;
+}
+
 async function sendToOne(row: PushRow, payload: string) {
   try {
     const sub = JSON.parse(row.subscription_json);
@@ -126,14 +150,15 @@ function getUpcomingEvent(now: Date): { event: DetailedEvent; minutesUntil: numb
   if (!day) return null;
 
   const schedule = getDetailedSchedule(day);
+  const times24h = scheduleTo24h(schedule);
   const nowMinutes = pt.hours * 60 + pt.minutes;
 
-  for (const event of schedule) {
-    const eventMinutes = parseEventTime(event.time);
-    if (eventMinutes === null) continue;
+  for (let i = 0; i < schedule.length; i++) {
+    const eventMinutes = times24h[i];
+    if (!eventMinutes) continue;
     const diff = eventMinutes - nowMinutes;
     if (diff >= 8 && diff <= 12) {
-      return { event, minutesUntil: diff };
+      return { event: schedule[i], minutesUntil: diff };
     }
   }
   return null;
