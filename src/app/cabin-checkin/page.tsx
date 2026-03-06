@@ -538,6 +538,15 @@ const ACTIVITY_FULL_NAMES: Record<string, string> = {
   "Jeopardy": "Jeopardy",
 };
 
+const ACTIVITY_LOCATIONS: Record<string, string> = {
+  "XC Ski": "Emerson Field",
+  "Spag Twr": "Gilboa Hall",
+  "Boardwalk": "Basketball Court",
+  "Egg Drop": "Schlenz Hall",
+  "Capture": "Emerson Field",
+  "Jeopardy": "Schlenz Hall",
+};
+
 function MyGroupSection({
   groupInfo,
   loading,
@@ -608,6 +617,9 @@ function MyGroupSection({
                 <div className="text-[10px] font-bold text-slate-400 mb-1">Act {i + 1}</div>
                 <div className={`text-xs font-semibold ${colors.text} leading-tight`}>
                   {ACTIVITY_FULL_NAMES[act] || act}
+                </div>
+                <div className="text-[10px] text-slate-500 leading-tight mt-0.5">
+                  {ACTIVITY_LOCATIONS[act] || ""}
                 </div>
               </div>
             ))}
