@@ -5,6 +5,41 @@ import { sqlite } from "@/db";
 import type { SessionData } from "@/types";
 import { cookies } from "next/headers";
 
+interface PushRow {
+  id: number;
+  endpoint: string;
+  subscription_json: string;
+  user_label: string;
+}
+
+async function sendPush(subs: PushRow[], title: string, body: string, url: string) {
+  const publicKey = process.env.VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  if (!publicKey || !privateKey || subs.length === 0) return;
+
+  try {
+    const webpush = (await import("web-push")).default;
+    webpush.setVapidDetails("mailto:admin@ryla5330.org", publicKey, privateKey);
+    const payload = JSON.stringify({ title, body, url });
+
+    await Promise.allSettled(
+      subs.map(async (row) => {
+        try {
+          const sub = JSON.parse(row.subscription_json);
+          await webpush.sendNotification(sub, payload);
+        } catch (err: unknown) {
+          const statusCode = (err as { statusCode?: number }).statusCode;
+          if (statusCode === 410 || statusCode === 404) {
+            sqlite.prepare("DELETE FROM push_subscriptions WHERE id = ?").run(row.id);
+          }
+        }
+      })
+    );
+  } catch {
+    // web-push not available
+  }
+}
+
 // GET: fetch messages for a ticket
 export async function GET(request: NextRequest) {
   const session = await getIronSession<SessionData>(cookies(), sessionOptions);
@@ -73,10 +108,27 @@ export async function POST(request: NextRequest) {
     .run(Number(ticketId), senderName, senderRole, message.trim(), now);
 
   // If admin/staff is messaging on an open ticket, auto-acknowledge it
+  const ticket = sqlite.prepare("SELECT status, dgl_name FROM help_tickets WHERE id = ?").get(Number(ticketId)) as { status: string; dgl_name: string } | undefined;
   if (senderRole === "admin" || senderRole === "nurse" || senderRole === "staff") {
-    const ticket = sqlite.prepare("SELECT status FROM help_tickets WHERE id = ?").get(Number(ticketId)) as { status: string } | undefined;
     if (ticket?.status === "open") {
       sqlite.prepare("UPDATE help_tickets SET status = 'acknowledged' WHERE id = ?").run(Number(ticketId));
+    }
+  }
+
+  // Send push notifications
+  if (senderRole === "dgl") {
+    // DGL replied — notify admins
+    const adminSubs = sqlite
+      .prepare("SELECT id, endpoint, subscription_json, user_label FROM push_subscriptions WHERE role = 'admin'")
+      .all() as PushRow[];
+    await sendPush(adminSubs, `Reply from ${senderName}`, message.trim().slice(0, 100), "/admin/tickets");
+  } else {
+    // Staff/admin replied — notify the DGL who created the ticket
+    if (ticket?.dgl_name) {
+      const dglSubs = sqlite
+        .prepare("SELECT id, endpoint, subscription_json, user_label FROM push_subscriptions WHERE role = 'dgl' AND user_label LIKE ?")
+        .all(`%${ticket.dgl_name}%`) as PushRow[];
+      await sendPush(dglSubs, `Message from ${senderName}`, message.trim().slice(0, 100), "/cabin-checkin");
     }
   }
 
