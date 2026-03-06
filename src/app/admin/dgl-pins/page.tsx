@@ -27,6 +27,12 @@ function DglPinsManager() {
   const [generating, setGenerating] = useState(false);
   const [showPins, setShowPins] = useState(false);
 
+  // Replace DGL state
+  const [replacing, setReplacing] = useState<number | null>(null);
+  const [replaceFirst, setReplaceFirst] = useState("");
+  const [replaceLast, setReplaceLast] = useState("");
+  const [replaceLoading, setReplaceLoading] = useState(false);
+
   const fetchDgls = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/dgl-pins");
@@ -97,6 +103,38 @@ function DglPinsManager() {
     }
   };
 
+  const handleReplace = async (dgl: DglInfo) => {
+    if (!replaceFirst.trim() || !replaceLast.trim()) return;
+    setReplaceLoading(true);
+    try {
+      const res = await fetch("/api/admin/dgl-pins", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          groupId: dgl.id,
+          oldLabel: dgl.label,
+          newFirstName: replaceFirst.trim(),
+          newLastName: replaceLast.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (data.pin) {
+        setGeneratedPins((prev) => [
+          ...prev.filter((p) => p.label !== dgl.label && p.label !== data.label),
+          { name: data.name, cabin: data.cabin, pin: data.pin, label: data.label },
+        ]);
+        setShowPins(true);
+      }
+      setReplacing(null);
+      setReplaceFirst("");
+      setReplaceLast("");
+      await fetchDgls();
+    } catch {
+      // Network error
+    }
+    setReplaceLoading(false);
+  };
+
   return (
     <div className="p-4 space-y-4 pb-24">
       <div className="flex items-center justify-between">
@@ -162,10 +200,31 @@ function DglPinsManager() {
             <tbody>
               {dgls.map((dgl) => {
                 const genPin = generatedPins.find((p) => p.label === dgl.label);
+                const isReplacing = replacing === dgl.id;
                 return (
                   <tr key={dgl.id} className="border-t border-slate-100">
                     <td className="px-4 py-3 font-medium text-slate-900">
-                      {dgl.name}
+                      {isReplacing ? (
+                        <div className="space-y-1">
+                          <input
+                            type="text"
+                            value={replaceFirst}
+                            onChange={(e) => setReplaceFirst(e.target.value)}
+                            placeholder="First name"
+                            className="w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            autoFocus
+                          />
+                          <input
+                            type="text"
+                            value={replaceLast}
+                            onChange={(e) => setReplaceLast(e.target.value)}
+                            placeholder="Last name"
+                            className="w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                      ) : (
+                        dgl.name
+                      )}
                     </td>
                     <td className="px-4 py-3 text-slate-600">{dgl.cabin || "—"}</td>
                     <td className="px-4 py-3 text-slate-600 text-xs">
@@ -187,22 +246,46 @@ function DglPinsManager() {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => regenerateOne(dgl.id)}
-                          className="text-xs text-blue-600 hover:text-blue-800"
-                        >
-                          {dgl.hasPin ? "Regenerate" : "Generate"}
-                        </button>
-                        {dgl.hasPin && (
+                      {isReplacing ? (
+                        <div className="flex gap-1">
                           <button
-                            onClick={() => deletePin(dgl.label)}
-                            className="text-xs text-red-600 hover:text-red-800"
+                            onClick={() => handleReplace(dgl)}
+                            disabled={replaceLoading || !replaceFirst.trim() || !replaceLast.trim()}
+                            className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 disabled:opacity-50"
                           >
-                            Delete
+                            {replaceLoading ? "..." : "Save"}
                           </button>
-                        )}
-                      </div>
+                          <button
+                            onClick={() => { setReplacing(null); setReplaceFirst(""); setReplaceLast(""); }}
+                            className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => regenerateOne(dgl.id)}
+                            className="text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            {dgl.hasPin ? "Regen" : "Generate"}
+                          </button>
+                          <button
+                            onClick={() => { setReplacing(dgl.id); setReplaceFirst(""); setReplaceLast(""); }}
+                            className="text-xs text-orange-600 hover:text-orange-800"
+                          >
+                            Replace
+                          </button>
+                          {dgl.hasPin && (
+                            <button
+                              onClick={() => deletePin(dgl.label)}
+                              className="text-xs text-red-600 hover:text-red-800"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );
