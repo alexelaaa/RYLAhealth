@@ -132,6 +132,49 @@ export async function POST(request: Request) {
   return NextResponse.json({ generated: results });
 }
 
+// PATCH: replace a DGL (update name in small_group_info + regenerate PIN)
+export async function PATCH(request: Request) {
+  const session = await getIronSession<SessionData>(cookies(), sessionOptions);
+  if (!session.isLoggedIn || session.role !== "admin") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  }
+
+  const { groupId, oldLabel, newFirstName, newLastName } = await request.json();
+  if (!groupId || !newFirstName || !newLastName) {
+    return NextResponse.json({ error: "groupId, newFirstName, newLastName required" }, { status: 400 });
+  }
+
+  // Update name in small_group_info
+  sqlite.prepare(
+    `UPDATE small_group_info SET dgl_first_name = ?, dgl_last_name = ? WHERE id = ?`
+  ).run(newFirstName.trim(), newLastName.trim(), groupId);
+
+  // Delete old PIN if it exists
+  if (oldLabel) {
+    sqlite.prepare(`DELETE FROM staff_pins WHERE label = ? AND role = 'dgl'`).run(oldLabel);
+  }
+
+  // Get updated row to generate new PIN
+  const row = sqlite.prepare(
+    `SELECT id, small_group, dgl_first_name, dgl_last_name, dgl_cabin, camp_weekend FROM small_group_info WHERE id = ?`
+  ).get(groupId) as SmallGroupRow | undefined;
+
+  if (!row || !row.dgl_cabin) {
+    return NextResponse.json({ success: true, message: "Updated but no cabin for PIN generation" });
+  }
+
+  const name = `${row.dgl_first_name} ${row.dgl_last_name}`;
+  const label = `DGL: ${name} (${row.dgl_cabin})`;
+  const pin = generateDglPin(row.dgl_cabin, new Set<string>());
+  const pinHash = hashSync(pin, 10);
+
+  sqlite.prepare(
+    `INSERT INTO staff_pins (label, pin_hash, role) VALUES (?, ?, 'dgl')`
+  ).run(label, pinHash);
+
+  return NextResponse.json({ success: true, name, cabin: row.dgl_cabin, pin, label });
+}
+
 export async function DELETE(request: Request) {
   const session = await getIronSession<SessionData>(cookies(), sessionOptions);
   if (!session.isLoggedIn || session.role !== "admin") {
