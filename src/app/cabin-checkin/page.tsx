@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import InstallPrompt from "@/components/InstallPrompt";
+import NotificationToggle from "@/components/NotificationToggle";
 
 interface CamperCheckin {
   id: number;
@@ -28,10 +29,28 @@ interface HelpTicket {
   resolved_at: string | null;
 }
 
+interface GroupCamper {
+  id: number;
+  firstName: string;
+  lastName: string;
+}
+
+interface GroupInfo {
+  name: string;
+  largeGroup: string | null;
+  meetingLocation: string | null;
+  campers: GroupCamper[];
+}
+
+type MainTab = "cabin" | "group";
+
 export default function CabinCheckinPage() {
+  const [mainTab, setMainTab] = useState<MainTab>("cabin");
   const [campers, setCampers] = useState<CamperCheckin[]>([]);
   const [cabin, setCabin] = useState("");
   const [label, setLabel] = useState("");
+  const [dglSmallGroup, setDglSmallGroup] = useState("");
+  const [campWeekend, setCampWeekend] = useState("");
   const [night, setNight] = useState<Night>("friday");
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<number | null>(null);
@@ -46,6 +65,10 @@ export default function CabinCheckinPage() {
   const [ticketMsg, setTicketMsg] = useState("");
   const [myTickets, setMyTickets] = useState<HelpTicket[]>([]);
 
+  // Group state
+  const [groupInfo, setGroupInfo] = useState<GroupInfo | null>(null);
+  const [groupLoading, setGroupLoading] = useState(false);
+
   const fetchCampers = useCallback(async () => {
     try {
       const sessionRes = await fetch("/api/auth/session");
@@ -55,6 +78,8 @@ export default function CabinCheckinPage() {
         return;
       }
       setLabel(sessionData.label);
+      setDglSmallGroup(sessionData.dglSmallGroup || "");
+      setCampWeekend(sessionData.campWeekend || "");
 
       const res = await fetch("/api/cabin-checkins");
       if (!res.ok) {
@@ -88,6 +113,59 @@ export default function CabinCheckinPage() {
   useEffect(() => {
     fetchTickets();
   }, [fetchTickets]);
+
+  // Fetch group info when group tab is selected
+  const fetchGroupInfo = useCallback(async () => {
+    if (!dglSmallGroup || !campWeekend) return;
+    setGroupLoading(true);
+    try {
+      const [smallRes, overviewRes] = await Promise.all([
+        fetch(`/api/groups?${new URLSearchParams({ weekend: campWeekend, type: "small" })}`),
+        fetch(`/api/groups?${new URLSearchParams({ weekend: campWeekend, type: "overview" })}`),
+      ]);
+      const smallData = await smallRes.json();
+      const overviewData = await overviewRes.json();
+
+      // Find the DGL's small group
+      const myGroup = (smallData.groups || []).find(
+        (g: { name: string }) => g.name === dglSmallGroup
+      );
+
+      // Find large group from overview
+      let largeGroup: string | null = null;
+      if (overviewData.largeGroups) {
+        for (const lg of overviewData.largeGroups) {
+          for (const sg of lg.smallGroups) {
+            if (sg.name === dglSmallGroup) {
+              largeGroup = lg.name;
+              break;
+            }
+          }
+          if (largeGroup) break;
+        }
+      }
+
+      if (myGroup) {
+        setGroupInfo({
+          name: myGroup.name,
+          largeGroup,
+          meetingLocation: myGroup.meetingLocation || null,
+          campers: (myGroup.campers || []).sort((a: GroupCamper, b: GroupCamper) =>
+            a.lastName.localeCompare(b.lastName)
+          ),
+        });
+      }
+    } catch {
+      // Network error
+    }
+    setGroupLoading(false);
+  }, [dglSmallGroup, campWeekend]);
+
+  useEffect(() => {
+    if (mainTab === "group") {
+      fetchGroupInfo();
+    }
+  }, [mainTab, fetchGroupInfo]);
 
   const submitTicket = async () => {
     if (!ticketCategory || !ticketDesc.trim()) return;
@@ -162,7 +240,7 @@ export default function CabinCheckinPage() {
   const presentCount = campers.filter((c) => (night === "friday" ? c.friday : c.saturday)).length;
   const totalCount = campers.length;
 
-  // Extract DGL name from label: "DGL: FirstName LastName (Cabin 16C)" → "FirstName LastName"
+  // Extract DGL name from label: "DGL: FirstName LastName (Cabin 16C)" -> "FirstName LastName"
   const dglName = label.replace(/^DGL:\s*/, "").replace(/\s*\(.*\)$/, "");
 
   if (loading) {
@@ -193,6 +271,7 @@ export default function CabinCheckinPage() {
 
       <div className="max-w-lg mx-auto p-4 space-y-4">
         <InstallPrompt />
+        <NotificationToggle />
 
         {/* Quick Links */}
         <div className="flex gap-2">
@@ -323,70 +402,240 @@ export default function CabinCheckinPage() {
           </div>
         )}
 
-        {/* Night toggle */}
-        <div className="flex rounded-xl overflow-hidden bg-white shadow-sm">
-          {(["friday", "saturday"] as Night[]).map((n) => (
+        {/* Main Tab Toggle: Cabin / My Group */}
+        {dglSmallGroup && (
+          <div className="flex rounded-xl overflow-hidden bg-white border border-slate-300">
             <button
-              key={n}
-              onClick={() => setNight(n)}
-              className={`flex-1 py-3 text-center font-semibold text-lg transition-colors ${
-                night === n
+              onClick={() => setMainTab("cabin")}
+              className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                mainTab === "cabin"
                   ? "bg-blue-600 text-white"
-                  : "bg-white text-slate-500 hover:bg-slate-50"
+                  : "text-slate-500 hover:text-slate-700"
               }`}
             >
-              {n === "friday" ? "Friday Night" : "Saturday Night"}
+              Cabin
             </button>
-          ))}
-        </div>
-
-        {/* Summary counter */}
-        <div className="bg-white rounded-xl p-4 shadow-sm text-center">
-          <span className="text-3xl font-bold text-slate-900">{presentCount}</span>
-          <span className="text-xl text-slate-400">/{totalCount}</span>
-          <p className="text-sm text-slate-500 mt-1">Present</p>
-        </div>
-
-        {/* Camper list */}
-        <div className="space-y-2">
-          {campers.map((c) => {
-            const isPresent = night === "friday" ? c.friday : c.saturday;
-            return (
-              <button
-                key={c.id}
-                onClick={() => togglePresent(c.id)}
-                disabled={toggling === c.id}
-                className={`w-full flex items-center justify-between p-4 rounded-xl shadow-sm transition-all active:scale-[0.98] ${
-                  isPresent
-                    ? "bg-green-50 border-2 border-green-400"
-                    : "bg-white border-2 border-transparent"
-                }`}
-              >
-                <div className="text-left">
-                  <p className="text-lg font-semibold text-slate-900">
-                    {c.lastName}, {c.firstName}
-                  </p>
-                  <p className="text-xs text-slate-400">{c.cabinName}</p>
-                </div>
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-xl transition-colors ${
-                    isPresent
-                      ? "bg-green-500 text-white"
-                      : "bg-slate-200 text-slate-400"
-                  }`}
-                >
-                  {isPresent ? "✓" : ""}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {campers.length === 0 && (
-          <div className="text-center text-slate-400 py-12">
-            No campers found for this cabin.
+            <button
+              onClick={() => setMainTab("group")}
+              className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                mainTab === "group"
+                  ? "bg-blue-600 text-white"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              My Group
+            </button>
           </div>
         )}
+
+        {/* Cabin Tab Content */}
+        {mainTab === "cabin" && (
+          <>
+            {/* Night toggle */}
+            <div className="flex rounded-xl overflow-hidden bg-white shadow-sm">
+              {(["friday", "saturday"] as Night[]).map((n) => (
+                <button
+                  key={n}
+                  onClick={() => setNight(n)}
+                  className={`flex-1 py-3 text-center font-semibold text-lg transition-colors ${
+                    night === n
+                      ? "bg-blue-600 text-white"
+                      : "bg-white text-slate-500 hover:bg-slate-50"
+                  }`}
+                >
+                  {n === "friday" ? "Friday Night" : "Saturday Night"}
+                </button>
+              ))}
+            </div>
+
+            {/* Summary counter */}
+            <div className="bg-white rounded-xl p-4 shadow-sm text-center">
+              <span className="text-3xl font-bold text-slate-900">{presentCount}</span>
+              <span className="text-xl text-slate-400">/{totalCount}</span>
+              <p className="text-sm text-slate-500 mt-1">Present</p>
+            </div>
+
+            {/* Camper list */}
+            <div className="space-y-2">
+              {campers.map((c) => {
+                const isPresent = night === "friday" ? c.friday : c.saturday;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => togglePresent(c.id)}
+                    disabled={toggling === c.id}
+                    className={`w-full flex items-center justify-between p-4 rounded-xl shadow-sm transition-all active:scale-[0.98] ${
+                      isPresent
+                        ? "bg-green-50 border-2 border-green-400"
+                        : "bg-white border-2 border-transparent"
+                    }`}
+                  >
+                    <div className="text-left">
+                      <p className="text-lg font-semibold text-slate-900">
+                        {c.lastName}, {c.firstName}
+                      </p>
+                      <p className="text-xs text-slate-400">{c.cabinName}</p>
+                    </div>
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-xl transition-colors ${
+                        isPresent
+                          ? "bg-green-500 text-white"
+                          : "bg-slate-200 text-slate-400"
+                      }`}
+                    >
+                      {isPresent ? "✓" : ""}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {campers.length === 0 && (
+              <div className="text-center text-slate-400 py-12">
+                No campers found for this cabin.
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Group Tab Content */}
+        {mainTab === "group" && (
+          <MyGroupSection
+            groupInfo={groupInfo}
+            loading={groupLoading}
+            dglSmallGroup={dglSmallGroup}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Biome color mapping
+const BIOME_COLORS: Record<string, { bg: string; text: string; border: string }> = {
+  Arctic:     { bg: "bg-cyan-50",    text: "text-cyan-700",    border: "border-cyan-200" },
+  Desert:     { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-200" },
+  Grasslands: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
+  Jungle:     { bg: "bg-lime-50",    text: "text-lime-700",    border: "border-lime-200" },
+  Marine:     { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200" },
+};
+
+// Activity rotations (same as schedule.ts but inline to avoid server/client import issues)
+const ACTIVITY_ROTATIONS: Record<string, string[]> = {
+  Jungle:     ["XC Ski", "Spag Twr", "Boardwalk", "Egg Drop", "Capture"],
+  Marine:     ["Capture", "XC Ski", "Spag Twr", "Boardwalk", "Egg Drop"],
+  Arctic:     ["Egg Drop", "Capture", "XC Ski", "Spag Twr", "Boardwalk"],
+  Desert:     ["Boardwalk", "Egg Drop", "Capture", "XC Ski", "Spag Twr"],
+  Grasslands: ["Spag Twr", "Boardwalk", "Egg Drop", "Capture", "XC Ski"],
+};
+
+const ACTIVITY_FULL_NAMES: Record<string, string> = {
+  "XC Ski": "Cross Country Skiing",
+  "Spag Twr": "Spaghetti Tower",
+  "Boardwalk": "Boardwalk",
+  "Egg Drop": "Egg Drop",
+  "Capture": "Capture the Flag",
+  "Jeopardy": "Jeopardy",
+};
+
+function MyGroupSection({
+  groupInfo,
+  loading,
+  dglSmallGroup,
+}: {
+  groupInfo: GroupInfo | null;
+  loading: boolean;
+  dglSmallGroup: string;
+}) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
+
+  if (!groupInfo) {
+    return (
+      <div className="bg-white rounded-xl p-8 border border-slate-300 text-center text-sm text-slate-400">
+        {dglSmallGroup ? `Could not load group "${dglSmallGroup}"` : "No group assigned"}
+      </div>
+    );
+  }
+
+  const biome = groupInfo.largeGroup || "Unknown";
+  const colors = BIOME_COLORS[biome] || { bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-200" };
+  const activities = groupInfo.largeGroup ? ACTIVITY_ROTATIONS[groupInfo.largeGroup] : null;
+
+  return (
+    <div className="space-y-3">
+      {/* Group header card */}
+      <div className={`rounded-xl border p-4 ${colors.bg} ${colors.border}`}>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className={`text-lg font-bold ${colors.text}`}>{groupInfo.name}</h2>
+            <p className="text-sm text-slate-600 mt-0.5">
+              {biome} &middot; {groupInfo.campers.length} campers
+            </p>
+          </div>
+          <div className={`px-3 py-1.5 rounded-full text-xs font-bold ${colors.bg} ${colors.text} border ${colors.border}`}>
+            {biome}
+          </div>
+        </div>
+
+        {groupInfo.meetingLocation && (
+          <div className="mt-3 flex items-center gap-2">
+            <svg className="w-4 h-4 text-slate-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span className="text-sm font-medium text-slate-700">
+              Meeting Place: <span className="font-bold">{groupInfo.meetingLocation}</span>
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Activity rotation */}
+      {activities && (
+        <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
+          <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+            <h3 className="text-sm font-bold text-slate-700">Your Activity Rotation</h3>
+          </div>
+          <div className="p-3 grid grid-cols-5 gap-1">
+            {activities.map((act, i) => (
+              <div key={i} className="text-center">
+                <div className="text-[10px] font-bold text-slate-400 mb-1">Act {i + 1}</div>
+                <div className={`text-xs font-semibold ${colors.text} leading-tight`}>
+                  {ACTIVITY_FULL_NAMES[act] || act}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Camper list */}
+      <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
+        <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+          <h3 className="text-sm font-bold text-slate-700">
+            Group Members ({groupInfo.campers.length})
+          </h3>
+        </div>
+        <div className="divide-y divide-slate-100">
+          {groupInfo.campers.map((c, i) => (
+            <div key={c.id} className="px-4 py-3 flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+                {i + 1}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-900">
+                  {c.lastName}, {c.firstName}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
