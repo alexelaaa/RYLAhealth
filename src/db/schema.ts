@@ -198,7 +198,7 @@ export const cabinCheckins = sqliteTable(
     camperId: integer("camper_id")
       .notNull()
       .references(() => campers.id),
-    night: text("night", { enum: ["friday", "saturday"] }).notNull(),
+    night: text("night", { enum: ["arrival", "friday", "saturday"] }).notNull(),
     present: integer("present").notNull().default(0),
     checkedBy: text("checked_by").notNull(),
     campWeekend: text("camp_weekend").notNull(),

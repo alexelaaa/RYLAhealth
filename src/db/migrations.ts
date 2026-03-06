@@ -307,7 +307,35 @@ export function runMigrations(db: Database.Database) {
     )
   `);
 
-  // Migration 21: Announcements table
+  // Migration 21: Rebuild cabin_checkins to allow 'arrival' night value
+  try {
+    const ccDef = db.prepare(
+      `SELECT sql FROM sqlite_master WHERE type='table' AND name='cabin_checkins'`
+    ).get() as { sql: string } | undefined;
+    if (ccDef?.sql && !ccDef.sql.includes("'arrival'")) {
+      db.exec(`
+        CREATE TABLE cabin_checkins_new (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          camper_id INTEGER NOT NULL REFERENCES campers(id),
+          night TEXT NOT NULL CHECK(night IN ('arrival', 'friday', 'saturday')),
+          present INTEGER NOT NULL DEFAULT 0,
+          checked_by TEXT NOT NULL,
+          camp_weekend TEXT NOT NULL,
+          checked_at TEXT NOT NULL
+        )
+      `);
+      db.exec(`INSERT INTO cabin_checkins_new SELECT * FROM cabin_checkins`);
+      db.exec(`DROP TABLE cabin_checkins`);
+      db.exec(`ALTER TABLE cabin_checkins_new RENAME TO cabin_checkins`);
+      db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_cabin_checkins_unique ON cabin_checkins(camper_id, night, camp_weekend)`);
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_cabin_checkins_camper ON cabin_checkins(camper_id)`);
+      db.exec(`CREATE INDEX IF NOT EXISTS idx_cabin_checkins_weekend ON cabin_checkins(camp_weekend)`);
+    }
+  } catch {
+    // Already migrated
+  }
+
+  // Migration 22: Announcements table
   db.exec(`
     CREATE TABLE IF NOT EXISTS announcements (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
