@@ -5,15 +5,49 @@ import { BIOME_COLORS } from "@/lib/constants";
 import {
   getCampDay,
   getCurrentSlot,
+  getDetailedSchedule,
   parseScheduleTime,
   getActivityForSlot,
+  ACTIVITY_LOCATIONS,
   FRIDAY,
 } from "@/lib/schedule";
-import type { ScheduleSlot } from "@/lib/schedule";
+import type { ScheduleSlot, DetailedEvent } from "@/lib/schedule";
+
+function parseDetailedTime(timeStr: string): number | null {
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+}
+
+function findDetailedEvent(nowMinutes: number, detailed: DetailedEvent[]): DetailedEvent | null {
+  for (let i = 0; i < detailed.length; i++) {
+    const eventMin = parseDetailedTime(detailed[i].time);
+    if (eventMin === null) continue;
+    const nextMin = i + 1 < detailed.length ? parseDetailedTime(detailed[i + 1].time) : Infinity;
+    if (nowMinutes >= eventMin && nowMinutes < (nextMin ?? Infinity)) {
+      return detailed[i];
+    }
+  }
+  return null;
+}
+
+function findNextDetailedEvent(nowMinutes: number, detailed: DetailedEvent[]): DetailedEvent | null {
+  for (let i = 0; i < detailed.length; i++) {
+    const eventMin = parseDetailedTime(detailed[i].time);
+    if (eventMin === null) continue;
+    const nextMin = i + 1 < detailed.length ? parseDetailedTime(detailed[i + 1].time) : Infinity;
+    if (nowMinutes >= eventMin && nowMinutes < (nextMin ?? Infinity)) {
+      return i + 1 < detailed.length ? detailed[i + 1] : null;
+    }
+  }
+  return null;
+}
 
 export default function ScheduleNow() {
   const [slot, setSlot] = useState<ScheduleSlot | null>(null);
   const [isCampDay, setIsCampDay] = useState(true);
+  const [currentDetailed, setCurrentDetailed] = useState<DetailedEvent | null>(null);
+  const [nextDetailed, setNextDetailed] = useState<DetailedEvent | null>(null);
 
   useEffect(() => {
     function update() {
@@ -22,14 +56,19 @@ export default function ScheduleNow() {
       setIsCampDay(day !== null);
       if (day) {
         setSlot(getCurrentSlot(now));
+        const detailed = getDetailedSchedule(day);
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+        setCurrentDetailed(findDetailedEvent(nowMinutes, detailed));
+        setNextDetailed(findNextDetailedEvent(nowMinutes, detailed));
       } else {
-        // Preview Friday schedule when not a camp day
         setSlot({
           current: null,
           next: null,
           dayLabel: "Friday",
           schedule: FRIDAY,
         });
+        setCurrentDetailed(null);
+        setNextDetailed(null);
       }
     }
     update();
@@ -67,18 +106,25 @@ export default function ScheduleNow() {
                 <span className="text-xs text-blue-500 font-medium">{slot.current.time}</span>
               </div>
               <p className="text-lg font-bold text-slate-900">{slot.current.event}</p>
+              {currentDetailed?.location && (
+                <p className="text-sm text-blue-700 font-medium">{currentDetailed.location}</p>
+              )}
+              {currentDetailed?.note && (
+                <p className="text-xs text-blue-500 italic mt-0.5">{currentDetailed.note}</p>
+              )}
 
               {/* Activity rotation grid */}
               {activities && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {Object.entries(activities).map(([biome, activity]) => {
                     const colors = BIOME_COLORS[biome];
+                    const location = ACTIVITY_LOCATIONS[activity];
                     return (
                       <span
                         key={biome}
                         className={`text-xs font-medium px-2 py-1 rounded-lg ${colors?.bg || "bg-slate-100"} ${colors?.text || "text-slate-700"}`}
                       >
-                        {biome}: {activity}
+                        {biome}: {activity}{location ? ` — ${location}` : ""}
                       </span>
                     );
                   })}
@@ -88,12 +134,17 @@ export default function ScheduleNow() {
 
             {/* UP NEXT */}
             {slot.next && (
-              <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded">
-                  Next
-                </span>
-                <span className="text-xs text-slate-500 font-medium">{slot.next.time}</span>
-                <span className="text-sm font-semibold text-slate-700">{slot.next.event}</span>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded">
+                    Next
+                  </span>
+                  <span className="text-xs text-slate-500 font-medium">{slot.next.time}</span>
+                  <span className="text-sm font-semibold text-slate-700">{slot.next.event}</span>
+                </div>
+                {nextDetailed?.location && (
+                  <p className="text-xs text-slate-500 mt-1 ml-[52px]">{nextDetailed.location}</p>
+                )}
               </div>
             )}
           </>
