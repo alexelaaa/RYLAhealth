@@ -101,7 +101,8 @@ function EventRow({ event, groups }: { event: DetailedEvent; groups: SmallGroupI
   // Determine if this is an expandable row
   const activityMatch = event.title.match(/^Activity\s+(\d+)$/);
   const isDiscussion = event.title.startsWith("Discussion Group");
-  const isExpandable = activityMatch || isDiscussion;
+  const isSmallGroupMeet = event.title.includes("Small Group Meet");
+  const isExpandable = activityMatch || isDiscussion || isSmallGroupMeet;
 
   return (
     <div className={`border-b border-slate-100 last:border-0 ${event.bold ? "bg-blue-50/50" : ""}`}>
@@ -132,7 +133,7 @@ function EventRow({ event, groups }: { event: DetailedEvent; groups: SmallGroupI
           <ActivityBreakdown activityNum={parseInt(activityMatch[1])} />
         </div>
       )}
-      {expanded && isDiscussion && (
+      {expanded && (isDiscussion || isSmallGroupMeet) && (
         <div className="px-2 pb-3">
           <DiscussionBreakdown groups={groups} />
         </div>
