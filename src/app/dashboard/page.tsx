@@ -37,6 +37,7 @@ function getActiveScheduleKeys(): string[] {
 
 interface Stats {
   totalCampers: number;
+  noShowCount?: number;
   weekendCounts: { campWeekend: string; count: number }[];
   roleCounts: { role: string; count: number }[];
   todayMedicalLogs: number;
@@ -194,6 +195,9 @@ function DashboardContent() {
               <p className="text-xs text-blue-500 mt-1">
                 {campWeekend ? "Weekend Campers" : "Total Campers"}
               </p>
+              {(stats.noShowCount || 0) > 0 && (
+                <p className="text-[10px] text-red-500 mt-0.5">{stats.noShowCount} no-show</p>
+              )}
             </div>
             <div className="bg-red-50 rounded-xl p-4 border border-red-100">
               <p className="text-2xl font-bold text-red-600">{stats.todayMedicalLogs}</p>

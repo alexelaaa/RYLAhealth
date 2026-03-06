@@ -144,13 +144,30 @@ export async function GET(request: NextRequest) {
     .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
     .slice(0, 10);
 
-  // Total campers (filtered)
+  // Total campers (filtered, excluding no-shows)
+  const noShowFilter = eq(campers.noShow, 0);
   let totalQuery = db
     .select({ count: sql<number>`count(*)` })
     .from(campers)
     .$dynamic();
-  if (weekendFilter) totalQuery = totalQuery.where(weekendFilter) as typeof totalQuery;
+  if (weekendFilter) {
+    totalQuery = totalQuery.where(and(weekendFilter, noShowFilter)) as typeof totalQuery;
+  } else {
+    totalQuery = totalQuery.where(noShowFilter) as typeof totalQuery;
+  }
   const totalCampers = totalQuery.get();
+
+  // No-show count
+  let noShowQuery = db
+    .select({ count: sql<number>`count(*)` })
+    .from(campers)
+    .$dynamic();
+  if (weekendFilter) {
+    noShowQuery = noShowQuery.where(and(weekendFilter, eq(campers.noShow, 1))) as typeof noShowQuery;
+  } else {
+    noShowQuery = noShowQuery.where(eq(campers.noShow, 1)) as typeof noShowQuery;
+  }
+  const noShowCount = noShowQuery.get();
 
   // Check-in counts
   let checkedIn = 0;
@@ -220,6 +237,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     totalCampers: totalCampers?.count || 0,
+    noShowCount: noShowCount?.count || 0,
     weekendCounts,
     roleCounts,
     todayMedicalLogs: todayMedical?.count || 0,
