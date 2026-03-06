@@ -8,6 +8,7 @@ interface Announcement {
   body: string;
   priority: string;
   posted_by: string;
+  active: number;
   created_at: string;
 }
 
@@ -31,7 +32,7 @@ export default function AnnouncementBanner() {
     return () => clearInterval(interval);
   }, [fetchAnnouncements]);
 
-  const visible = announcements.filter((a) => !dismissed.has(a.id));
+  const visible = announcements.filter((a) => a.active && !dismissed.has(a.id));
   if (visible.length === 0) return null;
 
   return (
