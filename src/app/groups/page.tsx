@@ -59,6 +59,20 @@ interface BusStat {
   arrived: number;
 }
 
+interface BusCamper {
+  id: number;
+  firstName: string;
+  lastName: string;
+  busStop: string | null;
+  school: string | null;
+  guardianPhone: string | null;
+  cellPhone: string | null;
+  role: string;
+  noShow: boolean;
+  checkedIn: boolean;
+  arrived: boolean;
+}
+
 interface DGLCabinEntry {
   dglName: string | null;
   dglCabin: string | null;
@@ -106,6 +120,7 @@ function GroupsContent() {
   const [smallGroups, setSmallGroups] = useState<FlatGroup[]>([]);
   const [dglCabins, setDglCabins] = useState<DGLCabinEntry[]>([]);
   const [busStats, setBusStats] = useState<BusStat[]>([]);
+  const [busCampers, setBusCampers] = useState<Record<string, BusCamper[]>>({});
   const [loading, setLoading] = useState(true);
 
   // Overview data
@@ -159,14 +174,16 @@ function GroupsContent() {
   // Bus stats data (with auto-refresh)
   useEffect(() => {
     if (tab !== "buses") return;
-    const weekendParam = campWeekend ? `?weekend=${encodeURIComponent(campWeekend)}` : "";
+    const params = new URLSearchParams({ detail: "campers" });
+    if (campWeekend) params.set("weekend", campWeekend);
     let first = true;
     const fetchBusStats = () => {
       if (first) setLoading(true);
-      fetch(`/api/admin/bus-stats${weekendParam}`)
+      fetch(`/api/admin/bus-stats?${params}`)
         .then((r) => r.json())
         .then((data) => {
-          setBusStats(data);
+          setBusStats(data.stats || []);
+          setBusCampers(data.campersByBus || {});
           if (first) { setLoading(false); first = false; }
         })
         .catch(() => { if (first) { setLoading(false); first = false; } });
@@ -215,7 +232,7 @@ function GroupsContent() {
       ) : tab === "dgls" ? (
         <DGLCabinsTab entries={dglCabins} />
       ) : (
-        <BusesTab busStats={busStats} />
+        <BusesTab busStats={busStats} campersByBus={busCampers} />
       )}
     </div>
   );
@@ -539,7 +556,12 @@ function DGLCabinsTab({ entries }: { entries: DGLCabinEntry[] }) {
 
 // --- Buses Tab ---
 
-function BusesTab({ busStats }: { busStats: BusStat[] }) {
+type BusFilter = "not_on_bus" | "on_bus" | "arrived" | "all";
+
+function BusesTab({ busStats, campersByBus }: { busStats: BusStat[]; campersByBus: Record<string, BusCamper[]> }) {
+  const [expandedBus, setExpandedBus] = useState<string | null>(null);
+  const [filter, setFilter] = useState<BusFilter>("not_on_bus");
+
   if (busStats.length === 0) {
     return (
       <div className="bg-white rounded-xl p-6 border border-slate-300 text-center text-sm text-slate-400">
@@ -551,6 +573,23 @@ function BusesTab({ busStats }: { busStats: BusStat[] }) {
   const totalAssigned = busStats.reduce((s, b) => s + b.assigned, 0);
   const totalOnBus = busStats.reduce((s, b) => s + b.checkedIn, 0);
   const totalArrived = busStats.reduce((s, b) => s + b.arrived, 0);
+  const totalNotOnBus = totalAssigned - totalOnBus;
+
+  const filterCampers = (campers: BusCamper[]): BusCamper[] => {
+    switch (filter) {
+      case "not_on_bus": return campers.filter((c) => !c.checkedIn);
+      case "on_bus": return campers.filter((c) => c.checkedIn && !c.arrived);
+      case "arrived": return campers.filter((c) => c.arrived);
+      default: return campers;
+    }
+  };
+
+  const filterLabels: { key: BusFilter; label: string }[] = [
+    { key: "not_on_bus", label: "Not On Bus" },
+    { key: "on_bus", label: "On Bus" },
+    { key: "arrived", label: "Arrived" },
+    { key: "all", label: "All" },
+  ];
 
   return (
     <div className="space-y-3">
@@ -561,46 +600,169 @@ function BusesTab({ busStats }: { busStats: BusStat[] }) {
           <span className="text-sm font-bold text-slate-900">{totalAssigned} campers</span>
         </div>
         <div className="flex items-center gap-4 text-xs">
+          <span className="text-red-700 font-medium">Not On Bus: {totalNotOnBus}</span>
           <span className="text-yellow-700 font-medium">On Bus: {totalOnBus}</span>
           <span className="text-green-700 font-medium">Arrived: {totalArrived}</span>
-          <span className="text-slate-500">Remaining: {totalAssigned - totalOnBus}</span>
         </div>
         <div className="mt-2 w-full bg-slate-100 rounded-full h-2">
           <div
             className="bg-green-500 h-2 rounded-full transition-all"
-            style={{ width: `${totalAssigned > 0 ? Math.round((totalArrived / totalAssigned) * 100) : 0}%` }}
+            style={{ width: `${totalAssigned > 0 ? Math.round((totalOnBus / totalAssigned) * 100) : 0}%` }}
           />
         </div>
       </div>
 
+      {/* Filter tabs */}
+      <div className="flex rounded-lg overflow-hidden border border-slate-200">
+        {filterLabels.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`flex-1 px-2 py-2 text-xs font-medium transition-colors ${
+              filter === f.key
+                ? "bg-blue-600 text-white"
+                : "bg-white text-slate-500 hover:bg-slate-50"
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
       {/* Per-bus cards */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="space-y-3">
         {busStats.map((bus) => {
-          const pct = bus.assigned > 0 ? Math.round((bus.arrived / bus.assigned) * 100) : 0;
+          const isExpanded = expandedBus === bus.busNumber;
+          const campers = campersByBus[bus.busNumber] || [];
+          const filtered = filterCampers(campers);
+          const notOnBus = campers.filter((c) => !c.checkedIn).length;
+          const pct = bus.assigned > 0 ? Math.round((bus.checkedIn / bus.assigned) * 100) : 0;
+
           return (
-            <div key={bus.busNumber} className="bg-white rounded-xl border border-slate-300 p-4">
-              <p className="text-sm font-bold text-slate-900 mb-2">Bus {bus.busNumber}</p>
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500">Assigned</span>
-                  <span className="text-xs font-semibold text-slate-800">{bus.assigned}</span>
+            <div key={bus.busNumber} className="bg-white rounded-xl border border-slate-300 overflow-hidden">
+              <button
+                onClick={() => setExpandedBus(isExpanded ? null : bus.busNumber)}
+                className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-bold text-slate-900">Bus {bus.busNumber}</span>
+                  <div className="flex items-center gap-2">
+                    {notOnBus > 0 && (
+                      <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
+                        {notOnBus} missing
+                      </span>
+                    )}
+                    <span className="text-xs text-slate-400">{bus.checkedIn}/{bus.assigned}</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-yellow-600">On Bus</span>
-                  <span className="text-xs font-semibold text-yellow-700">{bus.checkedIn}</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-16 bg-slate-100 rounded-full h-1.5">
+                    <div
+                      className="bg-green-500 h-1.5 rounded-full transition-all"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  <svg
+                    className={`w-4 h-4 text-slate-400 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-green-600">Arrived</span>
-                  <span className="text-xs font-semibold text-green-700">{bus.arrived}</span>
+              </button>
+
+              {isExpanded && (
+                <div className="border-t border-slate-200">
+                  {/* Stats row */}
+                  <div className="px-4 py-2 bg-slate-50 flex items-center gap-4 text-xs">
+                    <span className="text-slate-500">Assigned: <span className="font-semibold text-slate-800">{bus.assigned}</span></span>
+                    <span className="text-red-600">Not On Bus: <span className="font-semibold">{notOnBus}</span></span>
+                    <span className="text-yellow-600">On Bus: <span className="font-semibold">{bus.checkedIn - bus.arrived}</span></span>
+                    <span className="text-green-600">Arrived: <span className="font-semibold">{bus.arrived}</span></span>
+                  </div>
+
+                  {filtered.length === 0 ? (
+                    <div className="px-4 py-4 text-center text-xs text-slate-400">
+                      No campers match this filter
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100">
+                      {filtered.map((c) => (
+                        <Link
+                          key={c.id}
+                          href={`/campers/${c.id}`}
+                          className={`flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 transition-colors ${
+                            c.noShow ? "opacity-50" : ""
+                          }`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-slate-900">
+                                {c.lastName}, {c.firstName}
+                              </span>
+                              {c.role === "Alternate" && (
+                                <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-medium">
+                                  ALT
+                                </span>
+                              )}
+                              {c.noShow && (
+                                <span className="text-[10px] bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-medium">
+                                  NO SHOW
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                              {c.busStop && (
+                                <span className="text-xs text-slate-500">Stop: {c.busStop}</span>
+                              )}
+                              {c.school && (
+                                <span className="text-xs text-slate-400">{c.school}</span>
+                              )}
+                            </div>
+                            {!c.checkedIn && (c.guardianPhone || c.cellPhone) && (
+                              <div className="flex items-center gap-2 mt-0.5">
+                                {c.guardianPhone && (
+                                  <span
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `tel:${c.guardianPhone}`; }}
+                                    className="text-xs text-blue-600 underline cursor-pointer"
+                                  >
+                                    Parent: {c.guardianPhone}
+                                  </span>
+                                )}
+                                {c.cellPhone && (
+                                  <span
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `tel:${c.cellPhone}`; }}
+                                    className="text-xs text-blue-600 underline cursor-pointer"
+                                  >
+                                    Camper: {c.cellPhone}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-shrink-0 ml-2">
+                            {c.arrived ? (
+                              <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                                Arrived
+                              </span>
+                            ) : c.checkedIn ? (
+                              <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-medium">
+                                On Bus
+                              </span>
+                            ) : (
+                              <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-medium">
+                                Missing
+                              </span>
+                            )}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div className="mt-2 w-full bg-slate-100 rounded-full h-1.5">
-                <div
-                  className="bg-green-500 h-1.5 rounded-full transition-all"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <p className="text-[10px] text-slate-400 mt-1 text-right">{pct}%</p>
+              )}
             </div>
           );
         })}
