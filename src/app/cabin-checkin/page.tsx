@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import InstallPrompt from "@/components/InstallPrompt";
 import NotificationToggle from "@/components/NotificationToggle";
+import {
+  getCampDay,
+  getDetailedSchedule,
+  type DetailedEvent,
+} from "@/lib/schedule";
 
 interface CamperCheckin {
   id: number;
@@ -161,11 +166,12 @@ export default function CabinCheckinPage() {
     setGroupLoading(false);
   }, [dglSmallGroup, campWeekend]);
 
+  // Fetch group info as soon as we have the small group name (for schedule widget + group tab)
   useEffect(() => {
-    if (mainTab === "group") {
+    if (dglSmallGroup && campWeekend) {
       fetchGroupInfo();
     }
-  }, [mainTab, fetchGroupInfo]);
+  }, [dglSmallGroup, campWeekend, fetchGroupInfo]);
 
   const submitTicket = async () => {
     if (!ticketCategory || !ticketDesc.trim()) return;
@@ -296,6 +302,9 @@ export default function CabinCheckinPage() {
             RYLA Packet
           </a>
         </div>
+
+        {/* Schedule Now - personalized for DGL */}
+        <DGLScheduleNow groupInfo={groupInfo} />
 
         {/* Help Request */}
         <button
@@ -649,6 +658,118 @@ function MyGroupSection({
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+function parseDetailedTime(timeStr: string): number | null {
+  const match = timeStr.match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+}
+
+function DGLScheduleNow({ groupInfo }: { groupInfo: GroupInfo | null }) {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const day = getCampDay(now);
+  const schedule = useMemo(() => (day ? getDetailedSchedule(day) : null), [day]);
+
+  if (!schedule) return null;
+
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+  // Find current and next event
+  let currentEvent: DetailedEvent | null = null;
+  let nextEvent: DetailedEvent | null = null;
+
+  for (let i = 0; i < schedule.length; i++) {
+    const eventMin = parseDetailedTime(schedule[i].time);
+    if (eventMin === null) continue;
+    const nextMin = i + 1 < schedule.length ? parseDetailedTime(schedule[i + 1].time) : Infinity;
+    if (nowMinutes >= eventMin && nowMinutes < (nextMin ?? Infinity)) {
+      currentEvent = schedule[i];
+      nextEvent = i + 1 < schedule.length ? schedule[i + 1] : null;
+      break;
+    }
+  }
+
+  if (!currentEvent) return null;
+
+  const biome = groupInfo?.largeGroup || null;
+  const meetingLocation = groupInfo?.meetingLocation || null;
+
+  function personalizeEvent(event: DetailedEvent): { title: string; location: string | null } {
+    const actMatch = event.title.match(/^Activity\s+(\d+)$/);
+    if (actMatch && biome) {
+      const actIdx = parseInt(actMatch[1], 10) - 1;
+      const activities = ACTIVITY_ROTATIONS[biome];
+      if (activities && actIdx < activities.length) {
+        const act = activities[actIdx];
+        return {
+          title: ACTIVITY_FULL_NAMES[act] || act,
+          location: ACTIVITY_LOCATIONS[act] || null,
+        };
+      }
+    }
+
+    if (event.title.startsWith("Discussion Group") && meetingLocation) {
+      return {
+        title: event.title,
+        location: meetingLocation,
+      };
+    }
+
+    if (event.title.includes("Small Group Meet") && meetingLocation) {
+      return {
+        title: event.title,
+        location: meetingLocation,
+      };
+    }
+
+    return { title: event.title, location: event.location || null };
+  }
+
+  const current = personalizeEvent(currentEvent);
+  const next = nextEvent ? personalizeEvent(nextEvent) : null;
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
+      {/* Current event */}
+      <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">
+            Now
+          </span>
+          <span className="text-xs text-blue-500 font-medium">{currentEvent.time}</span>
+        </div>
+        <p className="text-base font-bold text-slate-900">{current.title}</p>
+        {current.location && (
+          <p className="text-sm text-blue-700 font-medium mt-0.5">{current.location}</p>
+        )}
+      </div>
+
+      {/* Next event */}
+      {next && nextEvent && (
+        <div className="px-4 py-2.5 flex items-start gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded mt-0.5">
+            Next
+          </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-medium">{nextEvent.time}</span>
+              <span className="text-sm font-semibold text-slate-700">{next.title}</span>
+            </div>
+            {next.location && (
+              <p className="text-xs text-slate-500">{next.location}</p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
