@@ -106,6 +106,17 @@ function TicketsContent() {
     } catch { /* ignore */ }
   };
 
+  const handleAcknowledge = async (id: number) => {
+    try {
+      const res = await fetch("/api/help-tickets", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: "acknowledged" }),
+      });
+      if (res.ok) fetchTickets(true);
+    } catch { /* ignore */ }
+  };
+
   const handleAssign = async (id: number, assignedTo: string) => {
     try {
       const res = await fetch("/api/help-tickets", {
@@ -195,6 +206,11 @@ function TicketsContent() {
                           URGENT
                         </span>
                       )}
+                      {ticket.status === "acknowledged" && (
+                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                          Acknowledged
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm text-slate-900 mt-2">{ticket.description}</p>
                     <div className="flex items-center gap-2 mt-2 text-xs text-slate-500">
@@ -211,8 +227,18 @@ function TicketsContent() {
                   </div>
                 </div>
 
+                {/* Acknowledge button for new/unacknowledged tickets */}
+                {ticket.status === "open" && !ticket.assigned_to && (
+                  <button
+                    onClick={() => handleAcknowledge(ticket.id)}
+                    className="mt-2 w-full py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors border border-blue-200"
+                  >
+                    Acknowledge
+                  </button>
+                )}
+
                 {/* Assign */}
-                {ticket.status === "open" && (
+                {(ticket.status === "open" || ticket.status === "acknowledged") && (
                   <div className="mt-2">
                     <select
                       value={ticket.assigned_to || ""}
@@ -249,7 +275,7 @@ function TicketsContent() {
                 )}
 
                 {/* Actions */}
-                {ticket.status === "open" && (
+                {(ticket.status === "open" || ticket.status === "acknowledged") && (
                   <div className="mt-3">
                     {resolving === ticket.id ? (
                       <div className="space-y-2">

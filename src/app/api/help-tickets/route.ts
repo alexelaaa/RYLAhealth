@@ -54,9 +54,17 @@ export async function GET(request: NextRequest) {
   const status = request.nextUrl.searchParams.get("status") || "open";
 
   if (session.role === "admin") {
-    const tickets = sqlite
-      .prepare("SELECT * FROM help_tickets WHERE status = ? ORDER BY CASE urgency WHEN 'urgent' THEN 0 ELSE 1 END, created_at DESC")
-      .all(status);
+    let tickets;
+    if (status === "open") {
+      // Show both open and acknowledged tickets in the "open" tab
+      tickets = sqlite
+        .prepare("SELECT * FROM help_tickets WHERE status IN ('open', 'acknowledged') ORDER BY CASE urgency WHEN 'urgent' THEN 0 ELSE 1 END, CASE status WHEN 'open' THEN 0 ELSE 1 END, created_at DESC")
+        .all();
+    } else {
+      tickets = sqlite
+        .prepare("SELECT * FROM help_tickets WHERE status = ? ORDER BY created_at DESC")
+        .all(status);
+    }
     return NextResponse.json(tickets);
   }
 
@@ -148,12 +156,24 @@ export async function PATCH(request: NextRequest) {
     const resolvedBy = session.label || session.role;
 
     if (assignedTo !== undefined) {
-      sqlite
-        .prepare("UPDATE help_tickets SET assigned_to = ? WHERE id = ?")
-        .run(assignedTo || null, id);
+      // Auto-acknowledge when assigning (if still open)
+      const ticket = sqlite.prepare("SELECT status FROM help_tickets WHERE id = ?").get(id) as { status: string } | undefined;
+      if (assignedTo && ticket?.status === "open") {
+        sqlite
+          .prepare("UPDATE help_tickets SET assigned_to = ?, status = 'acknowledged' WHERE id = ?")
+          .run(assignedTo, id);
+      } else {
+        sqlite
+          .prepare("UPDATE help_tickets SET assigned_to = ? WHERE id = ?")
+          .run(assignedTo || null, id);
+      }
     }
 
-    if (status === "resolved") {
+    if (status === "acknowledged") {
+      sqlite
+        .prepare("UPDATE help_tickets SET status = 'acknowledged' WHERE id = ?")
+        .run(id);
+    } else if (status === "resolved") {
       sqlite
         .prepare("UPDATE help_tickets SET status = 'resolved', resolved_by = ?, resolved_note = ?, resolved_at = ? WHERE id = ?")
         .run(resolvedBy, note || null, now, id);

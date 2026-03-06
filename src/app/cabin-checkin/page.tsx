@@ -33,6 +33,7 @@ interface HelpTicket {
   description: string;
   urgency: string;
   status: string;
+  assigned_to: string | null;
   created_at: string;
   resolved_at: string | null;
 }
@@ -396,6 +397,8 @@ export default function CabinCheckinPage() {
                       className={`rounded-lg px-3 py-2 text-xs ${
                         t.status === "resolved"
                           ? "bg-green-50 border border-green-200"
+                          : t.status === "acknowledged"
+                          ? "bg-blue-50 border border-blue-200"
                           : t.urgency === "urgent"
                           ? "bg-red-50 border border-red-200"
                           : "bg-slate-50 border border-slate-200"
@@ -403,11 +406,18 @@ export default function CabinCheckinPage() {
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-medium text-slate-700">{t.category}</span>
-                        <span className={`font-medium ${t.status === "resolved" ? "text-green-600" : "text-amber-600"}`}>
-                          {t.status === "resolved" ? "Resolved" : "Open"}
+                        <span className={`font-medium ${
+                          t.status === "resolved" ? "text-green-600" :
+                          t.status === "acknowledged" ? "text-blue-600" :
+                          "text-amber-600"
+                        }`}>
+                          {t.status === "resolved" ? "Resolved" : t.status === "acknowledged" ? "Being Handled" : "Open"}
                         </span>
                       </div>
                       <p className="text-slate-500 mt-0.5">{t.description}</p>
+                      {t.status === "acknowledged" && t.assigned_to && (
+                        <p className="text-blue-600 mt-0.5 font-medium">Assigned to {t.assigned_to}</p>
+                      )}
                     </div>
                   ))}
                 </div>
