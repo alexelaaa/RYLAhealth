@@ -6,6 +6,7 @@ import AppShell from "@/components/layout/AppShell";
 import ScheduleNow from "@/components/ScheduleNow";
 import NotificationToggle from "@/components/NotificationToggle";
 import InstallPrompt from "@/components/InstallPrompt";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 import { useCamp } from "@/lib/camp-context";
 import { MEDICATION_SCHEDULES } from "@/lib/constants";
 import { cacheGet, cacheSet } from "@/lib/offline-cache";
@@ -159,6 +160,8 @@ function DashboardContent() {
       <NotificationToggle />
 
       <ScheduleNow />
+
+      <AnnouncementBanner />
 
       {session?.role === "admin" && openTickets > 0 && (
         <Link href="/admin/tickets" className="block">

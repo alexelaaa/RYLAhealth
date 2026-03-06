@@ -306,4 +306,17 @@ export function runMigrations(db: Database.Database) {
       created_at TEXT NOT NULL
     )
   `);
+
+  // Migration 21: Announcements table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS announcements (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      body TEXT NOT NULL,
+      priority TEXT NOT NULL DEFAULT 'normal',
+      posted_by TEXT NOT NULL,
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at TEXT NOT NULL
+    )
+  `);
 }

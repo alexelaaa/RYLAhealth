@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import InstallPrompt from "@/components/InstallPrompt";
 import NotificationToggle from "@/components/NotificationToggle";
+import AnnouncementBanner from "@/components/AnnouncementBanner";
 import {
   getCampDay,
   getDetailedSchedule,
@@ -278,6 +279,7 @@ export default function CabinCheckinPage() {
       <div className="max-w-lg mx-auto p-4 space-y-4">
         <InstallPrompt />
         <NotificationToggle />
+        <AnnouncementBanner />
 
         {/* Quick Links */}
         <div className="flex gap-2">
