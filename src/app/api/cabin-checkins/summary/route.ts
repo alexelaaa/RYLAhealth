@@ -66,12 +66,13 @@ export async function GET(request: NextRequest) {
     `SELECT camper_id, night, present FROM cabin_checkins${checkinWeekendClause}`
   ).all(...(weekend ? [weekend] : [])) as CheckinRow[];
 
-  const checkinMap = new Map<number, { friday: boolean; saturday: boolean }>();
+  const checkinMap = new Map<number, { arrival: boolean; friday: boolean; saturday: boolean }>();
   for (const ci of allCheckins) {
     if (!checkinMap.has(ci.camper_id)) {
-      checkinMap.set(ci.camper_id, { friday: false, saturday: false });
+      checkinMap.set(ci.camper_id, { arrival: false, friday: false, saturday: false });
     }
     const entry = checkinMap.get(ci.camper_id)!;
+    if (ci.night === "arrival" && ci.present === 1) entry.arrival = true;
     if (ci.night === "friday" && ci.present === 1) entry.friday = true;
     if (ci.night === "saturday" && ci.present === 1) entry.saturday = true;
   }
@@ -87,11 +88,13 @@ export async function GET(request: NextRequest) {
     );
 
     const total = cabinCampers.length;
+    let arrivalPresent = 0;
     let fridayPresent = 0;
     let saturdayPresent = 0;
 
     for (const c of cabinCampers) {
       const ci = checkinMap.get(c.id);
+      if (ci?.arrival) arrivalPresent++;
       if (ci?.friday) fridayPresent++;
       if (ci?.saturday) saturdayPresent++;
     }
@@ -101,14 +104,17 @@ export async function GET(request: NextRequest) {
       dglCabin: dgl.dgl_cabin,
       smallGroup: dgl.small_group,
       totalCampers: total,
+      arrivalPresent,
       fridayPresent,
       saturdayPresent,
+      arrivalComplete: total > 0 && arrivalPresent === total,
       fridayComplete: total > 0 && fridayPresent === total,
       saturdayComplete: total > 0 && saturdayPresent === total,
       campers: cabinCampers.map((c) => ({
         id: c.id,
         firstName: c.firstName,
         lastName: c.lastName,
+        arrival: checkinMap.get(c.id)?.arrival || false,
         friday: checkinMap.get(c.id)?.friday || false,
         saturday: checkinMap.get(c.id)?.saturday || false,
       })),

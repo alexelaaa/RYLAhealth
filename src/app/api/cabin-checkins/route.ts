@@ -77,13 +77,14 @@ export async function GET(request: NextRequest) {
     ).all(...camperIds, ...(campWeekend ? [campWeekend] : [])) as CheckinRow[];
   }
 
-  // Build checkin map: camper_id -> { friday: bool, saturday: bool }
-  const checkinMap = new Map<number, { friday: boolean; saturday: boolean }>();
+  // Build checkin map: camper_id -> { arrival: bool, friday: bool, saturday: bool }
+  const checkinMap = new Map<number, { arrival: boolean; friday: boolean; saturday: boolean }>();
   for (const ci of checkins) {
     if (!checkinMap.has(ci.camper_id)) {
-      checkinMap.set(ci.camper_id, { friday: false, saturday: false });
+      checkinMap.set(ci.camper_id, { arrival: false, friday: false, saturday: false });
     }
     const entry = checkinMap.get(ci.camper_id)!;
+    if (ci.night === "arrival") entry.arrival = ci.present === 1;
     if (ci.night === "friday") entry.friday = ci.present === 1;
     if (ci.night === "saturday") entry.saturday = ci.present === 1;
   }
@@ -93,6 +94,7 @@ export async function GET(request: NextRequest) {
     firstName: c.firstName,
     lastName: c.lastName,
     cabinName: c.cabinName,
+    arrival: checkinMap.get(c.id)?.arrival || false,
     friday: checkinMap.get(c.id)?.friday || false,
     saturday: checkinMap.get(c.id)?.saturday || false,
   }));
@@ -108,7 +110,7 @@ export async function POST(request: Request) {
 
   const { camperId, night, present, campWeekend: reqWeekend } = await request.json();
 
-  if (!camperId || !night || !["friday", "saturday"].includes(night)) {
+  if (!camperId || !night || !["arrival", "friday", "saturday"].includes(night)) {
     return NextResponse.json({ error: "Invalid parameters" }, { status: 400 });
   }
 

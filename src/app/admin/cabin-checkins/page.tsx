@@ -9,25 +9,28 @@ interface CabinSummary {
   dglCabin: string;
   smallGroup: string;
   totalCampers: number;
+  arrivalPresent: number;
   fridayPresent: number;
   saturdayPresent: number;
+  arrivalComplete: boolean;
   fridayComplete: boolean;
   saturdayComplete: boolean;
   campers: {
     id: number;
     firstName: string;
     lastName: string;
+    arrival: boolean;
     friday: boolean;
     saturday: boolean;
   }[];
 }
 
-type Night = "friday" | "saturday";
+type Night = "arrival" | "friday" | "saturday";
 
 function CabinCheckinsDashboard() {
   const { campWeekend } = useCamp();
   const [cabins, setCabins] = useState<CabinSummary[]>([]);
-  const [night, setNight] = useState<Night>("friday");
+  const [night, setNight] = useState<Night>("arrival");
   const [expandedCabin, setExpandedCabin] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -48,11 +51,21 @@ function CabinCheckinsDashboard() {
     fetchSummary();
   }, [fetchSummary]);
 
+  const getPresent = (cabin: CabinSummary) => {
+    if (night === "arrival") return cabin.arrivalPresent;
+    if (night === "friday") return cabin.fridayPresent;
+    return cabin.saturdayPresent;
+  };
+
+  const getComplete = (cabin: CabinSummary) => {
+    if (night === "arrival") return cabin.arrivalComplete;
+    if (night === "friday") return cabin.fridayComplete;
+    return cabin.saturdayComplete;
+  };
+
   const getStatus = (cabin: CabinSummary) => {
-    const present = night === "friday" ? cabin.fridayPresent : cabin.saturdayPresent;
-    const complete = night === "friday" ? cabin.fridayComplete : cabin.saturdayComplete;
-    if (complete) return "complete";
-    if (present > 0) return "in-progress";
+    if (getComplete(cabin)) return "complete";
+    if (getPresent(cabin) > 0) return "in-progress";
     return "not-started";
   };
 
@@ -63,9 +76,9 @@ function CabinCheckinsDashboard() {
     <div className="p-4 space-y-4 pb-24">
       <h1 className="text-xl font-bold text-slate-900">Cabin Check-Ins</h1>
 
-      {/* Night toggle */}
+      {/* Check-in type toggle */}
       <div className="flex rounded-xl overflow-hidden bg-white shadow-sm">
-        {(["friday", "saturday"] as Night[]).map((n) => (
+        {(["arrival", "friday", "saturday"] as Night[]).map((n) => (
           <button
             key={n}
             onClick={() => setNight(n)}
@@ -75,7 +88,7 @@ function CabinCheckinsDashboard() {
                 : "bg-white text-slate-500 hover:bg-slate-50"
             }`}
           >
-            {n === "friday" ? "Friday" : "Saturday"}
+            {n === "arrival" ? "Arrival" : n === "friday" ? "Friday" : "Saturday"}
           </button>
         ))}
       </div>
@@ -95,7 +108,7 @@ function CabinCheckinsDashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {cabins.map((cabin) => {
             const status = getStatus(cabin);
-            const present = night === "friday" ? cabin.fridayPresent : cabin.saturdayPresent;
+            const present = getPresent(cabin);
             const total = cabin.totalCampers;
             const pct = total > 0 ? (present / total) * 100 : 0;
             const isExpanded = expandedCabin === cabin.dglCabin;
@@ -140,7 +153,7 @@ function CabinCheckinsDashboard() {
                 {isExpanded && cabin.campers.length > 0 && (
                   <div className="mt-3 space-y-1 border-t pt-2">
                     {cabin.campers.map((c) => {
-                      const camperPresent = night === "friday" ? c.friday : c.saturday;
+                      const camperPresent = night === "arrival" ? c.arrival : night === "friday" ? c.friday : c.saturday;
                       return (
                         <div
                           key={c.id}

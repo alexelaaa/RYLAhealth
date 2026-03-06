@@ -18,11 +18,12 @@ interface CamperCheckin {
   firstName: string;
   lastName: string;
   cabinName: string;
+  arrival: boolean;
   friday: boolean;
   saturday: boolean;
 }
 
-type Night = "friday" | "saturday";
+type Night = "arrival" | "friday" | "saturday";
 
 const TICKET_CATEGORIES = ["Medical", "Forgot Item", "Behavioral", "Maintenance", "Other"];
 
@@ -58,7 +59,7 @@ export default function CabinCheckinPage() {
   const [label, setLabel] = useState("");
   const [dglSmallGroup, setDglSmallGroup] = useState("");
   const [campWeekend, setCampWeekend] = useState("");
-  const [night, setNight] = useState<Night>("friday");
+  const [night, setNight] = useState<Night>("arrival");
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<number | null>(null);
   const router = useRouter();
@@ -213,7 +214,7 @@ export default function CabinCheckinPage() {
     const camper = campers.find((c) => c.id === camperId);
     if (!camper) return;
 
-    const currentPresent = night === "friday" ? camper.friday : camper.saturday;
+    const currentPresent = night === "arrival" ? camper.arrival : night === "friday" ? camper.friday : camper.saturday;
     const newPresent = !currentPresent;
 
     // Optimistic update
@@ -245,7 +246,7 @@ export default function CabinCheckinPage() {
     router.push("/login");
   };
 
-  const presentCount = campers.filter((c) => (night === "friday" ? c.friday : c.saturday)).length;
+  const presentCount = campers.filter((c) => night === "arrival" ? c.arrival : night === "friday" ? c.friday : c.saturday).length;
   const totalCount = campers.length;
 
   // Extract DGL name from label: "DGL: FirstName LastName (Cabin 16C)" -> "FirstName LastName"
@@ -444,19 +445,19 @@ export default function CabinCheckinPage() {
         {/* Cabin Tab Content */}
         {mainTab === "cabin" && (
           <>
-            {/* Night toggle */}
+            {/* Check-in type toggle */}
             <div className="flex rounded-xl overflow-hidden bg-white shadow-sm">
-              {(["friday", "saturday"] as Night[]).map((n) => (
+              {(["arrival", "friday", "saturday"] as Night[]).map((n) => (
                 <button
                   key={n}
                   onClick={() => setNight(n)}
-                  className={`flex-1 py-3 text-center font-semibold text-lg transition-colors ${
+                  className={`flex-1 py-3 text-center font-semibold transition-colors ${
                     night === n
                       ? "bg-blue-600 text-white"
                       : "bg-white text-slate-500 hover:bg-slate-50"
                   }`}
                 >
-                  {n === "friday" ? "Friday Night" : "Saturday Night"}
+                  {n === "arrival" ? "Arrival" : n === "friday" ? "Fri Night" : "Sat Night"}
                 </button>
               ))}
             </div>
@@ -471,7 +472,7 @@ export default function CabinCheckinPage() {
             {/* Camper list */}
             <div className="space-y-2">
               {campers.map((c) => {
-                const isPresent = night === "friday" ? c.friday : c.saturday;
+                const isPresent = night === "arrival" ? c.arrival : night === "friday" ? c.friday : c.saturday;
                 return (
                   <button
                     key={c.id}
