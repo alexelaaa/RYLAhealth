@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 
   // Filter to campers who have real medication data
   const withMeds = camperList.filter(
-    (c) => c.noShow !== 1 && isNonEmpty(c.currentMedications)
+    (c) => c.noShow !== 1 && c.sentHome !== 1 && isNonEmpty(c.currentMedications)
   );
 
   // Get all medication checkins

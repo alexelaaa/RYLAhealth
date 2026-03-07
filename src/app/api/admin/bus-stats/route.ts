@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
   if (detail === "campers") {
     const campers = sqlite.prepare(`
       SELECT c.id, c.first_name, c.last_name, c.bus_number, c.bus_stop,
-             c.school, c.guardian_phone, c.cell_phone, c.role, c.no_show,
+             c.school, c.guardian_phone, c.cell_phone, c.role, c.no_show, c.sent_home,
              ci.checked_in_at, ci.camp_arrived_at
       FROM campers c
       LEFT JOIN check_ins ci ON ci.camper_id = c.id
@@ -72,7 +72,8 @@ export async function GET(request: NextRequest) {
       arrived: boolean;
     }[]> = {};
 
-    for (const c of campers) {
+    for (const c of campers as (typeof campers[0] & { sent_home: number })[]) {
+      if (c.sent_home) continue;
       if (!campersByBus[c.bus_number]) campersByBus[c.bus_number] = [];
       campersByBus[c.bus_number].push({
         id: c.id,

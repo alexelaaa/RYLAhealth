@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
       cabinName: campers.cabinName,
       smallGroup: campers.smallGroup,
       noShow: campers.noShow,
+      sentHome: campers.sentHome,
     })
     .from(campers)
     .where(and(...conditions))
@@ -62,7 +63,7 @@ export async function GET(request: NextRequest) {
   // Filter to matching cabin
   const cabinCampers = allCampers
     .filter((c) => camperMatchesCabin(c.cabinName!, dglCabin!))
-    .filter((c) => !c.noShow)
+    .filter((c) => !c.noShow && !c.sentHome)
     .sort((a, b) => a.lastName.localeCompare(b.lastName));
 
   // Get existing check-ins for these campers

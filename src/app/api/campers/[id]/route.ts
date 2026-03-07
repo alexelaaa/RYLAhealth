@@ -7,6 +7,90 @@ import { eq, desc } from "drizzle-orm";
 import type { SessionData } from "@/types";
 import { cookies } from "next/headers";
 
+interface PushRow {
+  id: number;
+  endpoint: string;
+  subscription_json: string;
+  user_label: string;
+}
+
+async function notifyDGLsForCamper(camperId: number, camperName: string, reason: string) {
+  const publicKey = process.env.VAPID_PUBLIC_KEY;
+  const privateKey = process.env.VAPID_PRIVATE_KEY;
+  if (!publicKey || !privateKey) return;
+
+  try {
+    const { sqlite: db } = await import("@/db");
+
+    // Get camper's cabin and small group
+    const camper = db.prepare(
+      "SELECT cabin_name, small_group FROM campers WHERE id = ?"
+    ).get(camperId) as { cabin_name: string | null; small_group: string | null } | undefined;
+    if (!camper) return;
+
+    // Find DGL labels associated with this camper's cabin/group
+    const dglLabels = new Set<string>();
+
+    if (camper.small_group) {
+      const groupInfo = db.prepare(
+        "SELECT dgl_first_name, dgl_last_name, dgl_cabin FROM small_group_info WHERE small_group = ?"
+      ).get(camper.small_group) as { dgl_first_name: string | null; dgl_last_name: string | null; dgl_cabin: string | null } | undefined;
+
+      if (groupInfo?.dgl_cabin) {
+        // DGL labels are formatted as "DGL - CabinName"
+        const label = `DGL - ${groupInfo.dgl_cabin}`;
+        dglLabels.add(label);
+      }
+    }
+
+    if (camper.cabin_name) {
+      // Also try to find DGLs whose cabin matches this camper's cabin
+      const cabinDGLs = db.prepare(
+        "SELECT dgl_cabin FROM small_group_info WHERE dgl_cabin IS NOT NULL"
+      ).all() as { dgl_cabin: string }[];
+      for (const row of cabinDGLs) {
+        if (camper.cabin_name.includes(row.dgl_cabin) || row.dgl_cabin.includes(camper.cabin_name)) {
+          dglLabels.add(`DGL - ${row.dgl_cabin}`);
+        }
+      }
+    }
+
+    if (dglLabels.size === 0) return;
+
+    // Find push subscriptions for these DGLs
+    const allDglSubs = db.prepare(
+      "SELECT id, endpoint, subscription_json, user_label FROM push_subscriptions WHERE role = 'dgl'"
+    ).all() as PushRow[];
+
+    const matchingSubs = allDglSubs.filter((s) => dglLabels.has(s.user_label));
+    if (matchingSubs.length === 0) return;
+
+    const webpush = (await import("web-push")).default;
+    webpush.setVapidDetails("mailto:admin@ryla5330.org", publicKey, privateKey);
+
+    const payload = JSON.stringify({
+      title: `Camper Sent Home: ${camperName}`,
+      body: reason,
+      url: `/campers/${camperId}`,
+    });
+
+    await Promise.allSettled(
+      matchingSubs.map(async (row) => {
+        try {
+          const sub = JSON.parse(row.subscription_json);
+          await webpush.sendNotification(sub, payload);
+        } catch (err: unknown) {
+          if (err && typeof err === "object" && "statusCode" in err && (err as { statusCode: number }).statusCode === 410) {
+            db.prepare("DELETE FROM push_subscriptions WHERE id = ?").run(row.id);
+          }
+        }
+      })
+    );
+  } catch {
+    // Push notifications are best-effort
+  }
+}
+
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
@@ -252,6 +336,16 @@ export async function PATCH(
   sqlite.prepare(
     `UPDATE campers SET ${setClauses.join(", ")} WHERE id = ?`
   ).run(...values);
+
+  // Notify DGLs if camper was just sent home
+  const sentHomeEdit = editRecords.find((e) => e.fieldName === "sentHome" && e.newValue === "1");
+  if (sentHomeEdit) {
+    const reasonEdit = editRecords.find((e) => e.fieldName === "sentHomeReason");
+    const camperName = `${current.firstName} ${current.lastName}`;
+    const reason = reasonEdit?.newValue || "No reason provided";
+    // Fire and forget — don't block the response
+    notifyDGLsForCamper(id, camperName, reason).catch(() => {});
+  }
 
   // Return updated camper
   const updated = db

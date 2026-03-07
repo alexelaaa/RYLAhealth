@@ -54,11 +54,12 @@ export async function GET(request: NextRequest) {
       lastName: campers.lastName,
       cabinName: campers.cabinName,
       noShow: campers.noShow,
+      sentHome: campers.sentHome,
     })
     .from(campers)
     .where(and(...conditions))
     .all()
-    .filter((c) => !c.noShow);
+    .filter((c) => !c.noShow && !c.sentHome);
 
   // Get all cabin checkins
   const checkinWeekendClause = weekend ? ` WHERE camp_weekend = ?` : "";
