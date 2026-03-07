@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
 
   const status = request.nextUrl.searchParams.get("status") || "open";
 
-  if (session.role === "admin") {
+  if (session.role === "admin" || session.role === "staff") {
     let tickets;
     if (status === "open") {
       // Show both open and acknowledged tickets in the "open" tab
@@ -139,8 +139,8 @@ export async function POST(request: NextRequest) {
 // PATCH: resolve or update a ticket (admin only)
 export async function PATCH(request: NextRequest) {
   const session = await getIronSession<SessionData>(cookies(), sessionOptions);
-  if (!session.isLoggedIn || session.role !== "admin") {
-    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  if (!session.isLoggedIn || (session.role !== "admin" && session.role !== "staff")) {
+    return NextResponse.json({ error: "Admin or Staff access required" }, { status: 403 });
   }
 
   try {

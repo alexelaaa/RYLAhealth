@@ -33,6 +33,7 @@ export const SATURDAY: [string, string][] = [
   ["5:20p", "Dinner"],
   ["6:30p", "Talent Show"],
   ["8:00p", "Carnival"],
+  ["11:00p", "Cabins (DST: Spring Forward!)"],
   ["11:30p", "Lights Out"],
 ];
 
@@ -95,7 +96,7 @@ export const SATURDAY_DETAILED: DetailedEvent[] = [
   { time: "5:20 – 6:20", title: "Dinner", location: "Dining Hall" },
   { time: "6:30 – 8:00", title: "Talent/No Talent Show", location: "McNeil Hall" },
   { time: "8:00 – 10:45", title: "Carnival", location: "Center of Camp", note: "Snacks at Malt Shop. Bonfire, s'mores, fire pits." },
-  { time: "11:00", title: "Report to Cabins" },
+  { time: "11:00", title: "Report to Cabins", note: "Reminder: Clocks spring forward 1 hour tonight! (DST)" },
   { time: "11:30", title: "Lights Out" },
 ];
 

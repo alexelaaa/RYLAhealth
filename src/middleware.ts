@@ -12,6 +12,7 @@ export async function middleware(request: NextRequest) {
   // Allow login page, API auth routes, static files, and _next
   if (
     pathname === "/login" ||
+    pathname === "/tv" ||
     pathname.startsWith("/api/auth") ||
     pathname.startsWith("/api/cron") ||
     pathname.startsWith("/api/push/vapid-key") ||
