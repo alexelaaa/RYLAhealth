@@ -86,154 +86,138 @@ export default function TVDisplayPage() {
   const upcoming = currentIdx >= 0 ? schedule.slice(currentIdx + 1) : [];
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 flex">
-      {/* RYLA logo top-left */}
-      <div className="absolute top-8 left-10">
-        <Image
-          src="/rylalogo.jpg"
-          alt="RYLA"
-          width={200}
-          height={100}
-          priority
-        />
-      </div>
-
-      {/* Left side: Now + Next */}
-      <div className="flex-1 flex flex-col justify-center p-12 pt-32">
-        {/* Clock */}
-        <div className="text-7xl font-bold text-black mb-10 tabular-nums font-mono">
-          {clock}
+    <div className="h-screen bg-white text-slate-900 flex overflow-hidden">
+      {/* Left side */}
+      <div className="flex-1 flex flex-col p-10">
+        {/* Top row: logo + clock */}
+        <div className="flex items-center justify-between mb-6">
+          <Image
+            src="/rylalogo.jpg"
+            alt="RYLA"
+            width={180}
+            height={90}
+            priority
+          />
+          <div className="text-5xl font-bold text-black tabular-nums font-mono">
+            {clock}
+          </div>
         </div>
 
-        {!isCampDay ? (
-          <div>
-            <h1 className="text-6xl font-bold mb-4">RYLA Camp</h1>
-            <p className="text-3xl text-slate-400">No events scheduled right now</p>
-          </div>
-        ) : !current ? (
-          <div>
-            <h1 className="text-6xl font-bold mb-4">RYLA Camp</h1>
-            <p className="text-3xl text-slate-400">Events starting soon...</p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {/* Current Event */}
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-3xl p-10">
-              <div className="flex items-center gap-5 mb-4">
-                <span className="text-base font-bold uppercase tracking-widest text-blue-600 bg-blue-100 px-4 py-1.5 rounded-full">
-                  Now
-                </span>
-                <span className="text-3xl text-blue-500 font-medium">{current.time}</span>
-              </div>
-              <h2 className="text-6xl font-bold text-slate-900">{current.title}</h2>
-              {current.location && (
-                <p className="text-3xl text-blue-600 font-medium mt-3">{current.location}</p>
-              )}
-              {current.note && (
-                <p className="text-xl text-blue-500 italic mt-2">{current.note}</p>
-              )}
+        {/* Current + Next events */}
+        <div className="flex-1 flex flex-col justify-center">
+          {!isCampDay ? (
+            <div>
+              <h1 className="text-5xl font-bold mb-4">RYLA Camp</h1>
+              <p className="text-2xl text-slate-400">No events scheduled right now</p>
+            </div>
+          ) : !current ? (
+            <div>
+              <h1 className="text-5xl font-bold mb-4">RYLA Camp</h1>
+              <p className="text-2xl text-slate-400">Events starting soon...</p>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {/* Current Event */}
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-8">
+                <div className="flex items-center gap-4 mb-3">
+                  <span className="text-sm font-bold uppercase tracking-widest text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+                    Now
+                  </span>
+                  <span className="text-2xl text-blue-500 font-medium">{current.time}</span>
+                </div>
+                <h2 className="text-5xl font-bold text-slate-900">{current.title}</h2>
+                {current.location && (
+                  <p className="text-2xl text-blue-600 font-medium mt-2">{current.location}</p>
+                )}
+                {current.note && (
+                  <p className="text-lg text-blue-500 italic mt-1">{current.note}</p>
+                )}
 
-              {/* Activity rotation */}
-              {activities && (
-                <div className="mt-6 flex flex-wrap gap-3">
-                  {Object.entries(activities).map(([biome, activity]) => {
-                    const colors = BIOME_COLORS[biome];
-                    const location = ACTIVITY_LOCATIONS[activity];
-                    return (
-                      <span
-                        key={biome}
-                        className="text-xl font-semibold px-4 py-2.5 rounded-xl"
-                        style={{
-                          backgroundColor: colors?.hexLight || "#f1f5f9",
-                          color: colors?.hex || "#475569",
-                          border: `2px solid ${colors?.hexBorder || "#e2e8f0"}`,
-                        }}
-                      >
-                        {biome}: {activity}{location ? ` — ${location}` : ""}
-                      </span>
-                    );
-                  })}
+                {/* Activity rotation */}
+                {activities && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {Object.entries(activities).map(([biome, activity]) => {
+                      const colors = BIOME_COLORS[biome];
+                      const location = ACTIVITY_LOCATIONS[activity];
+                      return (
+                        <span
+                          key={biome}
+                          className="text-lg font-semibold px-3 py-2 rounded-xl"
+                          style={{
+                            backgroundColor: colors?.hexLight || "#f1f5f9",
+                            color: colors?.hex || "#475569",
+                            border: `2px solid ${colors?.hexBorder || "#e2e8f0"}`,
+                          }}
+                        >
+                          {biome}: {activity}{location ? ` — ${location}` : ""}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Next Event */}
+              {upcoming.length > 0 && (
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl px-8 py-5 flex items-center gap-5">
+                  <span className="text-sm font-bold uppercase tracking-widest text-slate-400 bg-slate-200 px-3 py-1 rounded-full">
+                    Next
+                  </span>
+                  <span className="text-xl text-slate-400 font-medium">{upcoming[0].time}</span>
+                  <span className="text-3xl font-bold text-slate-900">{upcoming[0].title}</span>
+                  {upcoming[0].location && (
+                    <span className="text-xl text-slate-400">{upcoming[0].location}</span>
+                  )}
                 </div>
               )}
             </div>
+          )}
+        </div>
 
-            {/* Next Event */}
-            {upcoming.length > 0 && (
-              <div className="bg-slate-50 border border-slate-200 rounded-3xl px-10 py-7 flex items-center gap-6">
-                <span className="text-base font-bold uppercase tracking-widest text-slate-400 bg-slate-200 px-4 py-1.5 rounded-full">
-                  Next
-                </span>
-                <span className="text-2xl text-slate-400 font-medium">{upcoming[0].time}</span>
-                <span className="text-4xl font-bold text-slate-900">{upcoming[0].title}</span>
-                {upcoming[0].location && (
-                  <span className="text-2xl text-slate-400">{upcoming[0].location}</span>
-                )}
-              </div>
-            )}
+        {/* QR code bottom-left — always visible */}
+        <div className="flex items-center gap-6 bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-5 mt-4">
+          <Image
+            src="/ryla-qr.png"
+            alt="Scan to upload photos and videos"
+            width={180}
+            height={180}
+            className="shrink-0"
+          />
+          <div>
+            <p className="text-2xl font-bold text-slate-800">Share your photos &amp; videos!</p>
+            <p className="text-lg text-slate-500 mt-1">Scan to upload for the end-of-camp slideshow</p>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Right side: Rest of day schedule + QR */}
+      {/* Right side: Rest of day schedule */}
       {isCampDay && upcoming.length > 1 && (
-        <div className="w-[420px] bg-slate-50 border-l-2 border-slate-200 flex flex-col">
-          <div className="px-8 py-6 border-b-2 border-slate-200">
-            <h3 className="text-2xl font-bold text-slate-600">Rest of Day</h3>
+        <div className="w-[380px] bg-slate-50 border-l-2 border-slate-200 flex flex-col">
+          <div className="px-6 py-4 border-b-2 border-slate-200">
+            <h3 className="text-xl font-bold text-slate-600">Rest of Day</h3>
           </div>
           <div className="flex-1 overflow-y-auto">
             {upcoming.slice(1).map((evt, i) => (
               <div
                 key={i}
-                className="px-8 py-5 border-b border-slate-200"
+                className="px-6 py-3.5 border-b border-slate-200"
               >
-                <p className="text-lg text-slate-400 font-medium">{evt.time}</p>
-                <p className="text-2xl font-bold text-slate-800">{evt.title}</p>
+                <p className="text-base text-slate-400 font-medium">{evt.time}</p>
+                <p className="text-xl font-bold text-slate-800">{evt.title}</p>
                 {evt.location && (
-                  <p className="text-lg text-slate-500">{evt.location}</p>
+                  <p className="text-base text-slate-500">{evt.location}</p>
                 )}
                 {evt.note && (
-                  <p className="text-base text-slate-400 italic">{evt.note}</p>
+                  <p className="text-sm text-slate-400 italic">{evt.note}</p>
                 )}
               </div>
             ))}
-            {/* End of day marker */}
-            <div className="px-8 py-8 text-center border-t-2 border-slate-300">
-              <p className="text-xl text-slate-400 font-medium">End of Day</p>
-            </div>
-          </div>
-          {/* QR code at bottom of sidebar */}
-          <div className="px-6 py-5 border-t-2 border-slate-300 bg-white flex items-center gap-4">
-            <Image
-              src="/ryla-qr.png"
-              alt="Scan to upload photos and videos"
-              width={100}
-              height={100}
-              className="shrink-0"
-            />
-            <div>
-              <p className="text-base font-bold text-slate-800">Share your photos &amp; videos!</p>
-              <p className="text-sm text-slate-500">Scan to upload for the end-of-camp slideshow</p>
+            <div className="px-6 py-6 text-center border-t-2 border-slate-300">
+              <p className="text-lg text-slate-400 font-medium">End of Day</p>
             </div>
           </div>
         </div>
       )}
-
-      {/* QR code bottom-left when no sidebar */}
-      {(!isCampDay || upcoming.length <= 1) && (
-        <div className="absolute bottom-8 left-10 flex items-center gap-5 bg-slate-50 border border-slate-200 rounded-2xl p-5">
-          <Image
-            src="/ryla-qr.png"
-            alt="Scan to upload photos and videos"
-            width={120}
-            height={120}
-          />
-          <div>
-            <p className="text-xl font-bold text-slate-800">Share your photos &amp; videos!</p>
-            <p className="text-base text-slate-500">Scan to upload for the end-of-camp slideshow</p>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
