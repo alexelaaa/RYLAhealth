@@ -91,7 +91,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <main className="pb-safe max-w-4xl mx-auto">
             <PullToRefresh>{children}</PullToRefresh>
           </main>
-          <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-300 z-50 shadow-[0_-2px_8px_rgba(0,0,0,0.08)]">
+          <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-300 z-50 shadow-[0_-2px_8px_rgba(0,0,0,0.08)] transform-gpu">
             <div className="flex justify-around items-center h-16 max-w-lg mx-auto px-2">
               {alumniNav.map((item) => {
                 const isActive = pathname === item.href || pathname.startsWith(item.href + "/");

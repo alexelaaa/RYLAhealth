@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -53,9 +54,32 @@ const navItems = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const navRef = useRef<HTMLElement>(null);
+
+  // Force bottom nav to re-anchor after orientation changes (iOS Safari bug)
+  useEffect(() => {
+    function handleResize() {
+      const nav = navRef.current;
+      if (!nav) return;
+      // Force a reflow by toggling a property
+      nav.style.display = "none";
+      // Reading offsetHeight forces the browser to reflow
+      void nav.offsetHeight;
+      nav.style.display = "";
+    }
+
+    // orientationchange is the reliable event for this on iOS
+    window.addEventListener("orientationchange", handleResize);
+    // Also listen for resize as a fallback
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("orientationchange", handleResize);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-300 z-50 shadow-[0_-2px_8px_rgba(0,0,0,0.08)]">
+    <nav ref={navRef} className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-300 z-50 shadow-[0_-2px_8px_rgba(0,0,0,0.08)] transform-gpu">
       <div className="flex justify-around items-center h-16 max-w-lg mx-auto px-2">
         {navItems.map((item) => {
           const isActive =
