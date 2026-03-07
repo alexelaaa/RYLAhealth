@@ -39,6 +39,7 @@ function getActiveScheduleKeys(): string[] {
 interface Stats {
   totalCampers: number;
   noShowCount?: number;
+  sentHomeCount?: number;
   weekendCounts: { campWeekend: string; count: number }[];
   roleCounts: { role: string; count: number }[];
   todayMedicalLogs: number;
@@ -261,6 +262,9 @@ function DashboardContent() {
               </p>
               {(stats.noShowCount || 0) > 0 && (
                 <p className="text-[10px] text-red-500 mt-0.5">{stats.noShowCount} no-show</p>
+              )}
+              {(stats.sentHomeCount || 0) > 0 && (
+                <p className="text-[10px] text-orange-500 mt-0.5">{stats.sentHomeCount} sent home</p>
               )}
             </div>
             <div className="bg-red-50 rounded-xl p-4 border border-red-100">

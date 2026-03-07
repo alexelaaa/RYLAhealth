@@ -146,14 +146,15 @@ export async function GET(request: NextRequest) {
 
   // Total campers (filtered, excluding no-shows)
   const noShowFilter = eq(campers.noShow, 0);
+  const sentHomeFilter = eq(campers.sentHome, 0);
   let totalQuery = db
     .select({ count: sql<number>`count(*)` })
     .from(campers)
     .$dynamic();
   if (weekendFilter) {
-    totalQuery = totalQuery.where(and(weekendFilter, noShowFilter)) as typeof totalQuery;
+    totalQuery = totalQuery.where(and(weekendFilter, noShowFilter, sentHomeFilter)) as typeof totalQuery;
   } else {
-    totalQuery = totalQuery.where(noShowFilter) as typeof totalQuery;
+    totalQuery = totalQuery.where(and(noShowFilter, sentHomeFilter)) as typeof totalQuery;
   }
   const totalCampers = totalQuery.get();
 
@@ -168,6 +169,18 @@ export async function GET(request: NextRequest) {
     noShowQuery = noShowQuery.where(eq(campers.noShow, 1)) as typeof noShowQuery;
   }
   const noShowCount = noShowQuery.get();
+
+  // Sent-home count
+  let sentHomeQuery = db
+    .select({ count: sql<number>`count(*)` })
+    .from(campers)
+    .$dynamic();
+  if (weekendFilter) {
+    sentHomeQuery = sentHomeQuery.where(and(weekendFilter, eq(campers.sentHome, 1))) as typeof sentHomeQuery;
+  } else {
+    sentHomeQuery = sentHomeQuery.where(eq(campers.sentHome, 1)) as typeof sentHomeQuery;
+  }
+  const sentHomeCount = sentHomeQuery.get();
 
   // Check-in counts
   let checkedIn = 0;
@@ -238,6 +251,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     totalCampers: totalCampers?.count || 0,
     noShowCount: noShowCount?.count || 0,
+    sentHomeCount: sentHomeCount?.count || 0,
     weekendCounts,
     roleCounts,
     todayMedicalLogs: todayMedical?.count || 0,

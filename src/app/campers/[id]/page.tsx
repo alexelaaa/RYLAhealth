@@ -85,6 +85,10 @@ const fieldLabels: Record<string, string> = {
   dropoffTime: "Drop-off Time",
   timedMedicationOverride: "Timed Med Override",
   medicationSchedule: "Medication Schedule",
+  sentHome: "Sent Home",
+  sentHomeAt: "Sent Home At",
+  sentHomeBy: "Sent Home By",
+  sentHomeReason: "Sent Home Reason",
 };
 
 const scheduleColors: Record<string, string> = {
@@ -118,6 +122,9 @@ function CamperDetailContent() {
   const [savingSchedule, setSavingSchedule] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showSendHome, setShowSendHome] = useState(false);
+  const [sendHomeReason, setSendHomeReason] = useState("");
+  const [sendingHome, setSendingHome] = useState(false);
 
   useEffect(() => {
     fetch(`/api/campers/${id}`)
@@ -183,6 +190,66 @@ function CamperDetailContent() {
       // ignore
     } finally {
       setSavingSchedule(false);
+    }
+  };
+
+  const handleSendHome = async () => {
+    if (!camper || !sendHomeReason.trim()) return;
+    setSendingHome(true);
+    try {
+      const now = new Date().toISOString();
+      const res = await fetch(`/api/campers/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sentHome: 1,
+          sentHomeAt: now,
+          sentHomeBy: session?.label || session?.role || "unknown",
+          sentHomeReason: sendHomeReason.trim(),
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCamper(data.camper);
+        // Refresh edits
+        const detailRes = await fetch(`/api/campers/${id}`);
+        const detailData = await detailRes.json();
+        setEdits(detailData.camperEdits || []);
+        setShowSendHome(false);
+        setSendHomeReason("");
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSendingHome(false);
+    }
+  };
+
+  const handleUndoSendHome = async () => {
+    if (!camper) return;
+    setSendingHome(true);
+    try {
+      const res = await fetch(`/api/campers/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sentHome: 0,
+          sentHomeAt: "",
+          sentHomeBy: "",
+          sentHomeReason: "",
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCamper(data.camper);
+        const detailRes = await fetch(`/api/campers/${id}`);
+        const detailData = await detailRes.json();
+        setEdits(detailData.camperEdits || []);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSendingHome(false);
     }
   };
 
@@ -257,6 +324,14 @@ function CamperDetailContent() {
             >
               Edit
             </Link>
+            {!camper.sentHome && (
+              <button
+                onClick={() => setShowSendHome(true)}
+                className="px-3 py-1.5 bg-orange-100 text-orange-700 text-xs rounded-lg font-medium hover:bg-orange-200 transition-colors"
+              >
+                Send Home
+              </button>
+            )}
             <button
               onClick={() => setShowDeleteConfirm(true)}
               className="px-3 py-1.5 bg-red-100 text-red-700 text-xs rounded-lg font-medium hover:bg-red-200 transition-colors"
@@ -266,6 +341,63 @@ function CamperDetailContent() {
           </div>
         )}
       </div>
+
+      {/* Sent home banner */}
+      {camper.sentHome ? (
+        <div className="bg-red-50 border border-red-300 rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-sm font-bold text-red-800">Sent Home</span>
+            {camper.sentHomeAt && (
+              <span className="text-xs text-red-600">{formatTimestamp(camper.sentHomeAt)}</span>
+            )}
+          </div>
+          <p className="text-sm text-red-700">{camper.sentHomeReason}</p>
+          {camper.sentHomeBy && (
+            <p className="text-xs text-red-500 mt-1">by {camper.sentHomeBy}</p>
+          )}
+          {isAdmin && (
+            <button
+              onClick={handleUndoSendHome}
+              disabled={sendingHome}
+              className="mt-2 text-xs px-3 py-1 bg-white border border-red-200 text-red-700 rounded-lg font-medium hover:bg-red-50 disabled:opacity-40"
+            >
+              {sendingHome ? "..." : "Undo Send Home"}
+            </button>
+          )}
+        </div>
+      ) : null}
+
+      {/* Send home confirmation */}
+      {showSendHome && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
+          <p className="text-sm font-medium text-red-800">
+            Send {camper.firstName} {camper.lastName} home?
+          </p>
+          <p className="text-xs text-red-600">This will remove them from group and bus lists.</p>
+          <textarea
+            value={sendHomeReason}
+            onChange={(e) => setSendHomeReason(e.target.value)}
+            placeholder="Reason for sending home (required)..."
+            className="w-full px-3 py-2 border border-red-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none"
+            rows={3}
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => { setShowSendHome(false); setSendHomeReason(""); }}
+              className="flex-1 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSendHome}
+              disabled={sendingHome || !sendHomeReason.trim()}
+              className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm font-semibold disabled:opacity-40"
+            >
+              {sendingHome ? "Sending..." : "Confirm Send Home"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Delete confirmation */}
       {showDeleteConfirm && (

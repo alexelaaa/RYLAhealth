@@ -32,7 +32,7 @@ export default function CheckInPage() {
 }
 
 function CheckInContent() {
-  const { campWeekend } = useCamp();
+  const { campWeekend, session } = useCamp();
   const [search, setSearch] = useState("");
   const [searchResults, setSearchResults] = useState<Camper[]>([]);
   const [checkedInMap, setCheckedInMap] = useState<Map<number, CheckedInCamper>>(new Map());
@@ -40,6 +40,8 @@ function CheckInContent() {
   const [totalCampers, setTotalCampers] = useState(0);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [locked, setLocked] = useState(false);
+  const [lockLoading, setLockLoading] = useState(false);
   const debouncedSearch = useDebounce(search, 200);
 
   const fetchCheckIns = useCallback(async () => {
@@ -78,11 +80,41 @@ function CheckInContent() {
     }
   }, [campWeekend]);
 
+  const fetchLockState = useCallback(async () => {
+    if (!campWeekend) { setLocked(false); return; }
+    try {
+      const res = await fetch(`/api/check-ins/lock?weekend=${encodeURIComponent(campWeekend)}`);
+      const data = await res.json();
+      setLocked(data.locked);
+    } catch {
+      // ignore
+    }
+  }, [campWeekend]);
+
+  const toggleLock = async () => {
+    if (!campWeekend) return;
+    setLockLoading(true);
+    try {
+      const res = await fetch("/api/check-ins/lock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ weekend: campWeekend }),
+      });
+      const data = await res.json();
+      setLocked(data.locked);
+    } catch {
+      // ignore
+    } finally {
+      setLockLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchCheckIns();
-    const interval = setInterval(fetchCheckIns, 15000);
+    fetchLockState();
+    const interval = setInterval(() => { fetchCheckIns(); fetchLockState(); }, 15000);
     return () => clearInterval(interval);
-  }, [fetchCheckIns]);
+  }, [fetchCheckIns, fetchLockState]);
 
   // Search for campers
   useEffect(() => {
@@ -100,8 +132,11 @@ function CheckInContent() {
     }
   }, [debouncedSearch, campWeekend]);
 
+  const isLocked = locked && session?.role !== "admin";
+
   // Check in (create record — for walk-ins or bus riders not yet checked in)
   const handleCheckIn = async (camperId: number) => {
+    if (isLocked) return;
     setActionLoading(camperId);
     try {
       const res = await fetch("/api/check-ins", {
@@ -121,6 +156,7 @@ function CheckInContent() {
 
   // Confirm camp arrival (PATCH)
   const handleConfirmArrival = async (camperId: number) => {
+    if (isLocked) return;
     setActionLoading(camperId);
     try {
       const res = await fetch("/api/check-ins", {
@@ -140,6 +176,7 @@ function CheckInContent() {
 
   // Undo (delete entire check-in record)
   const handleUndo = async (camperId: number) => {
+    if (isLocked) return;
     setActionLoading(camperId);
     try {
       const res = await fetch(`/api/check-ins/${camperId}`, {
@@ -170,7 +207,38 @@ function CheckInContent() {
 
   return (
     <div className="p-4 space-y-4">
-      <h1 className="text-xl font-bold text-slate-900">Camp Arrival</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-slate-900">Camp Arrival</h1>
+        {session?.role === "admin" && campWeekend && (
+          <button
+            onClick={toggleLock}
+            disabled={lockLoading}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              locked
+                ? "bg-red-100 text-red-700 hover:bg-red-200"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {locked ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+              )}
+            </svg>
+            {lockLoading ? "..." : locked ? "Unlock" : "Lock"}
+          </button>
+        )}
+      </div>
+
+      {locked && (
+        <div className="bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-sm font-medium flex items-center gap-2">
+          <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          Check-in is locked. {session?.role === "admin" ? "Tap unlock to re-enable." : "Contact an admin to unlock."}
+        </div>
+      )}
 
       {!campWeekend && (
         <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-4 py-3 text-sm">
@@ -289,7 +357,7 @@ function CheckInContent() {
                   {status === "arrived" ? (
                     <button
                       onClick={() => handleUndo(camper.id)}
-                      disabled={isLoading}
+                      disabled={isLoading || isLocked}
                       className="px-4 py-2.5 bg-slate-200 text-slate-700 rounded-xl text-sm font-medium hover:bg-slate-300 transition-colors disabled:opacity-40"
                     >
                       {isLoading ? "..." : "Undo"}
@@ -297,7 +365,7 @@ function CheckInContent() {
                   ) : status === "on_bus" ? (
                     <button
                       onClick={() => handleConfirmArrival(camper.id)}
-                      disabled={isLoading}
+                      disabled={isLoading || isLocked}
                       className="px-4 py-2.5 bg-yellow-500 text-white rounded-xl text-sm font-bold hover:bg-yellow-600 transition-colors disabled:opacity-40"
                     >
                       {isLoading ? "..." : "CONFIRM ARRIVAL"}
@@ -305,7 +373,7 @@ function CheckInContent() {
                   ) : (
                     <button
                       onClick={() => handleCheckIn(camper.id)}
-                      disabled={isLoading}
+                      disabled={isLoading || isLocked}
                       className="px-4 py-2.5 bg-green-600 text-white rounded-xl text-sm font-bold hover:bg-green-700 transition-colors disabled:opacity-40"
                     >
                       {isLoading ? "..." : "CHECK IN"}
@@ -370,7 +438,7 @@ function CheckInContent() {
                     </div>
                     <button
                       onClick={() => handleConfirmArrival(ci.camper_id)}
-                      disabled={actionLoading === ci.camper_id}
+                      disabled={actionLoading === ci.camper_id || isLocked}
                       className="px-3 py-1.5 bg-yellow-500 text-white rounded-lg text-xs font-bold hover:bg-yellow-600 transition-colors disabled:opacity-40 shrink-0"
                     >
                       {actionLoading === ci.camper_id ? "..." : "ARRIVED"}
@@ -416,7 +484,7 @@ function CheckInContent() {
                     </div>
                     <button
                       onClick={() => handleUndo(ci.camper_id)}
-                      disabled={actionLoading === ci.camper_id}
+                      disabled={actionLoading === ci.camper_id || isLocked}
                       className="text-xs text-slate-500 hover:text-red-600 transition-colors"
                     >
                       Undo

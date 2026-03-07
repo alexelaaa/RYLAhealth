@@ -73,6 +73,7 @@ const EDITABLE_FIELDS = [
   "busNumber", "busStop", "busStopLocation", "busStopAddress", "pickupTime", "dropoffTime",
   "timedMedicationOverride", "medicationSchedule",
   "noShow",
+  "sentHome", "sentHomeAt", "sentHomeBy", "sentHomeReason",
 ] as const;
 
 // Map camelCase field names to snake_case column names
@@ -134,6 +135,10 @@ const FIELD_TO_COLUMN: Record<string, string> = {
   timedMedicationOverride: "timed_medication_override",
   medicationSchedule: "medication_schedule",
   noShow: "no_show",
+  sentHome: "sent_home",
+  sentHomeAt: "sent_home_at",
+  sentHomeBy: "sent_home_by",
+  sentHomeReason: "sent_home_reason",
 };
 
 export async function PATCH(
@@ -228,7 +233,7 @@ export async function PATCH(
     const column = FIELD_TO_COLUMN[edit.fieldName];
     if (column) {
       setClauses.push(`${column} = ?`);
-      if (edit.fieldName === "timedMedicationOverride" || edit.fieldName === "noShow") {
+      if (edit.fieldName === "timedMedicationOverride" || edit.fieldName === "noShow" || edit.fieldName === "sentHome") {
         values.push(edit.newValue ? parseInt(edit.newValue) : 0);
       } else if (edit.fieldName === "medicationSchedule") {
         // Store JSON string for medication schedule array

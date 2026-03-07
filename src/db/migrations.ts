@@ -362,6 +362,12 @@ export function runMigrations(db: Database.Database) {
   `);
   db.exec(`CREATE INDEX IF NOT EXISTS idx_ticket_messages_ticket ON ticket_messages(ticket_id)`);
 
+  // Migration 25: Sent-home tracking columns
+  addColumn("campers", "sent_home", "INTEGER DEFAULT 0");
+  addColumn("campers", "sent_home_at", "TEXT");
+  addColumn("campers", "sent_home_by", "TEXT");
+  addColumn("campers", "sent_home_reason", "TEXT");
+
   // Migration 24: Announcements table
   db.exec(`
     CREATE TABLE IF NOT EXISTS announcements (
