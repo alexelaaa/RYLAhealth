@@ -202,7 +202,7 @@ function TicketsContent() {
           onClick={() => setTab("open")}
           className={`flex-1 py-3 text-sm font-medium transition-colors ${
             tab === "open"
-              ? "bg-blue-600 text-white"
+              ? "bg-green-700 text-white"
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
@@ -212,7 +212,7 @@ function TicketsContent() {
           onClick={() => setTab("resolved")}
           className={`flex-1 py-3 text-sm font-medium transition-colors ${
             tab === "resolved"
-              ? "bg-blue-600 text-white"
+              ? "bg-green-700 text-white"
               : "text-slate-500 hover:text-slate-700"
           }`}
         >
@@ -222,7 +222,7 @@ function TicketsContent() {
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-700" />
         </div>
       ) : tickets.length === 0 ? (
         <div className="bg-white rounded-xl p-8 border border-slate-300 text-center text-sm text-slate-400">
@@ -246,7 +246,7 @@ function TicketsContent() {
                       <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
                         ticket.category === "Medical" ? "bg-red-100 text-red-700" :
                         ticket.category === "Behavioral" ? "bg-orange-100 text-orange-700" :
-                        ticket.category === "Forgot Item" ? "bg-blue-100 text-blue-700" :
+                        ticket.category === "Forgot Item" ? "bg-green-200 text-green-800" :
                         ticket.category === "Maintenance" ? "bg-yellow-100 text-yellow-700" :
                         "bg-slate-100 text-slate-700"
                       }`}>
@@ -258,7 +258,7 @@ function TicketsContent() {
                         </span>
                       )}
                       {ticket.status === "acknowledged" && (
-                        <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded">
+                        <span className="text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded">
                           Acknowledged
                         </span>
                       )}
@@ -284,7 +284,7 @@ function TicketsContent() {
                     onClick={() => toggleMessages(ticket.id)}
                     className={`w-full flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-colors border ${
                       expandedTicket === ticket.id
-                        ? "bg-blue-100 text-blue-700 border-blue-200"
+                        ? "bg-green-200 text-green-800 border-green-300"
                         : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
                     }`}
                   >
@@ -306,7 +306,7 @@ function TicketsContent() {
                           className={`rounded-lg px-3 py-2 text-xs ${
                             msg.sender_role === "dgl"
                               ? "bg-slate-50 border border-slate-200 ml-0 mr-8"
-                              : "bg-blue-50 border border-blue-200 ml-8 mr-0"
+                              : "bg-green-50 border border-green-300 ml-8 mr-0"
                           }`}
                         >
                           <div className="flex items-center justify-between mb-0.5">
@@ -327,12 +327,12 @@ function TicketsContent() {
                           onChange={(e) => setReplyText((prev) => ({ ...prev, [ticket.id]: e.target.value }))}
                           onKeyDown={(e) => { if (e.key === "Enter") sendReply(ticket.id); }}
                           placeholder="Reply to DGL..."
-                          className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
                         />
                         <button
                           onClick={() => sendReply(ticket.id)}
                           disabled={sendingReply === ticket.id || !replyText[ticket.id]?.trim()}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors disabled:opacity-40"
+                          className="px-4 py-2 bg-green-700 text-white rounded-lg text-sm font-medium hover:bg-green-800 transition-colors disabled:opacity-40"
                         >
                           Send
                         </button>
@@ -345,7 +345,7 @@ function TicketsContent() {
                 {ticket.status === "open" && !ticket.assigned_to && (
                   <button
                     onClick={() => handleAcknowledge(ticket.id)}
-                    className="mt-2 w-full py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors border border-blue-200"
+                    className="mt-2 w-full py-2 bg-green-50 text-green-800 rounded-lg text-sm font-medium hover:bg-green-200 transition-colors border border-green-300"
                   >
                     Acknowledge
                   </button>
@@ -357,9 +357,9 @@ function TicketsContent() {
                     <select
                       value={ticket.assigned_to || ""}
                       onChange={(e) => handleAssign(ticket.id, e.target.value)}
-                      className={`w-full px-3 py-1.5 rounded-lg border text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      className={`w-full px-3 py-1.5 rounded-lg border text-xs font-medium focus:outline-none focus:ring-2 focus:ring-green-600 ${
                         ticket.assigned_to
-                          ? "border-blue-200 bg-blue-50 text-blue-700"
+                          ? "border-green-300 bg-green-50 text-green-800"
                           : "border-slate-200 bg-white text-slate-500"
                       }`}
                     >
@@ -398,7 +398,7 @@ function TicketsContent() {
                           value={resolveNote}
                           onChange={(e) => setResolveNote(e.target.value)}
                           placeholder="Add a note (optional)..."
-                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
                         />
                         <div className="flex gap-2">
                           <button

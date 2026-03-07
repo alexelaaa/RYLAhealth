@@ -103,7 +103,7 @@ function StaffPinsManager() {
         <button
           onClick={generateAll}
           disabled={generating}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium text-sm disabled:opacity-50"
+          className="px-4 py-2 bg-green-700 text-white rounded-lg font-medium text-sm disabled:opacity-50"
         >
           {generating ? "Generating..." : "Generate All PINs"}
         </button>
@@ -144,7 +144,7 @@ function StaffPinsManager() {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -191,7 +191,7 @@ function StaffPinsManager() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => regenerateOne(s.id)}
-                          className="text-xs text-blue-600 hover:text-blue-800"
+                          className="text-xs text-green-700 hover:text-green-900"
                         >
                           {s.hasPin ? "Regenerate" : "Generate"}
                         </button>

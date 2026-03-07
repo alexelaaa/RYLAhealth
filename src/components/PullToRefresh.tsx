@@ -83,9 +83,9 @@ export default function PullToRefresh({ children }: { children: React.ReactNode 
           <div
             className={`w-5 h-5 border-2 rounded-full ${
               refreshing
-                ? "border-blue-600 border-t-transparent animate-spin"
+                ? "border-green-700 border-t-transparent animate-spin"
                 : ready
-                  ? "border-blue-600"
+                  ? "border-green-700"
                   : "border-slate-300"
             }`}
             style={{
@@ -93,7 +93,7 @@ export default function PullToRefresh({ children }: { children: React.ReactNode 
               transition: pulling ? "none" : "transform 0.2s",
             }}
           />
-          <span className={`text-xs font-medium ${ready ? "text-blue-600" : "text-slate-400"}`}>
+          <span className={`text-xs font-medium ${ready ? "text-green-700" : "text-slate-400"}`}>
             {refreshing ? "Refreshing..." : ready ? "Release to refresh" : "Pull to refresh"}
           </span>
         </div>

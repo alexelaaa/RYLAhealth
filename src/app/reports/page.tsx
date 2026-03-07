@@ -89,7 +89,7 @@ function ReportsContent() {
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center gap-3">
-        <Link href="/dashboard" className="text-blue-600">
+        <Link href="/dashboard" className="text-green-700">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -114,7 +114,7 @@ function ReportsContent() {
             onClick={() => setTab(t.key)}
             className={`flex-shrink-0 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               tab === t.key
-                ? "border-blue-600 text-blue-600"
+                ? "border-green-700 text-green-700"
                 : "border-transparent text-slate-500 hover:text-slate-700"
             }`}
           >
@@ -125,7 +125,7 @@ function ReportsContent() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       ) : !data ? (
         <div className="bg-white rounded-xl p-6 border border-slate-300 text-center text-sm text-slate-400">
@@ -145,8 +145,8 @@ function ReportsContent() {
 }
 
 function SummaryCard({ label, value, color }: { label: string; value: number; color?: string }) {
-  const bg = color === "blue" ? "bg-blue-50" : color === "pink" ? "bg-pink-50" : "bg-slate-100";
-  const text = color === "blue" ? "text-blue-700" : color === "pink" ? "text-pink-700" : "text-slate-900";
+  const bg = color === "blue" ? "bg-green-50" : color === "pink" ? "bg-pink-50" : "bg-slate-100";
+  const text = color === "blue" ? "text-green-800" : color === "pink" ? "text-pink-700" : "text-slate-900";
 
   return (
     <div className={`${bg} rounded-xl p-3 text-center`}>
@@ -176,7 +176,7 @@ function CountTable({ rows, label }: { rows: CountRow[]; label: string }) {
               <tr key={r.name} className="hover:bg-slate-100 transition-colors">
                 <td className="px-3 py-2.5 font-medium text-slate-900">{r.name}</td>
                 <td className="px-3 py-2.5 text-right tabular-nums text-slate-700">{r.total}</td>
-                <td className="px-3 py-2.5 text-right tabular-nums text-blue-600">{r.male}</td>
+                <td className="px-3 py-2.5 text-right tabular-nums text-green-700">{r.male}</td>
                 <td className="px-3 py-2.5 text-right tabular-nums text-pink-600">{r.female}</td>
               </tr>
             ))}
@@ -185,7 +185,7 @@ function CountTable({ rows, label }: { rows: CountRow[]; label: string }) {
             <tr className="bg-slate-100 border-t border-slate-200 font-semibold">
               <td className="px-3 py-2.5 text-slate-700">Total</td>
               <td className="px-3 py-2.5 text-right tabular-nums text-slate-900">{grandTotal}</td>
-              <td className="px-3 py-2.5 text-right tabular-nums text-blue-700">{rows.reduce((s, r) => s + r.male, 0)}</td>
+              <td className="px-3 py-2.5 text-right tabular-nums text-green-800">{rows.reduce((s, r) => s + r.male, 0)}</td>
               <td className="px-3 py-2.5 text-right tabular-nums text-pink-700">{rows.reduce((s, r) => s + r.female, 0)}</td>
             </tr>
           </tfoot>
@@ -373,7 +373,7 @@ function InsuranceReport({ audit }: { audit: ReportData["insuranceAudit"] }) {
                         <a
                           href={`tel:${c.guardianPhone}`}
                           onClick={(e) => e.stopPropagation()}
-                          className="text-xs text-blue-600 underline mt-0.5 inline-block"
+                          className="text-xs text-green-700 underline mt-0.5 inline-block"
                         >
                           {c.guardianFirstName} {c.guardianLastName}: {c.guardianPhone}
                         </a>
@@ -395,7 +395,7 @@ function InsuranceReport({ audit }: { audit: ReportData["insuranceAudit"] }) {
                       <select
                         value={form.hasInsurance}
                         onChange={(e) => setForm({ ...form, hasInsurance: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
                       >
                         <option value="">Unknown</option>
                         <option value="Yes">Yes</option>
@@ -409,7 +409,7 @@ function InsuranceReport({ audit }: { audit: ReportData["insuranceAudit"] }) {
                         value={form.insuranceProvider}
                         onChange={(e) => setForm({ ...form, insuranceProvider: e.target.value })}
                         placeholder="e.g. Blue Cross, Kaiser..."
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
                       />
                     </div>
                     <div>
@@ -419,13 +419,13 @@ function InsuranceReport({ audit }: { audit: ReportData["insuranceAudit"] }) {
                         value={form.policyNumber}
                         onChange={(e) => setForm({ ...form, policyNumber: e.target.value })}
                         placeholder="Policy / Member ID"
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
                       />
                     </div>
                     <button
                       onClick={handleSave}
                       disabled={saving}
-                      className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold disabled:opacity-40"
+                      className="w-full py-2.5 bg-green-700 text-white rounded-xl text-sm font-semibold disabled:opacity-40"
                     >
                       {saving ? "Saving..." : "Save Insurance Info"}
                     </button>

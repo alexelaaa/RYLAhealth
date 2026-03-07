@@ -84,7 +84,7 @@ function CabinCheckinsDashboard() {
             onClick={() => setNight(n)}
             className={`flex-1 py-3 text-center font-semibold transition-colors ${
               night === n
-                ? "bg-blue-600 text-white"
+                ? "bg-green-700 text-white"
                 : "bg-white text-slate-500 hover:bg-slate-50"
             }`}
           >
@@ -102,7 +102,7 @@ function CabinCheckinsDashboard() {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

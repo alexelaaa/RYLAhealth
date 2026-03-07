@@ -75,7 +75,7 @@ function CampersContent() {
               onClick={() => setUnassigned(opt.value)}
               className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-colors ${
                 unassigned === opt.value
-                  ? "bg-blue-600 text-white"
+                  ? "bg-green-700 text-white"
                   : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
@@ -91,7 +91,7 @@ function CampersContent() {
           {session?.role === "admin" && (
             <Link
               href="/campers/new"
-              className="flex items-center gap-1 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 bg-green-700 text-white text-xs rounded-lg font-medium hover:bg-green-800 transition-colors"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

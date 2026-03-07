@@ -159,7 +159,7 @@ function UsersContent() {
   const roleColors: Record<string, string> = {
     admin: "bg-red-100 text-red-700",
     nurse: "bg-green-100 text-green-700",
-    staff: "bg-blue-100 text-blue-700",
+    staff: "bg-green-200 text-green-800",
     bussing: "bg-teal-100 text-teal-700",
     alumni: "bg-violet-100 text-violet-700",
   };
@@ -170,7 +170,7 @@ function UsersContent() {
         <h1 className="text-xl font-bold text-slate-900">Users & PINs</h1>
         <button
           onClick={() => setShowAdd(!showAdd)}
-          className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg font-medium"
+          className="px-3 py-1.5 bg-green-700 text-white text-xs rounded-lg font-medium"
         >
           {showAdd ? "Cancel" : "+ Add User"}
         </button>
@@ -195,7 +195,7 @@ function UsersContent() {
           <select
             value={newRole}
             onChange={(e) => { setNewRole(e.target.value); if (e.target.value !== "bussing") setNewBusNumber(""); }}
-            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
           >
             <option value="staff">Staff</option>
             <option value="nurse">Nurse</option>
@@ -209,7 +209,7 @@ function UsersContent() {
               <select
                 value={newBusNumber}
                 onChange={(e) => setNewBusNumber(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
               >
                 <option value="">Select bus...</option>
                 {BUSES.map((bus) => (
@@ -226,7 +226,7 @@ function UsersContent() {
               placeholder="Label (e.g. Head Nurse)"
               value={newLabel}
               onChange={(e) => setNewLabel(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
             />
           )}
           <input
@@ -234,7 +234,7 @@ function UsersContent() {
             placeholder="PIN"
             value={newPin}
             onChange={(e) => setNewPin(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
           />
           <button
             onClick={handleAdd}
@@ -249,7 +249,7 @@ function UsersContent() {
       {/* Users list */}
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       ) : users.length === 0 ? (
         <div className="bg-white rounded-xl p-6 border border-slate-300 text-center text-sm text-slate-400">
@@ -266,7 +266,7 @@ function UsersContent() {
                     <select
                       value={editRole}
                       onChange={(e) => { setEditRole(e.target.value); if (e.target.value !== "bussing") setEditBusNumber(""); }}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
                     >
                       <option value="staff">Staff</option>
                       <option value="nurse">Nurse</option>
@@ -280,7 +280,7 @@ function UsersContent() {
                         <select
                           value={editBusNumber}
                           onChange={(e) => setEditBusNumber(e.target.value)}
-                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
                         >
                           <option value="">Select bus...</option>
                           {BUSES.map((bus) => (
@@ -293,7 +293,7 @@ function UsersContent() {
                         type="text"
                         value={editLabel}
                         onChange={(e) => setEditLabel(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
                       />
                     )}
                     <input
@@ -301,7 +301,7 @@ function UsersContent() {
                       placeholder="New PIN (leave blank to keep current)"
                       value={editPin}
                       onChange={(e) => setEditPin(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
                     />
                     <div className="flex gap-2">
                       <button
@@ -313,7 +313,7 @@ function UsersContent() {
                       <button
                         onClick={() => handleUpdate(user.id)}
                         disabled={saving}
-                        className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold disabled:opacity-40"
+                        className="flex-1 py-2 bg-green-700 text-white rounded-lg text-sm font-semibold disabled:opacity-40"
                       >
                         {saving ? "Saving..." : "Save"}
                       </button>
@@ -330,7 +330,7 @@ function UsersContent() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => startEdit(user)}
-                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                        className="text-xs text-green-700 hover:text-green-900 font-medium"
                       >
                         Edit
                       </button>

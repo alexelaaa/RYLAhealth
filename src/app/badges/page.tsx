@@ -498,7 +498,7 @@ function BadgesContent() {
           <button
             key={type}
             onClick={() => { setBadgeType(type); setSelected(new Set()); setSearch(""); setGroupFilter(""); }}
-            className={`flex-1 py-2 text-sm font-medium transition-colors ${badgeType === type ? "bg-blue-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+            className={`flex-1 py-2 text-sm font-medium transition-colors ${badgeType === type ? "bg-green-700 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
           >
             {label}
           </button>
@@ -531,7 +531,7 @@ function BadgesContent() {
               {recentlyChanged.length > 0 && (
                 <button
                   onClick={addAllToQueue}
-                  className="text-sm px-3 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 font-medium"
+                  className="text-sm px-3 py-1 rounded-lg bg-green-50 text-green-800 hover:bg-green-200 font-medium"
                 >
                   Add All ({recentlyChanged.length})
                 </button>
@@ -636,7 +636,7 @@ function BadgesContent() {
           <button
             onClick={printQueue}
             disabled={reprintQueue.length === 0}
-            className="w-full py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-3 rounded-xl font-semibold text-white bg-green-700 hover:bg-green-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
           >
             Print {reprintQueue.length} Badge{reprintQueue.length !== 1 ? "s" : ""}
           </button>
@@ -670,7 +670,7 @@ function BadgesContent() {
               sessionStorage.setItem("badge-type", "groups");
               window.open("/badges/print", "_blank");
             }}
-            className="w-full py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+            className="w-full py-3 rounded-xl font-semibold text-white bg-green-700 hover:bg-green-800 transition-colors"
           >
             Print {scheduleCount} Group Card{scheduleCount !== 1 ? "s" : ""}
           </button>
@@ -703,7 +703,7 @@ function BadgesContent() {
               placeholder="Search by name..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
             />
             <div className="flex flex-wrap items-center gap-2">
               <select
@@ -807,7 +807,7 @@ function BadgesContent() {
                   <button
                     key={key}
                     onClick={() => setScheduleDay(key)}
-                    className={`flex-1 py-1.5 text-xs font-medium transition-colors ${scheduleDay === key ? "bg-blue-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
+                    className={`flex-1 py-1.5 text-xs font-medium transition-colors ${scheduleDay === key ? "bg-green-700 text-white" : "bg-white text-slate-600 hover:bg-slate-50"}`}
                   >
                     {label}
                   </button>
@@ -841,7 +841,7 @@ function BadgesContent() {
           {/* Print Button */}
           <button
             onClick={openPrint}
-            className="w-full py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+            className="w-full py-3 rounded-xl font-semibold text-white bg-green-700 hover:bg-green-800 transition-colors"
           >
             Print {scheduleCount} {scheduleDay === "all" ? `Set${scheduleCount !== 1 ? "s" : ""}` : `${scheduleDay.charAt(0).toUpperCase() + scheduleDay.slice(1)} Card${scheduleCount !== 1 ? "s" : ""}`}
           </button>
@@ -913,7 +913,7 @@ function BadgesContent() {
               placeholder="Search by name..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              className="w-full text-sm border border-slate-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
             />
             <div className="flex flex-wrap items-center gap-2">
               <select
@@ -991,7 +991,7 @@ function BadgesContent() {
           <button
             onClick={openPrint}
             disabled={selected.size === 0}
-            className="w-full py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+            className="w-full py-3 rounded-xl font-semibold text-white bg-green-700 hover:bg-green-800 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
           >
             Print {selected.size} Badge{selected.size !== 1 ? "s" : ""}
           </button>

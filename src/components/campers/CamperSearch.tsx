@@ -34,14 +34,14 @@ export default function CamperSearch({
           placeholder="Search by name or school..."
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
         />
       </div>
       <div className="flex gap-2">
         <select
           value={role}
           onChange={(e) => onRoleChange(e.target.value)}
-          className="flex-1 py-2 px-3 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 py-2 px-3 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
         >
           <option value="">All Roles</option>
           <option value="Camper">Camper</option>

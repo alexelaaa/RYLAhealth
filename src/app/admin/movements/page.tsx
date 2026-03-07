@@ -377,7 +377,7 @@ function MovementsContent() {
                   placeholder="Search camper by name..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
                   autoFocus
                 />
               </div>
@@ -387,7 +387,7 @@ function MovementsContent() {
                     <button
                       key={c.id}
                       onClick={() => handleSelect(c)}
-                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-between"
+                      className="w-full text-left px-3 py-2 rounded-lg hover:bg-green-50 transition-colors flex items-center justify-between"
                     >
                       <div>
                         <span className="text-sm font-medium text-slate-900">
@@ -410,7 +410,7 @@ function MovementsContent() {
                             </span>
                           )}
                           {c.busNumber && (
-                            <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                            <span className="text-xs bg-green-200 text-green-800 px-1.5 py-0.5 rounded">
                               Bus {c.busNumber}
                             </span>
                           )}
@@ -457,7 +457,7 @@ function MovementsContent() {
                 <select
                   value={weekend}
                   onChange={(e) => setWeekend(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-green-600 ${
                     weekend !== (selected.campWeekend || "")
                       ? "border-amber-400 bg-amber-50"
                       : "border-slate-200 bg-white"
@@ -542,7 +542,7 @@ function MovementsContent() {
                 <select
                   value={smallGroup}
                   onChange={(e) => handleSmallGroupChange(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
                 >
                   <option value="">—</option>
                   {(smallGroup && !options.smallGroups.includes(smallGroup) ? [smallGroup, ...options.smallGroups] : options.smallGroups).map((sg) => (
@@ -567,7 +567,7 @@ function MovementsContent() {
                 <select
                   value={cabinName}
                   onChange={(e) => setCabinName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
                 >
                   <option value="">—</option>
                   {(cabinName && !options.cabinNames.includes(cabinName) ? [cabinName, ...options.cabinNames] : options.cabinNames).map((cn) => (
@@ -582,7 +582,7 @@ function MovementsContent() {
                 <select
                   value={busNumber}
                   onChange={(e) => setBusNumber(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
                 >
                   <option value="">—</option>
                   {(busNumber && !options.busNumbers.includes(busNumber) ? [busNumber, ...options.busNumbers] : options.busNumbers).map((bn) => (
@@ -612,7 +612,7 @@ function MovementsContent() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40"
+                className="w-full py-2.5 bg-green-700 text-white rounded-xl text-sm font-semibold hover:bg-green-800 transition-colors disabled:opacity-40"
               >
                 {saving ? "Saving..." : "Save Changes"}
               </button>
@@ -636,7 +636,7 @@ function MovementsContent() {
             onClick={() => setTab("changes")}
             className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
               tab === "changes"
-                ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/50"
+                ? "text-green-700 border-b-2 border-green-700 bg-green-50/50"
                 : "text-slate-500 hover:text-slate-700"
             }`}
           >
@@ -669,7 +669,7 @@ function MovementsContent() {
           <div className="divide-y divide-slate-100">
             {feedLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-700" />
               </div>
             ) : feed.length === 0 ? (
               <div className="p-6 text-center text-sm text-slate-400">
@@ -688,7 +688,7 @@ function MovementsContent() {
                           <span className={`font-medium ${
                             edit.fieldName === "__deleted" ? "text-red-600" :
                             edit.fieldName === "__created" ? "text-green-600" :
-                            "text-blue-600"
+                            "text-green-700"
                           }`}>
                             {edit.camperFirstName} {edit.camperLastName}
                           </span>
@@ -720,7 +720,7 @@ function MovementsContent() {
                       </p>
                       {historyLoading ? (
                         <div className="flex items-center justify-center py-4">
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-700" />
                         </div>
                       ) : camperHistory.length === 0 ? (
                         <p className="text-xs text-slate-400">No changes recorded.</p>

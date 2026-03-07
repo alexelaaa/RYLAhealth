@@ -99,19 +99,19 @@ export default function ScheduleNow() {
   return (
     <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
       {/* Current event */}
-      <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
+      <div className="bg-green-50 border-b border-green-300 px-4 py-3">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-green-700 bg-green-200 px-1.5 py-0.5 rounded">
             Now
           </span>
-          <span className="text-xs text-blue-500 font-medium">{currentDetailed.time}</span>
+          <span className="text-xs text-green-600 font-medium">{currentDetailed.time}</span>
         </div>
         <p className="text-base font-bold text-slate-900">{currentDetailed.title}</p>
         {currentDetailed.location && (
-          <p className="text-sm text-blue-700 font-medium mt-0.5">{currentDetailed.location}</p>
+          <p className="text-sm text-green-800 font-medium mt-0.5">{currentDetailed.location}</p>
         )}
         {currentDetailed.note && (
-          <p className="text-xs text-blue-500 italic mt-0.5">{currentDetailed.note}</p>
+          <p className="text-xs text-green-600 italic mt-0.5">{currentDetailed.note}</p>
         )}
 
         {/* Activity rotation grid */}

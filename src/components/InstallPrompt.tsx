@@ -39,10 +39,10 @@ export default function InstallPrompt() {
   };
 
   return (
-    <div className="bg-blue-50 rounded-xl border border-blue-200 px-4 py-3 relative">
+    <div className="bg-green-50 rounded-xl border border-green-300 px-4 py-3 relative">
       <button
         onClick={dismiss}
-        className="absolute top-2 right-2 text-blue-300 hover:text-blue-500 p-1"
+        className="absolute top-2 right-2 text-green-400 hover:text-green-600 p-1"
         aria-label="Dismiss"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,30 +51,30 @@ export default function InstallPrompt() {
       </button>
 
       <div className="flex items-start gap-3 pr-6">
-        <svg className="w-6 h-6 text-blue-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-6 h-6 text-green-700 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
         </svg>
         <div>
-          <p className="text-sm font-semibold text-blue-900">Install RYLA App</p>
+          <p className="text-sm font-semibold text-green-950">Install RYLA App</p>
           {os === "ios" ? (
-            <div className="text-xs text-blue-700 mt-1 space-y-1">
+            <div className="text-xs text-green-800 mt-1 space-y-1">
               <p>1. Tap the <span className="inline-flex items-center"><svg className="w-3.5 h-3.5 inline mx-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg> Share</span> button at the bottom of Safari</p>
               <p>2. Scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong></p>
               <p>3. Tap <strong>&quot;Add&quot;</strong> in the top right</p>
             </div>
           ) : os === "android" ? (
-            <div className="text-xs text-blue-700 mt-1 space-y-1">
+            <div className="text-xs text-green-800 mt-1 space-y-1">
               <p>1. Tap the <strong>three-dot menu</strong> (&#8942;) in Chrome</p>
               <p>2. Tap <strong>&quot;Add to Home screen&quot;</strong> or <strong>&quot;Install app&quot;</strong></p>
               <p>3. Tap <strong>&quot;Install&quot;</strong></p>
             </div>
           ) : (
-            <div className="text-xs text-blue-700 mt-1 space-y-1">
+            <div className="text-xs text-green-800 mt-1 space-y-1">
               <p><strong>iPhone/iPad:</strong> In Safari, tap Share → &quot;Add to Home Screen&quot;</p>
               <p><strong>Android:</strong> In Chrome, tap &#8942; menu → &quot;Install app&quot;</p>
             </div>
           )}
-          <p className="text-xs text-blue-500 mt-2">Get the full app experience with notifications and offline access.</p>
+          <p className="text-xs text-green-600 mt-2">Get the full app experience with notifications and offline access.</p>
         </div>
       </div>
     </div>

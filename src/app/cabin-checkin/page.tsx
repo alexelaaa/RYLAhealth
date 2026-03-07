@@ -316,7 +316,7 @@ export default function CabinCheckinPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
       </div>
     );
   }
@@ -324,15 +324,15 @@ export default function CabinCheckinPage() {
   return (
     <div className="min-h-screen bg-slate-100">
       {/* Header */}
-      <header className="bg-blue-700 text-white sticky top-0 z-40">
+      <header className="bg-green-800 text-white sticky top-0 z-40">
         <div className="flex items-center justify-between px-4 h-14">
           <div>
             <h1 className="text-lg font-bold">{cabin || "Cabin Check-In"}</h1>
-            <p className="text-xs text-blue-200">{dglName}</p>
+            <p className="text-xs text-green-300">{dglName}</p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-sm text-blue-200 hover:text-white px-3 py-1 rounded"
+            className="text-sm text-green-300 hover:text-white px-3 py-1 rounded"
           >
             Logout
           </button>
@@ -396,7 +396,7 @@ export default function CabinCheckinPage() {
                   onClick={() => setTicketCategory(cat)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     ticketCategory === cat
-                      ? "bg-blue-600 text-white"
+                      ? "bg-green-700 text-white"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
@@ -411,7 +411,7 @@ export default function CabinCheckinPage() {
               onChange={(e) => setTicketDesc(e.target.value)}
               placeholder="Describe the issue..."
               rows={3}
-              className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-600 resize-none"
             />
 
             {/* Urgency toggle */}
@@ -435,7 +435,7 @@ export default function CabinCheckinPage() {
             <button
               onClick={submitTicket}
               disabled={ticketSubmitting || !ticketCategory || !ticketDesc.trim()}
-              className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40"
+              className="w-full py-2.5 bg-green-700 text-white rounded-xl text-sm font-semibold hover:bg-green-800 transition-colors disabled:opacity-40"
             >
               {ticketSubmitting ? "Sending..." : "Send Request"}
             </button>
@@ -458,7 +458,7 @@ export default function CabinCheckinPage() {
                         t.status === "resolved"
                           ? "bg-green-50 border border-green-200"
                           : t.status === "acknowledged"
-                          ? "bg-blue-50 border border-blue-200"
+                          ? "bg-green-50 border border-green-300"
                           : t.urgency === "urgent"
                           ? "bg-red-50 border border-red-200"
                           : "bg-slate-50 border border-slate-200"
@@ -472,7 +472,7 @@ export default function CabinCheckinPage() {
                           <span className="font-medium text-slate-700">{t.category}</span>
                           <span className={`font-medium ${
                             t.status === "resolved" ? "text-green-600" :
-                            t.status === "acknowledged" ? "text-blue-600" :
+                            t.status === "acknowledged" ? "text-green-700" :
                             "text-amber-600"
                           }`}>
                             {t.status === "resolved" ? "Resolved" : t.status === "acknowledged" ? "Being Handled" : "Open"}
@@ -480,9 +480,9 @@ export default function CabinCheckinPage() {
                         </div>
                         <p className="text-slate-500 mt-0.5">{t.description}</p>
                         {t.status === "acknowledged" && t.assigned_to && (
-                          <p className="text-blue-600 mt-0.5 font-medium">Assigned to {t.assigned_to}</p>
+                          <p className="text-green-700 mt-0.5 font-medium">Assigned to {t.assigned_to}</p>
                         )}
-                        <p className="text-blue-500 mt-1 font-medium">
+                        <p className="text-green-600 mt-1 font-medium">
                           {expandedTicketId === t.id ? "Hide messages" : "View messages"}
                         </p>
                       </div>
@@ -499,7 +499,7 @@ export default function CabinCheckinPage() {
                               className={`rounded-lg px-2.5 py-1.5 ${
                                 msg.sender_role === "dgl"
                                   ? "bg-white border border-slate-200 mr-6"
-                                  : "bg-blue-100 border border-blue-200 ml-6"
+                                  : "bg-green-200 border border-green-300 ml-6"
                               }`}
                             >
                               <div className="flex items-center justify-between mb-0.5">
@@ -523,12 +523,12 @@ export default function CabinCheckinPage() {
                                 onChange={(e) => setReplyText((prev) => ({ ...prev, [t.id]: e.target.value }))}
                                 onKeyDown={(e) => { if (e.key === "Enter") sendTicketReply(t.id); }}
                                 placeholder="Reply..."
-                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-green-600"
                               />
                               <button
                                 onClick={() => sendTicketReply(t.id)}
                                 disabled={sendingReply === t.id || !replyText[t.id]?.trim()}
-                                className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors disabled:opacity-40"
+                                className="px-3 py-1.5 bg-green-700 text-white rounded-lg text-xs font-medium hover:bg-green-800 transition-colors disabled:opacity-40"
                               >
                                 Send
                               </button>
@@ -551,7 +551,7 @@ export default function CabinCheckinPage() {
               onClick={() => setMainTab("cabin")}
               className={`flex-1 py-3 text-sm font-medium transition-colors ${
                 mainTab === "cabin"
-                  ? "bg-blue-600 text-white"
+                  ? "bg-green-700 text-white"
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -561,7 +561,7 @@ export default function CabinCheckinPage() {
               onClick={() => setMainTab("group")}
               className={`flex-1 py-3 text-sm font-medium transition-colors ${
                 mainTab === "group"
-                  ? "bg-blue-600 text-white"
+                  ? "bg-green-700 text-white"
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -581,7 +581,7 @@ export default function CabinCheckinPage() {
                   onClick={() => setNight(n)}
                   className={`flex-1 py-3 text-center font-semibold transition-colors ${
                     night === n
-                      ? "bg-blue-600 text-white"
+                      ? "bg-green-700 text-white"
                       : "bg-white text-slate-500 hover:bg-slate-50"
                   }`}
                 >
@@ -660,7 +660,7 @@ const BIOME_COLORS: Record<string, { bg: string; text: string; border: string }>
   Desert:     { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-200" },
   Grasslands: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
   Jungle:     { bg: "bg-lime-50",    text: "text-lime-700",    border: "border-lime-200" },
-  Marine:     { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200" },
+  Marine:     { bg: "bg-green-50",    text: "text-green-800",    border: "border-green-300" },
 };
 
 // Activity rotations (same as schedule.ts but inline to avoid server/client import issues)
@@ -702,7 +702,7 @@ function MyGroupSection({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-700" />
       </div>
     );
   }
@@ -780,7 +780,7 @@ function MyGroupSection({
         <div className="divide-y divide-slate-100">
           {groupInfo.campers.map((c, i) => (
             <div key={c.id} className="px-4 py-3 flex items-center gap-3">
-              <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0">
+              <div className="w-7 h-7 rounded-full bg-green-200 text-green-800 flex items-center justify-center text-xs font-bold flex-shrink-0">
                 {i + 1}
               </div>
               <div>
@@ -892,16 +892,16 @@ function DGLScheduleNow({ groupInfo }: { groupInfo: GroupInfo | null }) {
   return (
     <div className="bg-white rounded-xl border border-slate-300 overflow-hidden">
       {/* Current event */}
-      <div className="bg-blue-50 border-b border-blue-200 px-4 py-3">
+      <div className="bg-green-50 border-b border-green-300 px-4 py-3">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-green-700 bg-green-200 px-1.5 py-0.5 rounded">
             Now
           </span>
-          <span className="text-xs text-blue-500 font-medium">{currentEvent.time}</span>
+          <span className="text-xs text-green-600 font-medium">{currentEvent.time}</span>
         </div>
         <p className="text-base font-bold text-slate-900">{current.title}</p>
         {current.location && (
-          <p className="text-sm text-blue-700 font-medium mt-0.5">{current.location}</p>
+          <p className="text-sm text-green-800 font-medium mt-0.5">{current.location}</p>
         )}
       </div>
 

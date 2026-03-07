@@ -90,7 +90,7 @@ const biomeColors: Record<string, { bg: string; text: string; border: string; he
   Desert:     { bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-200",   headerBg: "bg-amber-100" },
   Grasslands: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", headerBg: "bg-emerald-100" },
   Jungle:     { bg: "bg-lime-50",    text: "text-lime-700",    border: "border-lime-200",    headerBg: "bg-lime-100" },
-  Marine:     { bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200",    headerBg: "bg-blue-100" },
+  Marine:     { bg: "bg-green-50",    text: "text-green-800",    border: "border-green-300",    headerBg: "bg-green-200" },
 };
 
 const defaultColors = { bg: "bg-slate-100", text: "text-slate-700", border: "border-slate-200", headerBg: "bg-slate-100" };
@@ -212,7 +212,7 @@ function GroupsContent() {
             onClick={() => setTab(t.key)}
             className={`flex-shrink-0 px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               tab === t.key
-                ? "border-blue-600 text-blue-600"
+                ? "border-green-700 text-green-700"
                 : "border-transparent text-slate-500 hover:text-slate-700"
             }`}
           >
@@ -223,7 +223,7 @@ function GroupsContent() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       ) : tab === "overview" ? (
         <OverviewTab largeGroups={overviewData} />
@@ -318,7 +318,7 @@ function OverviewTab({ largeGroups }: { largeGroups: OverviewLargeGroup[] }) {
                         <div className="flex-1 min-w-0 text-left">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-medium text-sm text-slate-900">{sg.name}</span>
-                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                            <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">
                               {sg.count}
                             </span>
                           </div>
@@ -410,7 +410,7 @@ function SmallGroupsTab({ groups }: { groups: FlatGroup[] }) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-sm text-slate-900">{group.name}</span>
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">
                     {group.count}
                   </span>
                 </div>
@@ -505,7 +505,7 @@ function DGLCabinsTab({ entries }: { entries: DGLCabinEntry[] }) {
                 </div>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-xs text-slate-500">Group: {d.smallGroup}</span>
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">
                     {d.studentCount} student{d.studentCount !== 1 ? "s" : ""}
                   </span>
                 </div>
@@ -634,7 +634,7 @@ function BusesTab({ busStats, campersByBus, onRefresh }: { busStats: BusStat[]; 
             onClick={() => setFilter(f.key)}
             className={`flex-1 px-2 py-2 text-xs font-medium transition-colors ${
               filter === f.key
-                ? "bg-blue-600 text-white"
+                ? "bg-green-700 text-white"
                 : "bg-white text-slate-500 hover:bg-slate-50"
             }`}
           >
@@ -739,7 +739,7 @@ function BusesTab({ busStats, campersByBus, onRefresh }: { busStats: BusStat[]; 
                                 {c.guardianPhone && (
                                   <span
                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `tel:${c.guardianPhone}`; }}
-                                    className="text-xs text-blue-600 underline cursor-pointer"
+                                    className="text-xs text-green-700 underline cursor-pointer"
                                   >
                                     Parent: {c.guardianPhone}
                                   </span>
@@ -747,7 +747,7 @@ function BusesTab({ busStats, campersByBus, onRefresh }: { busStats: BusStat[]; 
                                 {c.cellPhone && (
                                   <span
                                     onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `tel:${c.cellPhone}`; }}
-                                    className="text-xs text-blue-600 underline cursor-pointer"
+                                    className="text-xs text-green-700 underline cursor-pointer"
                                   >
                                     Camper: {c.cellPhone}
                                   </span>

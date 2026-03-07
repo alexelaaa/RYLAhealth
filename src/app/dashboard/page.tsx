@@ -22,7 +22,7 @@ const SCHEDULE_HOURS: Record<string, { start: number; end: number }> = {
 
 const scheduleColors: Record<string, string> = {
   morning: "bg-yellow-100 text-yellow-800",
-  afternoon: "bg-blue-100 text-blue-800",
+  afternoon: "bg-green-200 text-green-900",
   evening: "bg-purple-100 text-purple-800",
   bedtime: "bg-indigo-100 text-indigo-800",
   with_meals: "bg-green-100 text-green-800",
@@ -106,6 +106,7 @@ function DashboardContent() {
   const [alertsData, setAlertsData] = useState<AlertsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [openTickets, setOpenTickets] = useState(0);
+  const [qrExpanded, setQrExpanded] = useState(false);
 
   const fetchData = useCallback(async (showLoading = false) => {
     if (showLoading) setLoading(true);
@@ -168,30 +169,64 @@ function DashboardContent() {
       {/* Photo/Video Upload for end-of-camp slideshow */}
       <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200 p-4">
         <div className="flex items-center gap-4">
-          <Image
-            src="/ryla-qr.png"
-            alt="QR code for photo uploads"
-            width={80}
-            height={80}
-            className="rounded-lg shrink-0"
-          />
+          <button onClick={() => setQrExpanded(true)} className="shrink-0">
+            <Image
+              src="/ryla-qr.png"
+              alt="QR code for photo uploads"
+              width={80}
+              height={80}
+              className="rounded-lg"
+            />
+          </button>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-slate-800">End-of-Camp Slideshow</p>
             <p className="text-xs text-slate-500 mt-0.5">Upload photos &amp; videos or share the QR code with your campers</p>
-            <a
-              href="https://www.dropbox.com/request/nHtAH5Pg4gykDECtaaBt"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 mt-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-              </svg>
-              Upload Photos &amp; Videos
-            </a>
+            <div className="flex items-center gap-3 mt-2">
+              <a
+                href="https://www.dropbox.com/request/nHtAH5Pg4gykDECtaaBt"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                Upload
+              </a>
+              <button
+                onClick={() => setQrExpanded(true)}
+                className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                </svg>
+                Show QR
+              </button>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Expanded QR modal */}
+      {qrExpanded && (
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6"
+          onClick={() => setQrExpanded(false)}
+        >
+          <div className="bg-white rounded-2xl p-8 flex flex-col items-center gap-4 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <Image src="/ryla-logo.png" alt="RYLA" width={160} height={80} />
+            <Image src="/ryla-qr.png" alt="Scan to upload photos" width={280} height={280} />
+            <p className="text-lg font-bold text-slate-800 text-center">Scan to share photos &amp; videos!</p>
+            <p className="text-sm text-slate-500 text-center">For the end-of-camp slideshow</p>
+            <button
+              onClick={() => setQrExpanded(false)}
+              className="mt-2 px-6 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium text-slate-600 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
 
       {session?.role === "admin" && openTickets > 0 && (
         <Link href="/admin/tickets" className="block">
@@ -213,15 +248,15 @@ function DashboardContent() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       ) : stats ? (
         <>
           {/* Stats cards */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-              <p className="text-2xl font-bold text-blue-600">{stats.totalCampers}</p>
-              <p className="text-xs text-blue-500 mt-1">
+            <div className="bg-green-50 rounded-xl p-4 border border-green-200">
+              <p className="text-2xl font-bold text-green-700">{stats.totalCampers}</p>
+              <p className="text-xs text-green-600 mt-1">
                 {campWeekend ? "Weekend Campers" : "Total Campers"}
               </p>
               {(stats.noShowCount || 0) > 0 && (
@@ -255,9 +290,9 @@ function DashboardContent() {
                   </div>
                 </Link>
                 <Link href="/alerts?tab=medications" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-green-300 transition-colors">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-lg font-bold text-blue-600">{alertsData.summary.medications}</span>
+                      <span className="text-lg font-bold text-green-700">{alertsData.summary.medications}</span>
                       <span className="text-xs text-slate-500">Medications</span>
                     </div>
                     <p className="text-xs text-slate-400 line-clamp-1">
@@ -400,7 +435,7 @@ function DashboardContent() {
               </Link>
               <Link
                 href="/campers"
-                className="bg-blue-50 text-blue-700 rounded-xl py-4 text-center text-sm font-medium hover:bg-blue-100 transition-colors"
+                className="bg-green-50 text-green-800 rounded-xl py-4 text-center text-sm font-medium hover:bg-green-200 transition-colors"
               >
                 <svg className="w-6 h-6 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -500,8 +535,8 @@ function DashboardContent() {
               <h2 className="text-sm font-semibold text-slate-700 mb-3">Camp Organization</h2>
               <div className="grid grid-cols-2 gap-3">
                 <Link href="/groups" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
-                    <svg className="w-5 h-5 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-green-300 transition-colors">
+                    <svg className="w-5 h-5 text-green-600 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                     <p className="text-sm font-medium text-slate-900">Groups</p>
@@ -511,8 +546,8 @@ function DashboardContent() {
                   </div>
                 </Link>
                 <Link href="/groups?tab=dgls" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
-                    <svg className="w-5 h-5 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-green-300 transition-colors">
+                    <svg className="w-5 h-5 text-green-600 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
                     <p className="text-sm font-medium text-slate-900">Cabins</p>
@@ -520,8 +555,8 @@ function DashboardContent() {
                   </div>
                 </Link>
                 <Link href="/staff" className="block">
-                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
-                    <svg className="w-5 h-5 text-blue-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-green-300 transition-colors">
+                    <svg className="w-5 h-5 text-green-600 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     <p className="text-sm font-medium text-slate-900">Staff</p>
@@ -560,7 +595,7 @@ function DashboardContent() {
                     href={`/campers/${entry.camperId}`}
                     className="block"
                   >
-                    <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-blue-200 transition-colors">
+                    <div className="bg-white rounded-xl p-3 border border-slate-300 hover:border-green-300 transition-colors">
                       <div className="flex items-center gap-2 mb-1">
                         <span
                           className={`text-xs px-2 py-0.5 rounded-full ${

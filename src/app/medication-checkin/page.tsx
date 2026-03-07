@@ -135,9 +135,9 @@ function MedicationCheckinContent() {
           <p className="text-lg font-bold text-green-600">{checkedIn.length}</p>
           <p className="text-[10px] text-green-500">Checked In</p>
         </div>
-        <div className="bg-blue-50 rounded-xl p-2.5 border border-blue-100 text-center">
-          <p className="text-lg font-bold text-blue-600">{checkedOut.length}</p>
-          <p className="text-[10px] text-blue-500">Returned</p>
+        <div className="bg-green-50 rounded-xl p-2.5 border border-green-200 text-center">
+          <p className="text-lg font-bold text-green-700">{checkedOut.length}</p>
+          <p className="text-[10px] text-green-600">Returned</p>
         </div>
       </div>
 
@@ -161,7 +161,7 @@ function MedicationCheckinContent() {
           placeholder="Search by name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-base focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
         />
       </div>
 
@@ -171,7 +171,7 @@ function MedicationCheckinContent() {
           onClick={() => setTab("checkin")}
           className={`flex-1 px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
             tab === "checkin"
-              ? "border-blue-600 text-blue-600"
+              ? "border-green-700 text-green-700"
               : "border-transparent text-slate-500 hover:text-slate-700"
           }`}
         >
@@ -181,7 +181,7 @@ function MedicationCheckinContent() {
           onClick={() => setTab("checkout")}
           className={`flex-1 px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
             tab === "checkout"
-              ? "border-blue-600 text-blue-600"
+              ? "border-green-700 text-green-700"
               : "border-transparent text-slate-500 hover:text-slate-700"
           }`}
         >
@@ -191,7 +191,7 @@ function MedicationCheckinContent() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       ) : tab === "checkin" ? (
         <CheckinTab
@@ -348,7 +348,7 @@ function CheckoutTab({
               }
               saving={savingId === c.id}
               actionLabel="Return Meds"
-              actionColor="bg-blue-600 hover:bg-blue-700"
+              actionColor="bg-green-700 hover:bg-green-800"
               onAction={() => onAction(c.id, "checkout")}
               statusBadge={
                 <span className="text-[10px] font-medium bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
@@ -382,7 +382,7 @@ function CheckoutTab({
               actionColor=""
               onAction={() => {}}
               statusBadge={
-                <span className="text-[10px] font-medium bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                <span className="text-[10px] font-medium bg-green-200 text-green-800 px-1.5 py-0.5 rounded">
                   Returned
                 </span>
               }
@@ -508,7 +508,7 @@ function CamperRow({
                 value={notes}
                 onChange={(e) => onNotesChange(e.target.value)}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-green-600"
               />
               <button
                 onClick={(e) => {

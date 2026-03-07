@@ -208,7 +208,7 @@ export default function AdminUploadPage() {
               setResult(null);
               setError("");
             }}
-            className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-800 hover:file:bg-green-200"
           />
         </div>
 
@@ -232,7 +232,7 @@ export default function AdminUploadPage() {
           <button
             onClick={handlePreview}
             disabled={loading}
-            className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40"
+            className="w-full py-3 bg-green-700 text-white rounded-xl font-semibold text-sm disabled:opacity-40"
           >
             {loading ? "Analyzing..." : "Preview Changes"}
           </button>
@@ -251,8 +251,8 @@ export default function AdminUploadPage() {
                 <p className="text-xs text-green-600">New</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-blue-600">{preview.updateCount}</p>
-                <p className="text-xs text-blue-600">Updated</p>
+                <p className="text-2xl font-bold text-green-700">{preview.updateCount}</p>
+                <p className="text-xs text-green-700">Updated</p>
               </div>
             </div>
 
@@ -322,7 +322,7 @@ export default function AdminUploadPage() {
               setGroupResult(null);
               setGroupError("");
             }}
-            className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-800 hover:file:bg-green-200"
           />
         </div>
 
@@ -352,7 +352,7 @@ export default function AdminUploadPage() {
               }
             }}
             disabled={groupLoading}
-            className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40"
+            className="w-full py-3 bg-green-700 text-white rounded-xl font-semibold text-sm disabled:opacity-40"
           >
             {groupLoading ? "Analyzing..." : "Preview Groups"}
           </button>
@@ -450,7 +450,7 @@ export default function AdminUploadPage() {
               setStaffResult(null);
               setStaffError("");
             }}
-            className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-green-800 hover:file:bg-green-200"
           />
         </div>
 
@@ -480,7 +480,7 @@ export default function AdminUploadPage() {
               }
             }}
             disabled={staffLoading}
-            className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40"
+            className="w-full py-3 bg-green-700 text-white rounded-xl font-semibold text-sm disabled:opacity-40"
           >
             {staffLoading ? "Analyzing..." : "Preview Staff"}
           </button>
@@ -499,8 +499,8 @@ export default function AdminUploadPage() {
                 <p className="text-xs text-green-600">New</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-blue-600">{staffPreview.updateCount}</p>
-                <p className="text-xs text-blue-600">Updated</p>
+                <p className="text-2xl font-bold text-green-700">{staffPreview.updateCount}</p>
+                <p className="text-xs text-green-700">Updated</p>
               </div>
             </div>
 

@@ -219,7 +219,7 @@ export default function ExportPage() {
             <button
               onClick={() => exportAllCampers("pdf")}
               disabled={!!loading}
-              className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium disabled:opacity-40"
+              className="flex-1 py-2.5 bg-green-700 text-white rounded-xl text-sm font-medium disabled:opacity-40"
             >
               {loading === "campers-pdf" ? "Exporting..." : "PDF"}
             </button>
@@ -241,7 +241,7 @@ export default function ExportPage() {
             <button
               onClick={() => exportAllLogs("pdf")}
               disabled={!!loading}
-              className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium disabled:opacity-40"
+              className="flex-1 py-2.5 bg-green-700 text-white rounded-xl text-sm font-medium disabled:opacity-40"
             >
               {loading === "logs-pdf" ? "Exporting..." : "PDF"}
             </button>
@@ -255,11 +255,11 @@ export default function ExportPage() {
 
           {selectedCamper ? (
             <div className="mb-3">
-              <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
-                <span className="text-sm font-medium text-blue-900 flex-1">
+              <div className="flex items-center gap-2 bg-green-50 border border-green-300 rounded-xl px-4 py-3">
+                <span className="text-sm font-medium text-green-950 flex-1">
                   {selectedCamper.firstName} {selectedCamper.lastName}
                 </span>
-                <button onClick={() => setSelectedCamper(null)} className="text-blue-400 hover:text-blue-600">
+                <button onClick={() => setSelectedCamper(null)} className="text-green-500 hover:text-green-700">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -273,7 +273,7 @@ export default function ExportPage() {
                 placeholder="Search for a camper..."
                 value={camperSearch}
                 onChange={(e) => searchCampers(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
               />
               {searchResults.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 bg-white rounded-xl border border-slate-200 shadow-lg max-h-48 overflow-y-auto">
@@ -306,7 +306,7 @@ export default function ExportPage() {
             <button
               onClick={() => exportSingleCamper("pdf")}
               disabled={!selectedCamper || !!loading}
-              className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium disabled:opacity-40"
+              className="flex-1 py-2.5 bg-green-700 text-white rounded-xl text-sm font-medium disabled:opacity-40"
             >
               {loading === "single-pdf" ? "Exporting..." : "PDF"}
             </button>

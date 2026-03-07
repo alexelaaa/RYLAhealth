@@ -23,7 +23,7 @@ export default function MedicalLogPageWrapper() {
     <Suspense fallback={
       <AppShell>
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       </AppShell>
     }>
@@ -136,7 +136,7 @@ function MedicalLogPage() {
               type="datetime-local"
               value={timestamp}
               onChange={(e) => setTimestamp(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
             />
           </div>
 
@@ -152,7 +152,7 @@ function MedicalLogPage() {
                   onClick={() => setType(t.value)}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                     type === t.value
-                      ? "bg-blue-600 text-white"
+                      ? "bg-green-700 text-white"
                       : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                   }`}
                 >
@@ -173,7 +173,7 @@ function MedicalLogPage() {
                   value={medication}
                   onChange={(e) => setMedication(e.target.value)}
                   placeholder="e.g., Ibuprofen"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
                 />
               </div>
               <div>
@@ -185,7 +185,7 @@ function MedicalLogPage() {
                   value={dosage}
                   onChange={(e) => setDosage(e.target.value)}
                   placeholder="e.g., 200mg"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
                 />
               </div>
             </>
@@ -201,7 +201,7 @@ function MedicalLogPage() {
                 value={treatment}
                 onChange={(e) => setTreatment(e.target.value)}
                 placeholder="e.g., Applied bandage, ice pack"
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
               />
             </div>
           )}
@@ -215,14 +215,14 @@ function MedicalLogPage() {
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
               placeholder="Additional details..."
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600 resize-none"
             />
           </div>
 
           <button
             type="submit"
             disabled={!camperId || submitting}
-            className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40 active:bg-blue-700 transition-colors"
+            className="w-full py-3 bg-green-700 text-white rounded-xl font-semibold text-sm disabled:opacity-40 active:bg-green-800 transition-colors"
           >
             {submitting ? "Saving..." : "Save Medical Log"}
           </button>

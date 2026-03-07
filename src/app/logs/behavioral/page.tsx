@@ -23,7 +23,7 @@ export default function BehavioralIncidentPageWrapper() {
     <Suspense fallback={
       <AppShell>
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       </AppShell>
     }>
@@ -123,7 +123,7 @@ function BehavioralIncidentPage() {
               type="datetime-local"
               value={timestamp}
               onChange={(e) => setTimestamp(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
             />
           </div>
 
@@ -136,7 +136,7 @@ function BehavioralIncidentPage() {
               value={staffName}
               onChange={(e) => setStaffName(e.target.value)}
               placeholder="Name of reporting staff"
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
             />
           </div>
 
@@ -175,7 +175,7 @@ function BehavioralIncidentPage() {
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
               placeholder="Describe the incident..."
-              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600 resize-none"
               required
             />
           </div>

@@ -10,8 +10,8 @@ const adminTools = [
     href: "/admin/movements",
     title: "Camp Movements",
     description: "Reassign cabins, groups, and mark no-shows",
-    color: "bg-blue-50 text-blue-700 border-blue-100 hover:border-blue-300",
-    iconColor: "text-blue-500",
+    color: "bg-green-50 text-green-800 border-green-200 hover:border-green-400",
+    iconColor: "text-green-600",
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />

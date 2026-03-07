@@ -142,7 +142,7 @@ function DglPinsManager() {
         <button
           onClick={generateAll}
           disabled={generating}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium text-sm disabled:opacity-50"
+          className="px-4 py-2 bg-green-700 text-white rounded-lg font-medium text-sm disabled:opacity-50"
         >
           {generating ? "Generating..." : "Generate All PINs"}
         </button>
@@ -183,7 +183,7 @@ function DglPinsManager() {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -211,7 +211,7 @@ function DglPinsManager() {
                             value={replaceFirst}
                             onChange={(e) => setReplaceFirst(e.target.value)}
                             placeholder="First name"
-                            className="w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            className="w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-green-600"
                             autoFocus
                           />
                           <input
@@ -219,7 +219,7 @@ function DglPinsManager() {
                             value={replaceLast}
                             onChange={(e) => setReplaceLast(e.target.value)}
                             placeholder="Last name"
-                            className="w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            className="w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-green-600"
                           />
                         </div>
                       ) : (
@@ -266,7 +266,7 @@ function DglPinsManager() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => regenerateOne(dgl.id)}
-                            className="text-xs text-blue-600 hover:text-blue-800"
+                            className="text-xs text-green-700 hover:text-green-900"
                           >
                             {dgl.hasPin ? "Regen" : "Generate"}
                           </button>

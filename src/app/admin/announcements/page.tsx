@@ -108,7 +108,7 @@ function AnnouncementsContent() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Title..."
-          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-600"
         />
 
         <textarea
@@ -116,7 +116,7 @@ function AnnouncementsContent() {
           onChange={(e) => setBody(e.target.value)}
           placeholder="Message..."
           rows={3}
-          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-green-600 resize-none"
         />
 
         {/* Priority toggle */}
@@ -127,7 +127,7 @@ function AnnouncementsContent() {
               onClick={() => setPriority("normal")}
               className={`px-3 py-1.5 text-xs font-medium transition-colors ${
                 priority === "normal"
-                  ? "bg-blue-600 text-white"
+                  ? "bg-green-700 text-white"
                   : "bg-white text-slate-500"
               }`}
             >
@@ -149,7 +149,7 @@ function AnnouncementsContent() {
         <button
           onClick={handleSubmit}
           disabled={submitting || !title.trim() || !body.trim()}
-          className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40"
+          className="w-full py-2.5 bg-green-700 text-white rounded-xl text-sm font-semibold hover:bg-green-800 transition-colors disabled:opacity-40"
         >
           {submitting ? "Posting..." : "Post & Notify Everyone"}
         </button>
@@ -164,7 +164,7 @@ function AnnouncementsContent() {
       {/* Existing announcements */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-700" />
         </div>
       ) : announcements.length === 0 ? (
         <div className="bg-white rounded-xl p-8 border border-slate-300 text-center text-sm text-slate-400">

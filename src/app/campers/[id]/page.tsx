@@ -89,7 +89,7 @@ const fieldLabels: Record<string, string> = {
 
 const scheduleColors: Record<string, string> = {
   morning: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  afternoon: "bg-blue-100 text-blue-800 border-blue-200",
+  afternoon: "bg-green-200 text-green-900 border-green-300",
   evening: "bg-purple-100 text-purple-800 border-purple-200",
   bedtime: "bg-indigo-100 text-indigo-800 border-indigo-200",
   with_meals: "bg-green-100 text-green-800 border-green-200",
@@ -189,7 +189,7 @@ function CamperDetailContent() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
       </div>
     );
   }
@@ -231,7 +231,7 @@ function CamperDetailContent() {
     <div className="p-4 space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button onClick={() => router.back()} className="text-blue-600">
+        <button onClick={() => router.back()} className="text-green-700">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -241,7 +241,7 @@ function CamperDetailContent() {
             {camper.firstName} {camper.lastName}
           </h1>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+            <span className="text-xs bg-green-50 text-green-800 px-2 py-0.5 rounded-full">
               {camper.campWeekend}
             </span>
             <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full capitalize">
@@ -253,7 +253,7 @@ function CamperDetailContent() {
           <div className="flex gap-2">
             <Link
               href={`/campers/${id}/edit`}
-              className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="px-3 py-1.5 bg-green-700 text-white text-xs rounded-lg font-medium hover:bg-green-800 transition-colors"
             >
               Edit
             </Link>
@@ -502,7 +502,7 @@ function CamperDetailContent() {
                 ) : (
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                      <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">
                         Edit
                       </span>
                       <span className="text-xs text-slate-400">

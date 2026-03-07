@@ -210,7 +210,7 @@ function CheckInContent() {
           placeholder="Search camper by name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-4 rounded-xl border border-slate-200 bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-4 rounded-xl border border-slate-200 bg-white text-base focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
           autoFocus
         />
       </div>
@@ -240,7 +240,7 @@ function CheckInContent() {
                     </p>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
                       {camper.busNumber && (
-                        <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">
+                        <span className="text-xs bg-green-200 text-green-800 px-1.5 py-0.5 rounded">
                           Bus {camper.busNumber}
                         </span>
                       )}
@@ -269,7 +269,7 @@ function CheckInContent() {
                           <a
                             href={`tel:${camper.guardianPhone}`}
                             onClick={(e) => e.stopPropagation()}
-                            className="text-xs text-blue-600 underline"
+                            className="text-xs text-green-700 underline"
                           >
                             Parent: {camper.guardianPhone}
                           </a>
@@ -278,7 +278,7 @@ function CheckInContent() {
                           <a
                             href={`tel:${camper.cellPhone}`}
                             onClick={(e) => e.stopPropagation()}
-                            className="text-xs text-blue-600 underline"
+                            className="text-xs text-green-700 underline"
                           >
                             Camper: {camper.cellPhone}
                           </a>
@@ -343,7 +343,7 @@ function CheckInContent() {
                       </p>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         {ci.bus_number && (
-                          <span className="text-xs text-blue-600">Bus {ci.bus_number}</span>
+                          <span className="text-xs text-green-700">Bus {ci.bus_number}</span>
                         )}
                         {ci.bus_stop && (
                           <span className="text-xs text-slate-500">{ci.bus_stop}</span>
@@ -356,12 +356,12 @@ function CheckInContent() {
                       {(ci.guardian_phone || ci.cell_phone) && (
                         <div className="flex items-center gap-2 mt-0.5">
                           {ci.guardian_phone && (
-                            <a href={`tel:${ci.guardian_phone}`} className="text-xs text-blue-600 underline">
+                            <a href={`tel:${ci.guardian_phone}`} className="text-xs text-green-700 underline">
                               Parent: {ci.guardian_phone}
                             </a>
                           )}
                           {ci.cell_phone && (
-                            <a href={`tel:${ci.cell_phone}`} className="text-xs text-blue-600 underline">
+                            <a href={`tel:${ci.cell_phone}`} className="text-xs text-green-700 underline">
                               Camper: {ci.cell_phone}
                             </a>
                           )}
@@ -403,7 +403,7 @@ function CheckInContent() {
                       </p>
                       <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                         {ci.bus_number && (
-                          <span className="text-xs text-blue-600">Bus {ci.bus_number}</span>
+                          <span className="text-xs text-green-700">Bus {ci.bus_number}</span>
                         )}
                         {ci.bus_stop && (
                           <span className="text-xs text-slate-500">{ci.bus_stop}</span>
@@ -431,7 +431,7 @@ function CheckInContent() {
 
       {loading && (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       )}
     </div>

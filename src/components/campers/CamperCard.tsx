@@ -12,7 +12,7 @@ export default function CamperCard({ camper }: { camper: Camper }) {
 
   return (
     <Link href={`/campers/${camper.id}`}>
-      <div className="bg-white rounded-xl p-4 border border-slate-300 hover:border-blue-200 hover:shadow-sm transition-all active:scale-[0.98]">
+      <div className="bg-white rounded-xl p-4 border border-slate-300 hover:border-green-300 hover:shadow-sm transition-all active:scale-[0.98]">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
@@ -29,7 +29,7 @@ export default function CamperCard({ camper }: { camper: Camper }) {
               {camper.school || "No school listed"}
             </p>
             <div className="flex items-center gap-2 mt-2">
-              <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+              <span className="text-xs bg-green-50 text-green-800 px-2 py-0.5 rounded-full">
                 {camper.campWeekend}
               </span>
               <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full capitalize">

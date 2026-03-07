@@ -212,7 +212,7 @@ function SchoolCleanupContent() {
   return (
     <div className="p-4 space-y-4 pb-32">
       <div className="flex items-center gap-3">
-        <Link href="/admin/upload" className="text-blue-600">
+        <Link href="/admin/upload" className="text-green-700">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -231,7 +231,7 @@ function SchoolCleanupContent() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       ) : (
         <>
@@ -245,7 +245,7 @@ function SchoolCleanupContent() {
             placeholder="Search schools..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
           />
 
           {/* Action buttons */}
@@ -394,9 +394,9 @@ function SchoolCleanupContent() {
                             [school.original]: e.target.value,
                           }))
                         }
-                        className={`flex-1 px-2 py-1 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                        className={`flex-1 px-2 py-1 rounded border text-sm focus:outline-none focus:ring-2 focus:ring-green-500 ${
                           hasChange
-                            ? "border-blue-300 bg-blue-50"
+                            ? "border-green-400 bg-green-50"
                             : "border-slate-200 bg-white"
                         }`}
                       />
@@ -429,7 +429,7 @@ function SchoolCleanupContent() {
           <button
             onClick={handleSaveAll}
             disabled={saving}
-            className="w-full py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40"
+            className="w-full py-3 bg-green-700 text-white rounded-xl text-sm font-semibold hover:bg-green-800 transition-colors disabled:opacity-40"
           >
             {saving ? "Saving..." : `Save All Changes (${pendingChanges.length} schools)`}
           </button>

@@ -57,7 +57,7 @@ export default function BusRiderPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-200">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
       </div>
     );
   }
@@ -69,7 +69,7 @@ export default function BusRiderPage() {
   return (
     <div className="min-h-screen bg-slate-200">
       {/* Minimal header */}
-      <header className="bg-blue-700 text-white sticky top-0 z-40">
+      <header className="bg-green-800 text-white sticky top-0 z-40">
         <div className="flex items-center justify-between px-4 h-14">
           <h1 className="text-lg font-bold">{session.label}</h1>
           <button
@@ -77,7 +77,7 @@ export default function BusRiderPage() {
               await fetch("/api/auth/logout", { method: "POST" });
               router.push("/login");
             }}
-            className="text-xs text-blue-200 hover:text-white"
+            className="text-xs text-green-300 hover:text-white"
           >
             Logout
           </button>
@@ -401,7 +401,7 @@ function BusRiderContent({
             {waypointCount > 0 && (
               <span className="text-xs text-slate-400">({waypointCount} pts)</span>
             )}
-            {syncing && <span className="text-xs text-blue-500">Syncing...</span>}
+            {syncing && <span className="text-xs text-green-600">Syncing...</span>}
             {lastSync && !syncing && (
               <span className="text-xs text-slate-400">Synced {lastSync}</span>
             )}
@@ -478,13 +478,13 @@ function BusRiderContent({
           placeholder="Filter by name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-base focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
         />
       </div>
 
       {checkInLoading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       ) : totalCampers === 0 ? (
         <div className="bg-white rounded-xl p-6 border border-slate-300 text-center text-sm text-slate-400">
@@ -535,7 +535,7 @@ function BusRiderContent({
                                 <a
                                   href={`tel:${camper.guardianPhone}`}
                                   onClick={(e) => e.stopPropagation()}
-                                  className="text-xs text-blue-600 underline"
+                                  className="text-xs text-green-700 underline"
                                 >
                                   Parent: {camper.guardianPhone}
                                 </a>
@@ -544,7 +544,7 @@ function BusRiderContent({
                                 <a
                                   href={`tel:${camper.cellPhone}`}
                                   onClick={(e) => e.stopPropagation()}
-                                  className="text-xs text-blue-600 underline"
+                                  className="text-xs text-green-700 underline"
                                 >
                                   Camper: {camper.cellPhone}
                                 </a>

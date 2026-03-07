@@ -12,7 +12,7 @@ const BusMapView = dynamic(() => import("@/components/bus-map/BusMapView"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-[400px] bg-slate-100 rounded-xl flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
     </div>
   ),
 });
@@ -101,7 +101,7 @@ function BusMapContent() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       ) : (
         <>

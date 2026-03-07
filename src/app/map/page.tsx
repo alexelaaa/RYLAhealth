@@ -37,7 +37,7 @@ export default function MapPage() {
             </button>
             <button
               onClick={() => { setZoom(1); setRotation(0); }}
-              className="text-xs text-blue-600 hover:underline ml-1"
+              className="text-xs text-green-700 hover:underline ml-1"
             >
               Reset
             </button>

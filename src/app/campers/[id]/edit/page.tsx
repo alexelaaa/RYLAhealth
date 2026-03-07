@@ -53,7 +53,7 @@ function FormField({ label, value, onChange, type = "text", placeholder }: {
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           rows={2}
-          className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+          className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600 resize-none"
         />
       ) : (
         <input
@@ -61,7 +61,7 @@ function FormField({ label, value, onChange, type = "text", placeholder }: {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
         />
       )}
     </div>
@@ -83,7 +83,7 @@ function SelectField({ label, value, onChange, options, allowEmpty = true }: {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
       >
         {allowEmpty && <option value="">—</option>}
         {allOptions.map((opt) => (
@@ -238,7 +238,7 @@ function CamperEditContent() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
       </div>
     );
   }
@@ -262,7 +262,7 @@ function CamperEditContent() {
     <div className="p-4 space-y-4 pb-24">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Link href={`/campers/${id}`} className="text-blue-600">
+        <Link href={`/campers/${id}`} className="text-green-700">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -343,7 +343,7 @@ function CamperEditContent() {
           <select
             value={form.campWeekend}
             onChange={(e) => updateField("campWeekend")(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
           >
             {CAMP_WEEKENDS.map((w) => (
               <option key={w} value={w}>{w}</option>
@@ -355,7 +355,7 @@ function CamperEditContent() {
           <select
             value={form.role}
             onChange={(e) => updateField("role")(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
           >
             <option value="Camper">Camper</option>
             <option value="Alternate">Alternate</option>
@@ -379,7 +379,7 @@ function CamperEditContent() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold text-sm disabled:opacity-40 active:bg-blue-700 transition-colors shadow-lg"
+            className="w-full py-3 bg-green-700 text-white rounded-xl font-semibold text-sm disabled:opacity-40 active:bg-green-800 transition-colors shadow-lg"
           >
             {saving ? "Saving..." : "Save Changes"}
           </button>

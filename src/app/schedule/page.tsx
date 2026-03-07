@@ -27,8 +27,8 @@ interface SmallGroupInfo {
 function ActivityBreakdown({ activityNum }: { activityNum: number }) {
   const actIdx = activityNum - 1;
   return (
-    <div className="mt-2 bg-blue-50 rounded-lg p-3 space-y-1.5">
-      <div className="text-xs font-bold text-blue-800 mb-2">Activity {activityNum} — Where each group goes:</div>
+    <div className="mt-2 bg-green-50 rounded-lg p-3 space-y-1.5">
+      <div className="text-xs font-bold text-green-900 mb-2">Activity {activityNum} — Where each group goes:</div>
       {Object.entries(ACTIVITY_ROTATIONS).map(([group, acts]) => {
         const act = acts[actIdx];
         const colors = BIOME_COLORS[group] || { hex: "#475569", hexLight: "#f1f5f9", hexBorder: "#e2e8f0" };
@@ -52,7 +52,7 @@ function ActivityBreakdown({ activityNum }: { activityNum: number }) {
 function DiscussionBreakdown({ groups }: { groups: SmallGroupInfo[] }) {
   if (groups.length === 0) {
     return (
-      <div className="mt-2 bg-blue-50 rounded-lg p-3">
+      <div className="mt-2 bg-green-50 rounded-lg p-3">
         <div className="text-xs text-slate-500 italic">Loading group data...</div>
       </div>
     );
@@ -67,8 +67,8 @@ function DiscussionBreakdown({ groups }: { groups: SmallGroupInfo[] }) {
   }
 
   return (
-    <div className="mt-2 bg-blue-50 rounded-lg p-3 space-y-3">
-      <div className="text-xs font-bold text-blue-800">Discussion Groups — Meeting Locations:</div>
+    <div className="mt-2 bg-green-50 rounded-lg p-3 space-y-3">
+      <div className="text-xs font-bold text-green-900">Discussion Groups — Meeting Locations:</div>
       {Array.from(byLargeGroup.entries()).map(([lg, sgs]) => {
         const colors = BIOME_COLORS[lg] || { hex: "#475569", hexLight: "#f1f5f9", hexBorder: "#e2e8f0" };
         return (
@@ -105,7 +105,7 @@ function EventRow({ event, groups }: { event: DetailedEvent; groups: SmallGroupI
   const isExpandable = activityMatch || isDiscussion || isSmallGroupMeet;
 
   return (
-    <div className={`border-b border-slate-100 last:border-0 ${event.bold ? "bg-blue-50/50" : ""}`}>
+    <div className={`border-b border-slate-100 last:border-0 ${event.bold ? "bg-green-50/50" : ""}`}>
       <div
         className={`flex gap-3 py-2.5 ${isExpandable ? "cursor-pointer active:bg-slate-50" : ""}`}
         onClick={isExpandable ? () => setExpanded(!expanded) : undefined}
@@ -114,10 +114,10 @@ function EventRow({ event, groups }: { event: DetailedEvent; groups: SmallGroupI
           {event.time}
         </div>
         <div className="flex-1 min-w-0">
-          <div className={`text-sm ${event.bold ? "font-bold text-blue-900" : "font-semibold text-slate-900"}`}>
+          <div className={`text-sm ${event.bold ? "font-bold text-green-950" : "font-semibold text-slate-900"}`}>
             {event.title}
             {isExpandable && (
-              <span className="ml-1.5 text-blue-500 text-xs">{expanded ? "▲" : "▼"}</span>
+              <span className="ml-1.5 text-green-600 text-xs">{expanded ? "▲" : "▼"}</span>
             )}
           </div>
           {event.location && (
@@ -275,7 +275,7 @@ export default function SchedulePage() {
               onClick={() => setTab(key)}
               className={`flex-1 py-2 text-sm font-medium transition-colors ${
                 tab === key
-                  ? "bg-blue-600 text-white"
+                  ? "bg-green-700 text-white"
                   : "bg-white text-slate-600 hover:bg-slate-50"
               }`}
             >

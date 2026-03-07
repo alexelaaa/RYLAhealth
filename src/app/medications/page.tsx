@@ -20,7 +20,7 @@ interface MedCamper {
 
 const scheduleColors: Record<string, string> = {
   morning: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  afternoon: "bg-blue-100 text-blue-800 border-blue-200",
+  afternoon: "bg-green-200 text-green-900 border-green-300",
   evening: "bg-purple-100 text-purple-800 border-purple-200",
   bedtime: "bg-indigo-100 text-indigo-800 border-indigo-200",
   with_meals: "bg-green-100 text-green-800 border-green-200",
@@ -148,13 +148,13 @@ function MedicationsContent() {
           placeholder="Search by name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-base focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
         />
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-12 text-slate-400 text-sm">
@@ -177,7 +177,7 @@ function MedicationsContent() {
                   <div className="flex-1 min-w-0">
                     <Link
                       href={`/campers/${camper.id}`}
-                      className="text-sm font-medium text-slate-900 hover:text-blue-600 transition-colors"
+                      className="text-sm font-medium text-slate-900 hover:text-green-700 transition-colors"
                     >
                       {camper.lastName}, {camper.firstName}
                     </Link>
@@ -187,7 +187,7 @@ function MedicationsContent() {
                   </div>
                   <button
                     onClick={() => setExpandedId(isExpanded ? null : camper.id)}
-                    className="text-xs text-blue-600 font-medium shrink-0"
+                    className="text-xs text-green-700 font-medium shrink-0"
                   >
                     {isExpanded ? "Less" : "More"}
                   </button>

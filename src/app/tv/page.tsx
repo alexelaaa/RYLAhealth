@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { BIOME_COLORS } from "@/lib/constants";
 import {
@@ -53,6 +53,7 @@ export default function TVDisplayPage() {
   const [isCampDay, setIsCampDay] = useState(true);
   const [activities, setActivities] = useState<Record<string, string> | null>(null);
   const [clock, setClock] = useState("");
+  const [qrExpanded, setQrExpanded] = useState(false);
 
   useEffect(() => {
     function update() {
@@ -92,10 +93,11 @@ export default function TVDisplayPage() {
         {/* Top row: logo + clock */}
         <div className="flex items-center justify-between mb-6">
           <Image
-            src="/rylalogo.jpg"
+            src="/ryla-logo.png"
             alt="RYLA"
             width={180}
             height={90}
+            className="bg-white/90 rounded-lg px-2 py-1"
             priority
           />
           <div className="text-5xl font-bold text-black tabular-nums font-mono">
@@ -118,19 +120,19 @@ export default function TVDisplayPage() {
           ) : (
             <div className="space-y-5">
               {/* Current Event */}
-              <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl p-8">
+              <div className="bg-green-50 border-2 border-green-300 rounded-2xl p-8">
                 <div className="flex items-center gap-4 mb-3">
-                  <span className="text-sm font-bold uppercase tracking-widest text-blue-600 bg-blue-100 px-3 py-1 rounded-full">
+                  <span className="text-sm font-bold uppercase tracking-widest text-green-700 bg-green-200 px-3 py-1 rounded-full">
                     Now
                   </span>
-                  <span className="text-2xl text-blue-500 font-medium">{current.time}</span>
+                  <span className="text-2xl text-green-600 font-medium">{current.time}</span>
                 </div>
                 <h2 className="text-5xl font-bold text-slate-900">{current.title}</h2>
                 {current.location && (
-                  <p className="text-2xl text-blue-600 font-medium mt-2">{current.location}</p>
+                  <p className="text-2xl text-green-700 font-medium mt-2">{current.location}</p>
                 )}
                 {current.note && (
-                  <p className="text-lg text-blue-500 italic mt-1">{current.note}</p>
+                  <p className="text-lg text-green-600 italic mt-1">{current.note}</p>
                 )}
 
                 {/* Activity rotation */}
@@ -174,8 +176,11 @@ export default function TVDisplayPage() {
           )}
         </div>
 
-        {/* QR code bottom-left — always visible */}
-        <div className="flex items-center gap-8 bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-6 mt-4">
+        {/* QR code bottom-left — tap to enlarge */}
+        <button
+          onClick={() => setQrExpanded(true)}
+          className="flex items-center gap-8 bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-6 mt-4 text-left hover:bg-emerald-100 transition-colors cursor-pointer"
+        >
           <Image
             src="/ryla-qr.png"
             alt="Scan to upload photos and videos"
@@ -186,8 +191,9 @@ export default function TVDisplayPage() {
           <div>
             <p className="text-3xl font-bold text-slate-800">Share your photos &amp; videos!</p>
             <p className="text-xl text-slate-500 mt-2">Scan to upload for the end-of-camp slideshow</p>
+            <p className="text-base text-emerald-600 mt-2 font-medium">Tap to enlarge QR code</p>
           </div>
-        </div>
+        </button>
       </div>
 
       {/* Right side: Rest of day schedule */}
@@ -215,6 +221,35 @@ export default function TVDisplayPage() {
             <div className="px-6 py-6 text-center border-t-2 border-slate-300">
               <p className="text-lg text-slate-400 font-medium">End of Day</p>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Expanded QR modal */}
+      {qrExpanded && (
+        <div
+          className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center cursor-pointer"
+          onClick={() => setQrExpanded(false)}
+        >
+          <div className="bg-white rounded-3xl p-10 flex flex-col items-center gap-6 max-w-lg" onClick={(e) => e.stopPropagation()}>
+            <Image
+              src="/ryla-logo.png"
+              alt="RYLA"
+              width={200}
+              height={100}
+            />
+            <Image
+              src="/ryla-qr.png"
+              alt="Scan to upload photos and videos"
+              width={400}
+              height={400}
+            />
+            <p className="text-2xl font-bold text-slate-800 text-center">Scan to share photos &amp; videos!</p>
+            <button
+              onClick={() => setQrExpanded(false)}
+              className="text-lg text-slate-400 hover:text-slate-600 font-medium mt-2"
+            >
+              Tap anywhere to close
+            </button>
           </div>
         </div>
       )}

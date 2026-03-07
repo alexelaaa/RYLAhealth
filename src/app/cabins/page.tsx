@@ -60,7 +60,7 @@ function CabinsContent() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       ) : cabins.length === 0 ? (
         <div className="bg-white rounded-xl p-6 border border-slate-300 text-center text-sm text-slate-400">
@@ -78,7 +78,7 @@ function CabinsContent() {
                 >
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-sm text-slate-900">Cabin {cabin.name}</span>
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+                    <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">
                       {cabin.count}
                     </span>
                   </div>

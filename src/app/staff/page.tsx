@@ -64,7 +64,7 @@ function StaffContent() {
         {isAdmin && (
           <Link
             href="/staff/new"
-            className="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            className="px-3 py-1.5 bg-green-700 text-white text-xs rounded-lg font-medium hover:bg-green-800 transition-colors"
           >
             + Add Staff
           </Link>
@@ -77,7 +77,7 @@ function StaffContent() {
           onClick={() => setTab("alumni")}
           className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors ${
             tab === "alumni"
-              ? "bg-blue-600 text-white"
+              ? "bg-green-700 text-white"
               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
           }`}
         >
@@ -87,7 +87,7 @@ function StaffContent() {
           onClick={() => setTab("adult")}
           className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors ${
             tab === "adult"
-              ? "bg-blue-600 text-white"
+              ? "bg-green-700 text-white"
               : "bg-slate-100 text-slate-600 hover:bg-slate-200"
           }`}
         >
@@ -110,13 +110,13 @@ function StaffContent() {
           placeholder="Search by name or role..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-base focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
         />
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
         </div>
       ) : staff.length === 0 ? (
         <div className="text-center py-12 text-slate-400 text-sm">
@@ -137,7 +137,7 @@ function StaffContent() {
                   </p>
                   <div className="flex items-center gap-2 mt-1 flex-wrap">
                     {s.staffRole && (
-                      <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+                      <span className="text-xs bg-green-50 text-green-800 px-2 py-0.5 rounded-full">
                         {s.staffRole}
                       </span>
                     )}
@@ -150,12 +150,12 @@ function StaffContent() {
                   {(s.phone || s.email) && (
                     <div className="flex items-center gap-3 mt-1.5">
                       {s.phone && (
-                        <a href={`tel:${s.phone}`} className="text-xs text-blue-600">
+                        <a href={`tel:${s.phone}`} className="text-xs text-green-700">
                           {s.phone}
                         </a>
                       )}
                       {s.email && (
-                        <a href={`mailto:${s.email}`} className="text-xs text-blue-600 truncate">
+                        <a href={`mailto:${s.email}`} className="text-xs text-green-700 truncate">
                           {s.email}
                         </a>
                       )}

@@ -90,7 +90,7 @@ export default function BottomNav() {
               href={item.href}
               className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
                 isActive
-                  ? "text-blue-600"
+                  ? "text-green-700"
                   : "text-slate-400 hover:text-slate-600"
               }`}
             >

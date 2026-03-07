@@ -71,7 +71,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-1">RYLA Camp</h1>
+          <img src="/ryla-logo.png" alt="RYLA District 5330" className="mx-auto mb-4 max-w-[280px] w-full rounded-lg bg-white/90 p-3" />
           <p className="text-slate-400">Enter your staff PIN</p>
         </div>
 
@@ -82,7 +82,7 @@ export default function LoginPage() {
               key={i}
               className={`w-4 h-4 rounded-full transition-all ${
                 i < pin.length
-                  ? "bg-blue-500 scale-110"
+                  ? "bg-green-600 scale-110"
                   : "bg-slate-600"
               }`}
             />
@@ -135,7 +135,7 @@ export default function LoginPage() {
         <button
           onClick={handleSubmit}
           disabled={loading || pin.length < 4}
-          className="w-full h-14 rounded-xl bg-blue-600 text-white text-lg font-semibold disabled:opacity-40 active:bg-blue-700 transition-colors"
+          className="w-full h-14 rounded-xl bg-green-700 text-white text-lg font-semibold disabled:opacity-40 active:bg-green-800 transition-colors"
         >
           {loading ? "Verifying..." : "Enter"}
         </button>

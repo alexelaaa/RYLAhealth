@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import BottomNav from "./BottomNav";
 import OfflineBanner from "./OfflineBanner";
@@ -56,7 +57,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
       </div>
     );
   }
@@ -71,16 +72,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return (
       <CampContext.Provider value={{ campWeekend, setCampWeekend, session }}>
         <div className="min-h-screen bg-slate-200">
-          <header className="bg-blue-700 text-white sticky top-0 z-40">
+          <header className="bg-green-800 text-white sticky top-0 z-40">
             <div className="flex items-center justify-between px-4 h-14">
-              <h1 className="text-lg font-bold">RYLA Camp</h1>
+              <Image src="/ryla-logo.png" alt="RYLA District 5330" width={120} height={40} className="h-9 w-auto bg-white/90 rounded px-1.5 py-0.5" />
               <div className="flex items-center gap-2">
-                <span className="text-xs bg-blue-600 px-2 py-1 rounded-full capitalize">
+                <span className="text-xs bg-green-700 px-2 py-1 rounded-full capitalize">
                   Alumni
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="text-xs text-blue-200 hover:text-white"
+                  className="text-xs text-green-300 hover:text-white"
                 >
                   Logout
                 </button>
@@ -100,7 +101,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     key={item.href}
                     href={item.href}
                     className={`flex flex-col items-center justify-center flex-1 py-1 transition-colors ${
-                      isActive ? "text-blue-600" : "text-slate-400 hover:text-slate-600"
+                      isActive ? "text-green-700" : "text-slate-400 hover:text-slate-600"
                     }`}
                   >
                     <span className="text-sm font-medium">{item.label}</span>
@@ -128,15 +129,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return (
       <CampContext.Provider value={{ campWeekend, setCampWeekend, session }}>
         <div className="min-h-screen bg-slate-200">
-          <header className="bg-blue-700 text-white sticky top-0 z-40">
+          <header className="bg-green-800 text-white sticky top-0 z-40">
             <div className="flex items-center justify-between px-4 h-14">
-              <Link href="/cabin-checkin" className="flex items-center gap-1 text-blue-200 hover:text-white text-sm">
+              <Link href="/cabin-checkin" className="flex items-center gap-1 text-green-300 hover:text-white text-sm">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
                 Back to Check-In
               </Link>
-              <h1 className="text-lg font-bold">RYLA Camp</h1>
+              <Image src="/ryla-logo.png" alt="RYLA District 5330" width={120} height={40} className="h-9 w-auto bg-white/90 rounded px-1.5 py-0.5" />
             </div>
           </header>
           <OfflineBanner />
@@ -152,14 +153,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <CampContext.Provider value={{ campWeekend, setCampWeekend, session }}>
       <div className="min-h-screen bg-slate-200">
         {/* Top bar */}
-        <header className="bg-blue-700 text-white sticky top-0 z-40">
+        <header className="bg-green-800 text-white sticky top-0 z-40">
           <div className="flex items-center justify-between px-4 h-14">
-            <h1 className="text-lg font-bold">RYLA Camp</h1>
+            <Image src="/ryla-logo.png" alt="RYLA District 5330" width={120} height={40} className="h-9 w-auto bg-white/90 rounded px-1.5 py-0.5" />
             <div className="flex items-center gap-2">
               <select
                 value={campWeekend}
                 onChange={(e) => setCampWeekend(e.target.value)}
-                className="bg-blue-600 text-white text-xs rounded-lg px-2 py-1 border border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-300"
+                className="bg-green-700 text-white text-xs rounded-lg px-2 py-1 border border-green-600 focus:outline-none focus:ring-1 focus:ring-green-400"
               >
                 <option value="">All Weekends</option>
                 {CAMP_WEEKENDS.map((w) => (
@@ -173,13 +174,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 {isOnline ? "Live" : "Offline"}
               </span>
               {session && (
-                <span className="text-xs bg-blue-600 px-2 py-1 rounded-full capitalize">
+                <span className="text-xs bg-green-700 px-2 py-1 rounded-full capitalize">
                   {session.role}
                 </span>
               )}
               <button
                 onClick={handleLogout}
-                className="text-xs text-blue-200 hover:text-white"
+                className="text-xs text-green-300 hover:text-white"
               >
                 Logout
               </button>

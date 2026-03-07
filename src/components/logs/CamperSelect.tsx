@@ -69,14 +69,14 @@ export default function CamperSelect({ value, onChange, initialCamperId }: Campe
         Camper
       </label>
       {value && selectedName ? (
-        <div className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
-          <span className="text-sm font-medium text-blue-900 flex-1">{selectedName}</span>
+        <div className="flex items-center gap-2 bg-green-50 border border-green-300 rounded-xl px-4 py-3">
+          <span className="text-sm font-medium text-green-950 flex-1">{selectedName}</span>
           <button
             onClick={() => {
               onChange(0 as unknown as number, "");
               setSelectedName("");
             }}
-            className="text-blue-400 hover:text-blue-600"
+            className="text-green-500 hover:text-green-700"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -94,7 +94,7 @@ export default function CamperSelect({ value, onChange, initialCamperId }: Campe
               setIsOpen(true);
             }}
             onFocus={() => setIsOpen(true)}
-            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
           />
           {isOpen && results.length > 0 && (
             <div className="absolute z-20 w-full mt-1 bg-white rounded-xl border border-slate-200 shadow-lg max-h-60 overflow-y-auto">

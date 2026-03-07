@@ -76,7 +76,7 @@ function NewStaffContent() {
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center gap-3">
-        <button onClick={() => router.back()} className="text-blue-600">
+        <button onClick={() => router.back()} className="text-green-700">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -98,7 +98,7 @@ function NewStaffContent() {
             onClick={() => set("staffType", "alumni")}
             className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors ${
               form.staffType === "alumni"
-                ? "bg-blue-600 text-white"
+                ? "bg-green-700 text-white"
                 : "bg-slate-100 text-slate-600"
             }`}
           >
@@ -109,7 +109,7 @@ function NewStaffContent() {
             onClick={() => set("staffType", "adult")}
             className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors ${
               form.staffType === "adult"
-                ? "bg-blue-600 text-white"
+                ? "bg-green-700 text-white"
                 : "bg-slate-100 text-slate-600"
             }`}
           >
@@ -124,7 +124,7 @@ function NewStaffContent() {
               type="text"
               value={form.firstName}
               onChange={(e) => set("firstName", e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-green-600"
               required
             />
           </div>
@@ -134,7 +134,7 @@ function NewStaffContent() {
               type="text"
               value={form.lastName}
               onChange={(e) => set("lastName", e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-green-600"
               required
             />
           </div>
@@ -147,7 +147,7 @@ function NewStaffContent() {
             value={form.staffRole}
             onChange={(e) => set("staffRole", e.target.value)}
             placeholder="e.g. DGL, Camp Director, Nurse..."
-            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-green-600"
           />
         </div>
 
@@ -156,7 +156,7 @@ function NewStaffContent() {
           <select
             value={form.campWeekend}
             onChange={(e) => set("campWeekend", e.target.value)}
-            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-green-600"
           >
             <option value="">Both Weekends</option>
             {CAMP_WEEKENDS.map((w) => (
@@ -172,7 +172,7 @@ function NewStaffContent() {
               type="tel"
               value={form.phone}
               onChange={(e) => set("phone", e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-green-600"
             />
           </div>
           <div>
@@ -181,7 +181,7 @@ function NewStaffContent() {
               type="email"
               value={form.email}
               onChange={(e) => set("email", e.target.value)}
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-green-600"
             />
           </div>
         </div>
@@ -192,14 +192,14 @@ function NewStaffContent() {
             value={form.notes}
             onChange={(e) => set("notes", e.target.value)}
             rows={3}
-            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base bg-white focus:outline-none focus:ring-2 focus:ring-green-600 resize-none"
           />
         </div>
 
         <button
           type="submit"
           disabled={saving}
-          className="w-full py-4 rounded-xl bg-blue-600 text-white text-lg font-semibold disabled:opacity-40 hover:bg-blue-700 transition-colors"
+          className="w-full py-4 rounded-xl bg-green-700 text-white text-lg font-semibold disabled:opacity-40 hover:bg-green-800 transition-colors"
         >
           {saving ? "Saving..." : "Add Staff Member"}
         </button>
