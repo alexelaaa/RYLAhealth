@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { isBusRider } from "@/lib/bus-utils";
 
 export default function LoginPage() {
@@ -71,7 +72,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <img src="/ryla-logo.png" alt="RYLA District 5330" className="mx-auto mb-4 max-w-[280px] w-full rounded-lg bg-white/90 p-3" />
+          <Image src="/ryla-logo.png" alt="RYLA District 5330" width={280} height={128} className="mx-auto mb-4 max-w-[280px] w-full rounded-lg bg-white/90 p-3" />
           <p className="text-slate-400">Enter your staff PIN</p>
         </div>
 
