@@ -340,11 +340,9 @@ export async function PATCH(
   // Notify DGLs if camper was just sent home
   const sentHomeEdit = editRecords.find((e) => e.fieldName === "sentHome" && e.newValue === "1");
   if (sentHomeEdit) {
-    const reasonEdit = editRecords.find((e) => e.fieldName === "sentHomeReason");
     const camperName = `${current.firstName} ${current.lastName}`;
-    const reason = reasonEdit?.newValue || "No reason provided";
     // Fire and forget — don't block the response
-    notifyDGLsForCamper(id, camperName, reason).catch(() => {});
+    notifyDGLsForCamper(id, camperName, "This camper is being sent home.").catch(() => {});
   }
 
   // Return updated camper

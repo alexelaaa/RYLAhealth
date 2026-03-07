@@ -274,6 +274,28 @@ export const medicationCheckins = sqliteTable("medication_checkins", {
   checkoutNotes: text("checkout_notes"),
 });
 
+export const departureCheckins = sqliteTable(
+  "departure_checkins",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    camperId: integer("camper_id")
+      .notNull()
+      .unique()
+      .references(() => campers.id),
+    checkedBy: text("checked_by").notNull(),
+    checkedAt: text("checked_at")
+      .notNull()
+      .$defaultFn(() => new Date().toISOString()),
+    campWeekend: text("camp_weekend").notNull(),
+  },
+  (table) => [
+    index("idx_departure_checkins_weekend").on(table.campWeekend),
+  ]
+);
+
+export type DepartureCheckin = typeof departureCheckins.$inferSelect;
+export type NewDepartureCheckin = typeof departureCheckins.$inferInsert;
+
 // Type exports
 export type SmallGroupInfo = typeof smallGroupInfo.$inferSelect;
 export type NewSmallGroupInfo = typeof smallGroupInfo.$inferInsert;
