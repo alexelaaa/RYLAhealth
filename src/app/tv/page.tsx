@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { BIOME_COLORS } from "@/lib/constants";
 import {
   getCampDay,
@@ -94,50 +93,50 @@ export default function TVDisplayPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-8">
+    <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center justify-center p-12">
       {/* Clock */}
-      <div className="text-6xl font-bold text-slate-400 mb-8 tabular-nums">
+      <div className="text-8xl font-bold text-slate-400 mb-12 tabular-nums">
         {clock}
       </div>
 
       {!isCampDay ? (
         <div className="text-center">
-          <h1 className="text-5xl font-bold mb-4">RYLA Camp</h1>
-          <p className="text-2xl text-slate-400">No events scheduled right now</p>
+          <h1 className="text-7xl font-bold mb-6">RYLA Camp</h1>
+          <p className="text-4xl text-slate-400">No events scheduled right now</p>
         </div>
       ) : !currentDetailed ? (
         <div className="text-center">
-          <h1 className="text-5xl font-bold mb-4">RYLA Camp</h1>
-          <p className="text-2xl text-slate-400">Events starting soon...</p>
+          <h1 className="text-7xl font-bold mb-6">RYLA Camp</h1>
+          <p className="text-4xl text-slate-400">Events starting soon...</p>
         </div>
       ) : (
-        <div className="w-full max-w-5xl space-y-6">
+        <div className="w-full max-w-7xl space-y-8">
           {/* Current Event */}
-          <div className="bg-blue-600/20 border-2 border-blue-500/40 rounded-3xl p-8">
-            <div className="flex items-center gap-4 mb-3">
-              <span className="text-sm font-bold uppercase tracking-widest text-blue-400 bg-blue-500/20 px-3 py-1 rounded-full">
+          <div className="bg-blue-600/20 border-2 border-blue-500/40 rounded-3xl p-12">
+            <div className="flex items-center gap-5 mb-4">
+              <span className="text-lg font-bold uppercase tracking-widest text-blue-400 bg-blue-500/20 px-4 py-1.5 rounded-full">
                 Now
               </span>
-              <span className="text-2xl text-blue-300 font-medium">{currentDetailed.time}</span>
+              <span className="text-4xl text-blue-300 font-medium">{currentDetailed.time}</span>
             </div>
-            <h2 className="text-5xl font-bold">{currentDetailed.title}</h2>
+            <h2 className="text-7xl font-bold">{currentDetailed.title}</h2>
             {currentDetailed.location && (
-              <p className="text-2xl text-blue-300 font-medium mt-2">{currentDetailed.location}</p>
+              <p className="text-4xl text-blue-300 font-medium mt-3">{currentDetailed.location}</p>
             )}
             {currentDetailed.note && (
-              <p className="text-lg text-blue-400 italic mt-1">{currentDetailed.note}</p>
+              <p className="text-2xl text-blue-400 italic mt-2">{currentDetailed.note}</p>
             )}
 
             {/* Activity rotation */}
             {activities && (
-              <div className="mt-6 flex flex-wrap gap-3">
+              <div className="mt-8 flex flex-wrap gap-4">
                 {Object.entries(activities).map(([biome, activity]) => {
                   const colors = BIOME_COLORS[biome];
                   const location = ACTIVITY_LOCATIONS[activity];
                   return (
                     <span
                       key={biome}
-                      className="text-lg font-semibold px-4 py-2 rounded-xl"
+                      className="text-2xl font-semibold px-5 py-3 rounded-xl"
                       style={{
                         backgroundColor: colors?.hexLight || "#f1f5f9",
                         color: colors?.hex || "#475569",
@@ -154,31 +153,19 @@ export default function TVDisplayPage() {
 
           {/* Next Event */}
           {nextDetailed && (
-            <div className="bg-slate-800/60 border border-slate-700 rounded-3xl px-8 py-6 flex items-center gap-6">
-              <span className="text-sm font-bold uppercase tracking-widest text-slate-500 bg-slate-700/50 px-3 py-1 rounded-full">
+            <div className="bg-slate-800/60 border border-slate-700 rounded-3xl px-12 py-8 flex items-center gap-8">
+              <span className="text-lg font-bold uppercase tracking-widest text-slate-500 bg-slate-700/50 px-4 py-1.5 rounded-full">
                 Next
               </span>
-              <span className="text-xl text-slate-400 font-medium">{nextDetailed.time}</span>
-              <span className="text-3xl font-bold">{nextDetailed.title}</span>
+              <span className="text-3xl text-slate-400 font-medium">{nextDetailed.time}</span>
+              <span className="text-5xl font-bold">{nextDetailed.title}</span>
               {nextDetailed.location && (
-                <span className="text-xl text-slate-400">{nextDetailed.location}</span>
+                <span className="text-3xl text-slate-400">{nextDetailed.location}</span>
               )}
             </div>
           )}
         </div>
       )}
-
-      {/* RYLA logo */}
-      <div className="absolute bottom-8">
-        <Image
-          src="/ryla logo.jpg"
-          alt="RYLA"
-          width={200}
-          height={100}
-          className="opacity-50 brightness-200"
-          priority
-        />
-      </div>
     </div>
   );
 }
