@@ -98,6 +98,21 @@ export default function TVDisplayPage() {
         />
       </div>
 
+      {/* QR code top-right */}
+      <div className="absolute top-6 right-10 flex items-center gap-4">
+        <div className="text-right">
+          <p className="text-lg font-bold text-slate-700">Share your photos &amp; videos!</p>
+          <p className="text-sm text-slate-500">Scan for the end-of-camp video</p>
+        </div>
+        <Image
+          src="/ryla-qr.png"
+          alt="Scan to upload photos and videos"
+          width={120}
+          height={120}
+          priority
+        />
+      </div>
+
       {/* Left side: Now + Next */}
       <div className="flex-1 flex flex-col justify-center p-12 pt-32">
         {/* Clock */}
