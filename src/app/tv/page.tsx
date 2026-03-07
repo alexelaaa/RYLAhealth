@@ -98,21 +98,6 @@ export default function TVDisplayPage() {
         />
       </div>
 
-      {/* QR code top-right */}
-      <div className="absolute top-6 right-10 flex items-center gap-4">
-        <div className="text-right">
-          <p className="text-lg font-bold text-slate-700">Share your photos &amp; videos!</p>
-          <p className="text-sm text-slate-500">Scan for the end-of-camp video</p>
-        </div>
-        <Image
-          src="/ryla-qr.png"
-          alt="Scan to upload photos and videos"
-          width={120}
-          height={120}
-          priority
-        />
-      </div>
-
       {/* Left side: Now + Next */}
       <div className="flex-1 flex flex-col justify-center p-12 pt-32">
         {/* Clock */}
@@ -189,7 +174,7 @@ export default function TVDisplayPage() {
         )}
       </div>
 
-      {/* Right side: Rest of day schedule */}
+      {/* Right side: Rest of day schedule + QR */}
       {isCampDay && upcoming.length > 1 && (
         <div className="w-[420px] bg-slate-50 border-l-2 border-slate-200 flex flex-col">
           <div className="px-8 py-6 border-b-2 border-slate-200">
@@ -215,6 +200,36 @@ export default function TVDisplayPage() {
             <div className="px-8 py-8 text-center border-t-2 border-slate-300">
               <p className="text-xl text-slate-400 font-medium">End of Day</p>
             </div>
+          </div>
+          {/* QR code at bottom of sidebar */}
+          <div className="px-6 py-5 border-t-2 border-slate-300 bg-white flex items-center gap-4">
+            <Image
+              src="/ryla-qr.png"
+              alt="Scan to upload photos and videos"
+              width={100}
+              height={100}
+              className="shrink-0"
+            />
+            <div>
+              <p className="text-base font-bold text-slate-800">Share your photos &amp; videos!</p>
+              <p className="text-sm text-slate-500">Scan to upload for the end-of-camp slideshow</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QR code bottom-left when no sidebar */}
+      {(!isCampDay || upcoming.length <= 1) && (
+        <div className="absolute bottom-8 left-10 flex items-center gap-5 bg-slate-50 border border-slate-200 rounded-2xl p-5">
+          <Image
+            src="/ryla-qr.png"
+            alt="Scan to upload photos and videos"
+            width={120}
+            height={120}
+          />
+          <div>
+            <p className="text-xl font-bold text-slate-800">Share your photos &amp; videos!</p>
+            <p className="text-base text-slate-500">Scan to upload for the end-of-camp slideshow</p>
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import AppShell from "@/components/layout/AppShell";
 import ScheduleNow from "@/components/ScheduleNow";
 import NotificationToggle from "@/components/NotificationToggle";
@@ -163,6 +164,34 @@ function DashboardContent() {
       <ScheduleNow />
 
       <AnnouncementBanner />
+
+      {/* Photo/Video Upload for end-of-camp slideshow */}
+      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200 p-4">
+        <div className="flex items-center gap-4">
+          <Image
+            src="/ryla-qr.png"
+            alt="QR code for photo uploads"
+            width={80}
+            height={80}
+            className="rounded-lg shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-slate-800">End-of-Camp Slideshow</p>
+            <p className="text-xs text-slate-500 mt-0.5">Upload photos &amp; videos or share the QR code with your campers</p>
+            <a
+              href="https://www.dropbox.com/request/nHtAH5Pg4gykDECtaaBt"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 mt-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+              </svg>
+              Upload Photos &amp; Videos
+            </a>
+          </div>
+        </div>
+      </div>
 
       {session?.role === "admin" && openTickets > 0 && (
         <Link href="/admin/tickets" className="block">
