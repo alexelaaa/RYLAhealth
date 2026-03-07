@@ -90,7 +90,7 @@ export default function TVDisplayPage() {
       {/* RYLA logo top-left */}
       <div className="absolute top-8 left-10">
         <Image
-          src="/ryla-logo.png"
+          src="/ryla logo.jpg"
           alt="RYLA"
           width={200}
           height={100}
