@@ -25,10 +25,10 @@ export default function DeparturePage() {
 }
 
 function DepartureContent() {
-  const { campWeekend, session } = useCamp();
+  const { campWeekend } = useCamp();
   const [campers, setCampers] = useState<Camper[]>([]);
   const [checkedOut, setCheckedOut] = useState<Set<number>>(new Set());
-  const [departureList, setDepartureList] = useState<DepartureRecord[]>([]);
+  const [, setDepartureList] = useState<DepartureRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [search, setSearch] = useState("");
