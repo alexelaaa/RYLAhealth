@@ -175,17 +175,17 @@ export default function TVDisplayPage() {
         </div>
 
         {/* QR code bottom-left — always visible */}
-        <div className="flex items-center gap-6 bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-5 mt-4">
+        <div className="flex items-center gap-8 bg-emerald-50 border-2 border-emerald-200 rounded-2xl p-6 mt-4">
           <Image
             src="/ryla-qr.png"
             alt="Scan to upload photos and videos"
-            width={180}
-            height={180}
+            width={280}
+            height={280}
             className="shrink-0"
           />
           <div>
-            <p className="text-2xl font-bold text-slate-800">Share your photos &amp; videos!</p>
-            <p className="text-lg text-slate-500 mt-1">Scan to upload for the end-of-camp slideshow</p>
+            <p className="text-3xl font-bold text-slate-800">Share your photos &amp; videos!</p>
+            <p className="text-xl text-slate-500 mt-2">Scan to upload for the end-of-camp slideshow</p>
           </div>
         </div>
       </div>
