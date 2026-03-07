@@ -44,13 +44,15 @@ function BusMapContent() {
   const [busComplete, setBusComplete] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
+  const [departureStats, setDepartureStats] = useState<Map<string, { checked: number; total: number }>>(new Map());
 
   const fetchBuses = useCallback(async () => {
     const weekendParam = campWeekend ? `?weekend=${encodeURIComponent(campWeekend)}` : "";
     try {
-      const [busRes, statsRes, ...completeResults] = await Promise.all([
+      const [busRes, statsRes, departureRes, ...completeResults] = await Promise.all([
         fetch("/api/bus-waypoints/latest"),
         fetch(`/api/admin/bus-stats${weekendParam}`),
+        fetch(`/api/departure-checkins${weekendParam}`),
         ...["1","2","3","4","5","6"].map(n => fetch(`/api/bus-status?bus=${n}`)),
       ]);
       if (busRes.ok) {
@@ -58,12 +60,29 @@ function BusMapContent() {
         setBuses(data);
         setLastRefresh(new Date().toLocaleTimeString());
       }
+      let statsMap = new Map<string, BusStat>();
       if (statsRes.ok) {
         const stats: BusStat[] = await statsRes.json();
-        const map = new Map<string, BusStat>();
-        for (const s of stats) map.set(s.busNumber, s);
-        setBusStats(map);
+        statsMap = new Map<string, BusStat>();
+        for (const s of stats) statsMap.set(s.busNumber, s);
+        setBusStats(statsMap);
       }
+      // Process departure stats
+      if (departureRes.ok) {
+        const depData = await departureRes.json();
+        const depByBus = new Map<string, number>();
+        for (const d of depData as { bus_number: string | null }[]) {
+          if (d.bus_number) {
+            depByBus.set(d.bus_number, (depByBus.get(d.bus_number) || 0) + 1);
+          }
+        }
+        const depStats = new Map<string, { checked: number; total: number }>();
+        for (const [busNum, stat] of statsMap) {
+          depStats.set(busNum, { checked: depByBus.get(busNum) || 0, total: stat.assigned });
+        }
+        setDepartureStats(depStats);
+      }
+
       const completeSet = new Set<string>();
       for (let i = 0; i < completeResults.length; i++) {
         try {
@@ -240,6 +259,57 @@ function BusMapContent() {
               </div>
             )}
           </div>
+
+          {/* Departure Progress */}
+          {departureStats.size > 0 && (() => {
+            const totalChecked = Array.from(departureStats.values()).reduce((s, d) => s + d.checked, 0);
+            const totalAssigned = Array.from(departureStats.values()).reduce((s, d) => s + d.total, 0);
+            const overallPct = totalAssigned > 0 ? Math.round((totalChecked / totalAssigned) * 100) : 0;
+            return (
+              <div className="space-y-3">
+                <h2 className="text-sm font-semibold text-slate-700">Departure Progress</h2>
+                <div className="bg-white rounded-xl p-4 border border-slate-300">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-semibold text-slate-700">Overall</span>
+                    <span className="text-sm font-bold text-green-600">{totalChecked} / {totalAssigned}</span>
+                  </div>
+                  <div className="w-full bg-slate-100 rounded-full h-3">
+                    <div
+                      className="bg-green-500 h-3 rounded-full transition-all"
+                      style={{ width: `${overallPct}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {Array.from(departureStats.entries())
+                    .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }))
+                    .map(([busNum, dep]) => {
+                      const pct = dep.total > 0 ? Math.round((dep.checked / dep.total) * 100) : 0;
+                      const allDone = dep.checked === dep.total && dep.total > 0;
+                      return (
+                        <div key={busNum} className={`rounded-xl p-3 border ${allDone ? "bg-green-50 border-green-200" : "bg-white border-slate-200"}`}>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-bold text-slate-700">Bus {busNum}</span>
+                            <span className={`text-xs font-medium ${allDone ? "text-green-600" : "text-slate-500"}`}>
+                              {dep.checked}/{dep.total}
+                            </span>
+                          </div>
+                          <div className="w-full bg-slate-100 rounded-full h-2">
+                            <div
+                              className={`h-2 rounded-full transition-all ${allDone ? "bg-green-500" : "bg-green-400"}`}
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          {allDone && (
+                            <span className="text-[10px] text-green-600 font-medium mt-1 block">Complete</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            );
+          })()}
         </>
       )}
     </div>
