@@ -77,9 +77,9 @@ function BusMapContent() {
           }
         }
         const depStats = new Map<string, { checked: number; total: number }>();
-        for (const [busNum, stat] of statsMap) {
+        statsMap.forEach((stat, busNum) => {
           depStats.set(busNum, { checked: depByBus.get(busNum) || 0, total: stat.assigned });
-        }
+        });
         setDepartureStats(depStats);
       }
 
