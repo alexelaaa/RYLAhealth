@@ -29,6 +29,7 @@ function InventoryContent() {
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -113,6 +114,30 @@ function InventoryContent() {
     fetchItems();
   };
 
+  const handleCSVUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImporting(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      if (campWeekend) form.append("campWeekend", campWeekend);
+      const res = await fetch("/api/inventory/import", { method: "POST", body: form });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`Imported ${data.imported} items!`);
+        fetchItems();
+      } else {
+        alert(data.error || "Import failed");
+      }
+    } catch {
+      alert("Import failed");
+    } finally {
+      setImporting(false);
+      e.target.value = "";
+    }
+  };
+
   const filtered = items.filter((item) => {
     const matchesSearch =
       !search ||
@@ -138,15 +163,21 @@ function InventoryContent() {
     <div className="p-4 space-y-4 pb-24">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-slate-900">Inventory</h1>
-        <button
-          onClick={() => {
-            if (showForm) resetForm();
-            else setShowForm(true);
-          }}
-          className="px-4 py-2 bg-green-700 text-white rounded-lg text-sm font-medium"
-        >
-          {showForm ? "Cancel" : "+ Add Item"}
-        </button>
+        <div className="flex gap-2">
+          <label className={`px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium cursor-pointer ${importing ? "opacity-50" : ""}`}>
+            {importing ? "Importing..." : "Import CSV"}
+            <input type="file" accept=".csv" onChange={handleCSVUpload} className="hidden" disabled={importing} />
+          </label>
+          <button
+            onClick={() => {
+              if (showForm) resetForm();
+              else setShowForm(true);
+            }}
+            className="px-3 py-2 bg-green-700 text-white rounded-lg text-sm font-medium"
+          >
+            {showForm ? "Cancel" : "+ Add"}
+          </button>
+        </div>
       </div>
 
       {/* Summary bar */}
