@@ -168,8 +168,8 @@ function DashboardContent() {
       {/* Camp Videos */}
       <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200 p-4">
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-slate-800">Camp Videos</p>
-          <p className="text-xs text-slate-500 mt-0.5">View the videos from camp by clicking here</p>
+          <p className="text-sm font-bold text-slate-800">Relive the Memories!</p>
+          <p className="text-xs text-slate-500 mt-0.5">Watch all the highlights and best moments from RYLA camp</p>
           <div className="flex items-center gap-3 mt-3">
             <a
               href="https://www.youtube.com/@RYLA5330/videos"

@@ -5,7 +5,7 @@ import {
   getDetailedSchedule,
   type DetailedEvent,
 } from "@/lib/schedule";
-import { CAMP_LOCATION } from "@/lib/constants";
+import { CAMP_LOCATION, BUS_STOPS } from "@/lib/constants";
 import { haversineDistanceMiles, estimateEtaMinutes } from "@/lib/geo-utils";
 
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -224,9 +224,9 @@ function buildDGLNotification(event: DetailedEvent, minutesUntil: number, info: 
   return JSON.stringify({ title: "Coming Up", body, url: "/schedule" });
 }
 
-function getBusEtas(): { busLabel: string; etaMin: number }[] {
+function getRecentBusWaypoints(): BusWaypointRow[] {
   const cutoff = new Date(Date.now() - 10 * 60 * 1000).toISOString();
-  const rows = sqlite
+  return sqlite
     .prepare(
       `SELECT bus_id, bus_label, latitude, longitude, speed, timestamp
        FROM bus_waypoints
@@ -235,7 +235,10 @@ function getBusEtas(): { busLabel: string; etaMin: number }[] {
        HAVING timestamp = MAX(timestamp)`
     )
     .all(cutoff) as BusWaypointRow[];
+}
 
+function getBusEtas(): { busLabel: string; etaMin: number }[] {
+  const rows = getRecentBusWaypoints();
   const alerts: { busLabel: string; etaMin: number }[] = [];
   for (const row of rows) {
     if (row.speed == null || row.speed <= 0.5) continue;
@@ -248,6 +251,33 @@ function getBusEtas(): { busLabel: string; etaMin: number }[] {
     const eta = estimateEtaMinutes(dist, row.speed);
     if (eta !== null && eta <= 15 && eta >= 3) {
       alerts.push({ busLabel: row.bus_label, etaMin: Math.round(eta) });
+    }
+  }
+  return alerts;
+}
+
+function getBusStopEtas(): { busLabel: string; stopName: string; stopLocation: string; etaMin: number }[] {
+  const rows = getRecentBusWaypoints();
+  const alerts: { busLabel: string; stopName: string; stopLocation: string; etaMin: number }[] = [];
+  for (const row of rows) {
+    if (row.speed == null || row.speed <= 0.5) continue;
+    const busNum = row.bus_id.replace("bus-", "");
+    const stops = BUS_STOPS.filter((s) => s.busNumber === busNum);
+    for (const stop of stops) {
+      const dist = haversineDistanceMiles(
+        row.latitude, row.longitude,
+        stop.latitude, stop.longitude
+      );
+      const eta = estimateEtaMinutes(dist, row.speed);
+      if (eta !== null && eta <= 15 && eta >= 3) {
+        const label = stop.stop ? `${stop.location} (Stop ${stop.stop})` : stop.location;
+        alerts.push({
+          busLabel: row.bus_label,
+          stopName: label,
+          stopLocation: stop.name,
+          etaMin: Math.round(eta),
+        });
+      }
     }
   }
   return alerts;
@@ -333,23 +363,35 @@ async function handleCron(request: NextRequest) {
   }
 
   // Bus ETA notifications — only during camp weekends too
+  let busStopNotified = 0;
   if (isCampWeekend(now)) {
-    const busAlerts = getBusEtas();
-    if (busAlerts.length > 0) {
-      const adminSubs = sqlite
-        .prepare("SELECT id, endpoint, subscription_json, role, user_label FROM push_subscriptions WHERE role = 'admin'")
-        .all() as PushRow[];
+    const adminSubs = sqlite
+      .prepare("SELECT id, endpoint, subscription_json, role, user_label FROM push_subscriptions WHERE role = 'admin'")
+      .all() as PushRow[];
 
-      if (adminSubs.length > 0) {
-        for (const alert of busAlerts) {
-          const payload = JSON.stringify({
-            title: `${alert.busLabel} Arriving Soon`,
-            body: `ETA ~${alert.etaMin} min to camp`,
-            url: "/admin/bus-map",
-          });
-          await sendToSubscriptions(adminSubs, payload);
-          busNotified++;
-        }
+    if (adminSubs.length > 0) {
+      // Buses arriving to camp
+      const busAlerts = getBusEtas();
+      for (const alert of busAlerts) {
+        const payload = JSON.stringify({
+          title: `${alert.busLabel} Arriving Soon`,
+          body: `ETA ~${alert.etaMin} min to camp`,
+          url: "/admin/bus-map",
+        });
+        await sendToSubscriptions(adminSubs, payload);
+        busNotified++;
+      }
+
+      // Buses arriving to drop-off stops (departure)
+      const stopAlerts = getBusStopEtas();
+      for (const alert of stopAlerts) {
+        const payload = JSON.stringify({
+          title: `${alert.busLabel} Approaching ${alert.stopName}`,
+          body: `ETA ~${alert.etaMin} min to ${alert.stopLocation}`,
+          url: "/admin/bus-map",
+        });
+        await sendToSubscriptions(adminSubs, payload);
+        busStopNotified++;
       }
     }
   }
@@ -360,5 +402,6 @@ async function handleCron(request: NextRequest) {
     isCampWeekend: isCampWeekend(now),
     scheduleNotified,
     busAlerts: busNotified,
+    busStopAlerts: busStopNotified,
   });
 }
