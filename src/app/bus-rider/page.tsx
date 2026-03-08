@@ -108,6 +108,23 @@ export default function BusRiderPage() {
               <h2 className="text-2xl font-bold text-slate-900">What are you doing?</h2>
               <p className="text-slate-500 mt-1">Select your check-in mode</p>
             </div>
+
+            {/* GPS notice */}
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <div>
+                  <p className="text-sm font-semibold text-amber-800">GPS Tracking Will Be Enabled</p>
+                  <p className="text-xs text-amber-700 mt-0.5">
+                    When you select a mode, your phone&apos;s location will be shared so camp admin can track your bus in real time. Please keep this page open and allow location access when prompted.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-4">
               <button
                 onClick={() => setMode("arrival")}
@@ -657,6 +674,18 @@ function BusDepartureContent({
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 150);
 
+  // GPS tracker state
+  const [tracking, setTracking] = useState(false);
+  const [waypointCount, setWaypointCount] = useState(0);
+  const [lastSync, setLastSync] = useState<string | null>(null);
+  const [gpsError, setGpsError] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+
+  const watchIdRef = useRef<number | null>(null);
+  const bufferRef = useRef<WaypointData[]>([]);
+  const flushIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+
   const busId = `bus-${busNumber}`;
   const busLabel = BUSES.find((b) => b.id === busId)?.label || `Bus ${busNumber}`;
   const weekendParam = session.campWeekend ? `weekend=${encodeURIComponent(session.campWeekend)}` : "";
@@ -728,6 +757,143 @@ function BusDepartureContent({
     }
   };
 
+  // GPS tracking functions
+  const DEP_STORAGE_KEY = "ryla-bus-departure-queue";
+
+  function loadDepQueue(): WaypointData[] {
+    try {
+      const raw = localStorage.getItem(DEP_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveDepQueue(queue: WaypointData[]) {
+    localStorage.setItem(DEP_STORAGE_KEY, JSON.stringify(queue));
+  }
+
+  const flushWaypoints = useCallback(async () => {
+    const toSend = [...loadDepQueue(), ...bufferRef.current];
+    bufferRef.current = [];
+    saveDepQueue([]);
+
+    if (toSend.length === 0) return;
+    if (!navigator.onLine) {
+      saveDepQueue(toSend);
+      return;
+    }
+
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/bus-waypoints", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ waypoints: toSend }),
+      });
+      if (res.ok) {
+        setLastSync(new Date().toLocaleTimeString());
+      } else {
+        saveDepQueue(toSend);
+      }
+    } catch {
+      saveDepQueue(toSend);
+    } finally {
+      setSyncing(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function startTracking() {
+    if (!navigator.geolocation) {
+      setGpsError("Geolocation not supported");
+      return;
+    }
+    setGpsError(null);
+    setTracking(true);
+    setWaypointCount(0);
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const wp: WaypointData = {
+          busId,
+          busLabel,
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy ?? null,
+          heading: position.coords.heading ?? null,
+          speed: position.coords.speed ?? null,
+          campWeekend: session.campWeekend || undefined,
+          clientId: uuidv4(),
+          timestamp: new Date().toISOString(),
+        };
+        bufferRef.current.push(wp);
+        setWaypointCount((c) => c + 1);
+      },
+      (err) => setGpsError(`GPS Error: ${err.message}`),
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
+    );
+
+    flushIntervalRef.current = setInterval(flushWaypoints, BUS_TRACKER_INTERVAL_MS);
+  }
+
+  function stopTracking() {
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    if (flushIntervalRef.current) {
+      clearInterval(flushIntervalRef.current);
+      flushIntervalRef.current = null;
+    }
+    flushWaypoints();
+    setTracking(false);
+  }
+
+  async function requestWakeLock() {
+    try {
+      if ("wakeLock" in navigator) {
+        wakeLockRef.current = await navigator.wakeLock.request("screen");
+      }
+    } catch {
+      // Wake lock not supported or denied
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLockRef.current) {
+      wakeLockRef.current.release();
+      wakeLockRef.current = null;
+    }
+  }
+
+  // Re-acquire wake lock when page becomes visible again
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible" && tracking) {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [tracking]);
+
+  // Auto-start GPS tracking + wake lock
+  useEffect(() => {
+    startTracking();
+    requestWakeLock();
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+      if (flushIntervalRef.current) {
+        clearInterval(flushIntervalRef.current);
+      }
+      releaseWakeLock();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const filtered = debouncedSearch.length >= 1
     ? allCampers.filter((c) => {
         const term = debouncedSearch.toLowerCase();
@@ -750,6 +916,40 @@ function BusDepartureContent({
 
   return (
     <div className="p-4 space-y-4">
+      {/* GPS Status bar */}
+      <div className={`rounded-xl px-4 py-3 border ${tracking ? "bg-purple-50 border-purple-200" : "bg-slate-200 border-slate-200"}`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {tracking ? (
+              <span className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+            ) : (
+              <span className="w-2 h-2 bg-slate-300 rounded-full" />
+            )}
+            <span className="text-sm font-medium text-slate-700">
+              GPS {tracking ? "Active" : "Stopped"}
+            </span>
+            {waypointCount > 0 && (
+              <span className="text-xs text-slate-400">({waypointCount} pts)</span>
+            )}
+            {syncing && <span className="text-xs text-purple-600">Syncing...</span>}
+            {lastSync && !syncing && (
+              <span className="text-xs text-slate-400">Synced {lastSync}</span>
+            )}
+          </div>
+          <button
+            onClick={tracking ? stopTracking : startTracking}
+            className={`text-xs font-medium px-3 py-1 rounded-lg ${
+              tracking
+                ? "bg-red-100 text-red-700 hover:bg-red-200"
+                : "bg-purple-100 text-purple-700 hover:bg-purple-200"
+            }`}
+          >
+            {tracking ? "Stop" : "Start"}
+          </button>
+        </div>
+        {gpsError && <p className="text-xs text-red-600 mt-1">{gpsError}</p>}
+      </div>
+
       {/* Progress */}
       <div className="bg-white rounded-xl p-4 border border-slate-300">
         <div className="flex items-center justify-between mb-2">
