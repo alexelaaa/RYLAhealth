@@ -19,3 +19,22 @@ if [ ! -f "$DB_PATH" ]; then
 else
   echo "Database already exists at $DB_PATH"
 fi
+
+# Run migrations for any new tables
+echo "Running migrations..."
+sqlite3 "$DB_PATH" "CREATE TABLE IF NOT EXISTS inventory_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  item_name TEXT NOT NULL,
+  category TEXT,
+  quantity INTEGER NOT NULL,
+  size TEXT,
+  unit TEXT,
+  notes TEXT,
+  entered_by TEXT NOT NULL,
+  camp_weekend TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_inventory_weekend ON inventory_items(camp_weekend);
+CREATE INDEX IF NOT EXISTS idx_inventory_category ON inventory_items(category);"
+echo "Migrations complete."
