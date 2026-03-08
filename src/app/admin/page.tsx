@@ -79,6 +79,18 @@ const adminTools = [
     ),
   },
   {
+    href: "/inventory",
+    title: "Inventory",
+    description: "Track camp supplies and swag items",
+    color: "bg-blue-50 text-blue-700 border-blue-100 hover:border-blue-300",
+    iconColor: "text-blue-500",
+    icon: (
+      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+      </svg>
+    ),
+  },
+  {
     href: "/export",
     title: "Export Data",
     description: "Export campers, logs, and reports",

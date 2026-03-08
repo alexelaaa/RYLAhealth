@@ -18,6 +18,8 @@ export type {
   NewSmallGroupInfo,
   CabinCheckin,
   NewCabinCheckin,
+  InventoryItem,
+  NewInventoryItem,
 } from "@/db/schema";
 
 export type UserRole = "nurse" | "staff" | "admin" | "bussing" | "dgl" | "alumni";

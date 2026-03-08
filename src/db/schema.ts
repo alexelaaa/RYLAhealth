@@ -293,6 +293,31 @@ export const departureCheckins = sqliteTable(
   ]
 );
 
+export const inventoryItems = sqliteTable(
+  "inventory_items",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    itemName: text("item_name").notNull(),
+    category: text("category"),
+    quantity: integer("quantity").notNull(),
+    size: text("size"),
+    unit: text("unit"),
+    notes: text("notes"),
+    enteredBy: text("entered_by").notNull(),
+    campWeekend: text("camp_weekend"),
+    createdAt: text("created_at")
+      .notNull()
+      .$defaultFn(() => new Date().toISOString()),
+    updatedAt: text("updated_at")
+      .notNull()
+      .$defaultFn(() => new Date().toISOString()),
+  },
+  (table) => [
+    index("idx_inventory_weekend").on(table.campWeekend),
+    index("idx_inventory_category").on(table.category),
+  ]
+);
+
 export type DepartureCheckin = typeof departureCheckins.$inferSelect;
 export type NewDepartureCheckin = typeof departureCheckins.$inferInsert;
 
@@ -318,3 +343,5 @@ export type CabinCheckin = typeof cabinCheckins.$inferSelect;
 export type NewCabinCheckin = typeof cabinCheckins.$inferInsert;
 export type MedicationCheckin = typeof medicationCheckins.$inferSelect;
 export type NewMedicationCheckin = typeof medicationCheckins.$inferInsert;
+export type InventoryItem = typeof inventoryItems.$inferSelect;
+export type NewInventoryItem = typeof inventoryItems.$inferInsert;
