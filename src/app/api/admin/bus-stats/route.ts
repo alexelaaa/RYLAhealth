@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
     FROM campers c
     LEFT JOIN check_ins ci ON ci.camper_id = c.id
     WHERE c.bus_number IS NOT NULL AND c.bus_number != ''
+      AND c.no_show = 0 AND c.sent_home = 0
       ${weekend ? "AND c.camp_weekend = ?" : ""}
     GROUP BY c.bus_number
     ORDER BY CAST(c.bus_number AS INTEGER), c.bus_number
@@ -54,6 +55,7 @@ export async function GET(request: NextRequest) {
       FROM campers c
       LEFT JOIN check_ins ci ON ci.camper_id = c.id
       WHERE c.bus_number IS NOT NULL AND c.bus_number != ''
+        AND c.no_show = 0 AND c.sent_home = 0
         ${weekend ? "AND c.camp_weekend = ?" : ""}
       ORDER BY c.last_name, c.first_name
     `).all(...(weekend ? [weekend] : [])) as (CamperRow & { bus_number: string })[];
@@ -73,7 +75,6 @@ export async function GET(request: NextRequest) {
     }[]> = {};
 
     for (const c of campers as (typeof campers[0] & { sent_home: number })[]) {
-      if (c.sent_home) continue;
       if (!campersByBus[c.bus_number]) campersByBus[c.bus_number] = [];
       campersByBus[c.bus_number].push({
         id: c.id,

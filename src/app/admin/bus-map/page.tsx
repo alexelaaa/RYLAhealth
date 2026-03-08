@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import AppShell from "@/components/layout/AppShell";
 import { useCamp } from "@/lib/camp-context";
-import { BUSES, BUS_MAP_REFRESH_MS, BUS_ACTIVE_THRESHOLD_MIN, CAMP_LOCATION } from "@/lib/constants";
+import { BUSES, BUS_STOPS, BUS_MAP_REFRESH_MS, BUS_ACTIVE_THRESHOLD_MIN, CAMP_LOCATION } from "@/lib/constants";
 import { msToMph, haversineDistanceMiles, estimateEtaMinutes, formatEta } from "@/lib/geo-utils";
 import type { BusLocation } from "@/components/bus-map/BusMapView";
 
@@ -37,6 +37,13 @@ interface BusStat {
   arrived: number;
 }
 
+/** Get bus stops sorted by return time (earliest drop-off first for departure) */
+function getStopsForBus(busNum: string) {
+  return BUS_STOPS
+    .filter((s) => s.busNumber === busNum)
+    .sort((a, b) => a.returnTime.localeCompare(b.returnTime));
+}
+
 function BusMapContent() {
   const { campWeekend } = useCamp();
   const [buses, setBuses] = useState<BusLocation[]>([]);
@@ -45,6 +52,7 @@ function BusMapContent() {
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
   const [departureStats, setDepartureStats] = useState<Map<string, { checked: number; total: number }>>(new Map());
+  const [mode, setMode] = useState<"arrival" | "departure">("arrival");
 
   const fetchBuses = useCallback(async () => {
     const weekendParam = campWeekend ? `?weekend=${encodeURIComponent(campWeekend)}` : "";
@@ -53,7 +61,7 @@ function BusMapContent() {
         fetch("/api/bus-waypoints/latest"),
         fetch(`/api/admin/bus-stats${weekendParam}`),
         fetch(`/api/departure-checkins${weekendParam}`),
-        ...["1","2","3","4","5","6"].map(n => fetch(`/api/bus-status?bus=${n}`)),
+        ...["1","2","3","4","5"].map(n => fetch(`/api/bus-status?bus=${n}`)),
       ]);
       if (busRes.ok) {
         const data = await busRes.json();
@@ -118,6 +126,26 @@ function BusMapContent() {
         )}
       </div>
 
+      {/* Arrival / Departure toggle */}
+      <div className="flex rounded-xl overflow-hidden border border-slate-300">
+        <button
+          onClick={() => setMode("arrival")}
+          className={`flex-1 py-2 text-sm font-medium transition-colors ${
+            mode === "arrival" ? "bg-slate-800 text-white" : "bg-white text-slate-600 hover:bg-slate-50"
+          }`}
+        >
+          Arrival
+        </button>
+        <button
+          onClick={() => setMode("departure")}
+          className={`flex-1 py-2 text-sm font-medium transition-colors ${
+            mode === "departure" ? "bg-green-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50"
+          }`}
+        >
+          Departure
+        </button>
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700" />
@@ -144,13 +172,14 @@ function BusMapContent() {
             {activeBuses.length > 0 && (
               <div className="space-y-2">
                 {activeBuses.map((bus) => {
-                  const distMiles = haversineDistanceMiles(
+                  const busNum = bus.bus_id.replace("bus-", "");
+                  const stat = busStats.get(busNum);
+                  const stops = getStopsForBus(busNum);
+                  const distCamp = haversineDistanceMiles(
                     bus.latitude, bus.longitude,
                     CAMP_LOCATION.latitude, CAMP_LOCATION.longitude
                   );
-                  const eta = bus.speed != null ? estimateEtaMinutes(distMiles, bus.speed) : null;
-                  const busNum = bus.bus_id.replace("bus-", "");
-                  const stat = busStats.get(busNum);
+                  const etaCamp = bus.speed != null ? estimateEtaMinutes(distCamp, bus.speed) : null;
                   return (
                     <div
                       key={bus.bus_id}
@@ -181,9 +210,37 @@ function BusMapContent() {
                         Tracked by {bus.tracked_by}
                         {bus.speed != null && ` · ${Math.round(msToMph(bus.speed))} mph`}
                       </p>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        {distMiles.toFixed(1)} mi to camp · ETA {formatEta(eta)}
-                      </p>
+                      {mode === "arrival" ? (
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {distCamp.toFixed(1)} mi to camp · ETA {formatEta(etaCamp)}
+                        </p>
+                      ) : (
+                        <div className="mt-1.5 space-y-1">
+                          {stops.map((stop) => {
+                            const dist = haversineDistanceMiles(
+                              bus.latitude, bus.longitude,
+                              stop.latitude, stop.longitude
+                            );
+                            const eta = bus.speed != null ? estimateEtaMinutes(dist, bus.speed) : null;
+                            return (
+                              <div key={`${stop.busNumber}${stop.stop || ""}`} className="flex items-center justify-between bg-white/60 rounded-lg px-2 py-1">
+                                <span className="text-xs text-slate-700">
+                                  {stop.stop ? `Stop ${stop.stop}: ` : ""}{stop.location}
+                                  <span className="text-slate-400 ml-1">({stop.name})</span>
+                                </span>
+                                <span className="text-xs font-medium text-slate-600 whitespace-nowrap ml-2">
+                                  {dist.toFixed(1)} mi · {formatEta(eta)}
+                                </span>
+                              </div>
+                            );
+                          })}
+                          {stops.length > 0 && stops[0].returnTime && (
+                            <p className="text-[10px] text-slate-400 mt-0.5">
+                              Expected return: {stops.map((s) => `${s.stop ? s.stop + " " : ""}${s.returnTime}`).join(" · ")}
+                            </p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -193,12 +250,13 @@ function BusMapContent() {
             {inactiveBuses.length > 0 && (
               <div className="space-y-2">
                 {inactiveBuses.map((bus) => {
-                  const distMiles = haversineDistanceMiles(
+                  const busNum = bus.bus_id.replace("bus-", "");
+                  const stat = busStats.get(busNum);
+                  const stops = getStopsForBus(busNum);
+                  const distCamp = haversineDistanceMiles(
                     bus.latitude, bus.longitude,
                     CAMP_LOCATION.latitude, CAMP_LOCATION.longitude
                   );
-                  const busNum = bus.bus_id.replace("bus-", "");
-                  const stat = busStats.get(busNum);
                   return (
                     <div
                       key={bus.bus_id}
@@ -222,9 +280,30 @@ function BusMapContent() {
                           <span className="text-xs text-slate-400">{stat.assigned} assigned</span>
                         </div>
                       )}
-                      <p className="text-xs text-slate-400 mt-1">
-                        Tracked by {bus.tracked_by} · Inactive · {distMiles.toFixed(1)} mi to camp
-                      </p>
+                      {mode === "arrival" ? (
+                        <p className="text-xs text-slate-400 mt-1">
+                          Tracked by {bus.tracked_by} · Inactive · {distCamp.toFixed(1)} mi to camp
+                        </p>
+                      ) : (
+                        <>
+                          <p className="text-xs text-slate-400 mt-1">
+                            Tracked by {bus.tracked_by} · Inactive
+                          </p>
+                          <div className="mt-1 space-y-0.5">
+                            {stops.map((stop) => {
+                              const dist = haversineDistanceMiles(
+                                bus.latitude, bus.longitude,
+                                stop.latitude, stop.longitude
+                              );
+                              return (
+                                <p key={`${stop.busNumber}${stop.stop || ""}`} className="text-xs text-slate-400">
+                                  {stop.stop ? `Stop ${stop.stop}: ` : ""}{stop.location} — {dist.toFixed(1)} mi (return {stop.returnTime})
+                                </p>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
                     </div>
                   );
                 })}

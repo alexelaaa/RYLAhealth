@@ -32,6 +32,7 @@ function DepartureContent() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [search, setSearch] = useState("");
+  const [showRemainingOnly, setShowRemainingOnly] = useState(false);
   const [expandedBus, setExpandedBus] = useState<string | null>(null);
   const debouncedSearch = useDebounce(search, 200);
 
@@ -98,12 +99,19 @@ function DepartureContent() {
   };
 
   // Filter by search
-  const filtered = debouncedSearch.length >= 2
+  const searchFiltered = debouncedSearch.length >= 2
     ? campers.filter((c) => {
         const term = debouncedSearch.toLowerCase();
         return c.firstName.toLowerCase().includes(term) || c.lastName.toLowerCase().includes(term);
       })
     : campers;
+
+  // Filter to remaining only (not checked out)
+  const filtered = showRemainingOnly
+    ? searchFiltered.filter((c) => !checkedOut.has(c.id))
+    : searchFiltered;
+
+  const remainingCount = campers.filter((c) => !checkedOut.has(c.id)).length;
 
   // Group by bus number
   const busCampers = new Map<string, Camper[]>();
@@ -145,6 +153,30 @@ function DepartureContent() {
         </p>
       </div>
 
+      {/* Filter toggle */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setShowRemainingOnly(false)}
+          className={`flex-1 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+            !showRemainingOnly
+              ? "bg-slate-800 text-white"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}
+        >
+          All
+        </button>
+        <button
+          onClick={() => setShowRemainingOnly(true)}
+          className={`flex-1 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+            showRemainingOnly
+              ? "bg-green-600 text-white"
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+          }`}
+        >
+          Remaining ({remainingCount})
+        </button>
+      </div>
+
       {/* Search */}
       <div className="relative">
         <svg
@@ -173,7 +205,7 @@ function DepartureContent() {
           {sortedBuses.map((busNum) => {
             const busList = busCampers.get(busNum)!;
             const busChecked = busList.filter((c) => checkedOut.has(c.id)).length;
-            const isExpanded = expandedBus === busNum || debouncedSearch.length >= 2;
+            const isExpanded = expandedBus === busNum || debouncedSearch.length >= 2 || showRemainingOnly;
             const allDone = busChecked === busList.length;
 
             return (
