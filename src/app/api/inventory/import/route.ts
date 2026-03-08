@@ -71,7 +71,6 @@ export async function POST(request: Request) {
 
   const headers = Object.keys(records[0]);
   const enteredBy = session.label || "CSV Import";
-  const now = new Date().toISOString();
   let count = 0;
 
   // Check if this looks like the medical gear CSV format
