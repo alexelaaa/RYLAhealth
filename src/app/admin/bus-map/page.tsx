@@ -174,6 +174,7 @@ function BusMapContent() {
                 {activeBuses.map((bus) => {
                   const busNum = bus.bus_id.replace("bus-", "");
                   const stat = busStats.get(busNum);
+                  const dep = departureStats.get(busNum);
                   const stops = getStopsForBus(busNum);
                   const distCamp = haversineDistanceMiles(
                     bus.latitude, bus.longitude,
@@ -191,19 +192,29 @@ function BusMapContent() {
                           <span className="text-sm font-medium text-slate-900">
                             {bus.bus_label}
                           </span>
-                          {busComplete.has(busNum) && (
+                          {mode === "arrival" && busComplete.has(busNum) && (
                             <span className="text-xs bg-green-600 text-white px-1.5 py-0.5 rounded font-medium">Complete</span>
+                          )}
+                          {mode === "departure" && dep && dep.checked === dep.total && dep.total > 0 && (
+                            <span className="text-xs bg-green-600 text-white px-1.5 py-0.5 rounded font-medium">All Off</span>
                           )}
                         </div>
                         <span className="text-xs text-slate-500">
                           {new Date(bus.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
-                      {stat && (
+                      {mode === "arrival" && stat && (
                         <div className="flex items-center gap-3 mt-1.5">
                           <span className="text-xs font-medium text-green-700">{stat.checkedIn} on bus</span>
                           <span className="text-xs font-medium text-red-600">{stat.assigned - stat.checkedIn} absent</span>
                           <span className="text-xs text-slate-400">{stat.assigned} assigned</span>
+                        </div>
+                      )}
+                      {mode === "departure" && dep && (
+                        <div className="flex items-center gap-3 mt-1.5">
+                          <span className="text-xs font-medium text-green-700">{dep.checked} checked out</span>
+                          <span className="text-xs font-medium text-red-600">{dep.total - dep.checked} remaining</span>
+                          <span className="text-xs text-slate-400">{dep.total} total</span>
                         </div>
                       )}
                       <p className="text-xs text-slate-500 mt-1">
@@ -252,6 +263,7 @@ function BusMapContent() {
                 {inactiveBuses.map((bus) => {
                   const busNum = bus.bus_id.replace("bus-", "");
                   const stat = busStats.get(busNum);
+                  const dep = departureStats.get(busNum);
                   const stops = getStopsForBus(busNum);
                   const distCamp = haversineDistanceMiles(
                     bus.latitude, bus.longitude,
@@ -273,11 +285,18 @@ function BusMapContent() {
                           Last: {new Date(bus.timestamp).toLocaleTimeString()}
                         </span>
                       </div>
-                      {stat && (
+                      {mode === "arrival" && stat && (
                         <div className="flex items-center gap-3 mt-1">
                           <span className="text-xs font-medium text-slate-600">{stat.checkedIn} on bus</span>
                           <span className="text-xs font-medium text-red-500">{stat.assigned - stat.checkedIn} absent</span>
                           <span className="text-xs text-slate-400">{stat.assigned} assigned</span>
+                        </div>
+                      )}
+                      {mode === "departure" && dep && (
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-xs font-medium text-slate-600">{dep.checked} checked out</span>
+                          <span className="text-xs font-medium text-red-500">{dep.total - dep.checked} remaining</span>
+                          <span className="text-xs text-slate-400">{dep.total} total</span>
                         </div>
                       )}
                       {mode === "arrival" ? (
@@ -315,6 +334,7 @@ function BusMapContent() {
                 {neverReportedBuses.map((bus) => {
                   const busNum = bus.id.replace("bus-", "");
                   const stat = busStats.get(busNum);
+                  const dep = departureStats.get(busNum);
                   return (
                     <div
                       key={bus.id}
@@ -325,11 +345,18 @@ function BusMapContent() {
                         <span className="text-sm text-slate-400">{bus.label}</span>
                         <span className="text-xs text-slate-300">No data</span>
                       </div>
-                      {stat && (
+                      {mode === "arrival" && stat && (
                         <div className="flex items-center gap-3 mt-1">
                           <span className="text-xs font-medium text-slate-500">{stat.checkedIn} on bus</span>
                           <span className="text-xs font-medium text-red-500">{stat.assigned - stat.checkedIn} absent</span>
                           <span className="text-xs text-slate-400">{stat.assigned} assigned</span>
+                        </div>
+                      )}
+                      {mode === "departure" && dep && (
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-xs font-medium text-slate-500">{dep.checked} checked out</span>
+                          <span className="text-xs font-medium text-red-500">{dep.total - dep.checked} remaining</span>
+                          <span className="text-xs text-slate-400">{dep.total} total</span>
                         </div>
                       )}
                     </div>
